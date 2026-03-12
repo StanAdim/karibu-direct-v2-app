@@ -43,6 +43,8 @@ export default defineNuxtConfig({
     { path: '~/components/dashboard', prefix: '' },
     { path: '~/components/events', prefix: '' },
     { path: '~/components/sessions', prefix: '' },
+    { path: '~/components/public', prefix: '' },
+    { path: '~/components/auth', prefix: '' },
     { path: '~/components', pathPrefix: false }
   ],
 
@@ -59,10 +61,14 @@ export default defineNuxtConfig({
       meta: [
         { name: 'description', content: 'Enterprise-grade event management platform for organizers and attendees' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'theme-color', content: '#4285F4' }
+        { name: 'theme-color', content: '#8743f4' }
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap' }
       ]
     },
     pageTransition: { name: 'page', mode: 'out-in' },

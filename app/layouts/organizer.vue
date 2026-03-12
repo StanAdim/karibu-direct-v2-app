@@ -1,50 +1,21 @@
 <script setup lang="ts">
 import { getFullName } from '~/types'
 
+const config = useRuntimeConfig()
 const { user, logout } = useAuth()
 const route = useRoute()
 const isSidebarOpen = ref(true)
 const isMobileSidebarOpen = ref(false)
+const searchQuery = ref('')
 
 const navigationItems = [
-  {
-    label: 'Dashboard',
-    icon: 'i-lucide-layout-dashboard',
-    to: '/organizer'
-  },
-  {
-    label: 'Events',
-    icon: 'i-lucide-calendar',
-    to: '/organizer/events',
-    children: [
-      { label: 'All Events', to: '/organizer/events' },
-      { label: 'Create Event', to: '/organizer/events/create' }
-    ]
-  },
-  {
-    label: 'Sessions',
-    icon: 'i-lucide-presentation',
-    to: '/organizer/sessions',
-    children: [
-      { label: 'All Sessions', to: '/organizer/sessions' },
-      { label: 'Create Session', to: '/organizer/sessions/create' }
-    ]
-  },
-  {
-    label: 'Checkpoints',
-    icon: 'i-lucide-qr-code',
-    to: '/organizer/checkpoints'
-  },
-  {
-    label: 'Participants',
-    icon: 'i-lucide-users',
-    to: '/organizer/participants'
-  },
-  {
-    label: 'Analytics',
-    icon: 'i-lucide-bar-chart-3',
-    to: '/organizer/analytics'
-  }
+  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', to: '/organizer' },
+  { id: 'events', label: 'Events', icon: 'calendar_today', to: '/organizer/events' },
+  { id: 'sessions', label: 'Sessions', icon: 'schedule', to: '/organizer/sessions' },
+  { id: 'checkpoints', label: 'Checkpoints', icon: 'qr_code_scanner', to: '/organizer/checkpoints' },
+  { id: 'participants', label: 'Participants', icon: 'group', to: '/organizer/participants' },
+  { id: 'payments', label: 'Payments', icon: 'payments', to: '/organizer/payments' },
+  { id: 'settings', label: 'Settings', icon: 'settings', to: '/organizer/settings' }
 ]
 
 const userMenuItems = computed(() => [
@@ -83,15 +54,28 @@ function isActiveRoute(path: string): boolean {
 function closeMobileSidebar() {
   isMobileSidebarOpen.value = false
 }
+
+const pageTitle = computed(() => {
+  const currentItem = navigationItems.find(item => isActiveRoute(item.to))
+  return currentItem?.label || 'Overview'
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+  <div class="flex min-h-screen overflow-x-hidden bg-[var(--color-background-light)] dark:bg-[var(--color-background-dark)]">
+    <!-- Mobile menu button -->
+    <button
+      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700"
+      @click="isMobileSidebarOpen = !isMobileSidebarOpen"
+    >
+      <span class="material-symbols-outlined">{{ isMobileSidebarOpen ? 'close' : 'menu' }}</span>
+    </button>
+
     <!-- Mobile sidebar backdrop -->
     <Transition name="fade">
       <div
         v-if="isMobileSidebarOpen"
-        class="fixed inset-0 z-40 bg-gray-950/50 lg:hidden"
+        class="lg:hidden fixed inset-0 bg-black/50 z-40"
         @click="closeMobileSidebar"
       />
     </Transition>
@@ -99,163 +83,145 @@ function closeMobileSidebar() {
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed left-0 top-0 z-50 h-full border-r border-gray-200 bg-white transition-all duration-300 dark:border-gray-800 dark:bg-gray-900',
+        'fixed lg:static flex-shrink-0 border-r border-primary-500/10 bg-white dark:bg-slate-900 flex flex-col h-full z-40 transition-all duration-300 lg:translate-x-0',
         isSidebarOpen ? 'w-64' : 'w-20',
-        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
     >
-      <!-- Logo -->
-      <div class="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-800">
-        <NuxtLink
-          to="/organizer"
-          class="flex items-center gap-3"
-        >
-          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-500 text-white">
-            <UIcon
-              name="i-lucide-calendar-check"
-              class="h-5 w-5"
-            />
+      <!-- Brand -->
+      <div class="p-6 flex items-center gap-3">
+        <NuxtLink to="/organizer" class="flex items-center gap-3">
+          <div class="size-10 bg-primary-500 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+            <span class="material-symbols-outlined">event_seat</span>
           </div>
-          <span
-            v-if="isSidebarOpen"
-            class="text-lg font-bold text-gray-900 dark:text-white"
-          >
-            Organizer
-          </span>
+          <div v-if="isSidebarOpen" class="overflow-hidden">
+            <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</h1>
+            <p class="text-xs text-primary-500 font-semibold uppercase tracking-wider">Organizer</p>
+          </div>
         </NuxtLink>
-        <UButton
-          v-if="isSidebarOpen"
-          color="neutral"
-          variant="ghost"
-          icon="i-lucide-panel-left-close"
-          size="sm"
-          class="hidden lg:flex"
-          @click="isSidebarOpen = false"
-        />
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 space-y-1 overflow-y-auto p-4">
-        <template
+      <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+        <NuxtLink
           v-for="item in navigationItems"
-          :key="item.to"
+          :key="item.id"
+          :to="item.to"
+          :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors',
+            isActiveRoute(item.to)
+              ? 'bg-primary-500/10 text-primary-500 font-medium'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+          ]"
+          :title="!isSidebarOpen ? item.label : undefined"
+          @click="closeMobileSidebar"
         >
-          <NuxtLink
-            :to="item.to"
-            :class="[
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-              isActiveRoute(item.to)
-                ? 'bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-400'
-                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
-            ]"
-            @click="closeMobileSidebar"
-          >
-            <UIcon
-              :name="item.icon"
-              class="h-5 w-5 shrink-0"
-            />
-            <span v-if="isSidebarOpen">{{ item.label }}</span>
-          </NuxtLink>
-
-          <!-- Sub-navigation -->
-          <div
-            v-if="item.children && isSidebarOpen && isActiveRoute(item.to)"
-            class="ml-8 mt-1 space-y-1"
-          >
-            <NuxtLink
-              v-for="child in item.children"
-              :key="child.to"
-              :to="child.to"
-              :class="[
-                'block rounded-lg px-3 py-2 text-sm transition-colors',
-                route.path === child.to
-                  ? 'text-primary-600 dark:text-primary-400'
-                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-              ]"
-              @click="closeMobileSidebar"
-            >
-              {{ child.label }}
-            </NuxtLink>
-          </div>
-        </template>
+          <span class="material-symbols-outlined">{{ item.icon }}</span>
+          <span v-if="isSidebarOpen" class="font-medium text-sm">{{ item.label }}</span>
+        </NuxtLink>
       </nav>
 
-      <!-- Expand button -->
-      <div
-        v-if="!isSidebarOpen"
-        class="hidden border-t border-gray-200 p-4 dark:border-gray-800 lg:block"
-      >
-        <UButton
-          color="neutral"
-          variant="ghost"
-          icon="i-lucide-panel-left-open"
-          size="sm"
-          @click="isSidebarOpen = true"
-        />
+      <!-- Collapse/Expand Button -->
+      <div class="hidden lg:block p-4 border-t border-slate-100 dark:border-slate-800">
+        <button
+          class="flex items-center justify-center w-full p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          @click="isSidebarOpen = !isSidebarOpen"
+        >
+          <span class="material-symbols-outlined">{{ isSidebarOpen ? 'chevron_left' : 'chevron_right' }}</span>
+        </button>
+      </div>
+
+      <!-- User Card -->
+      <div v-if="user && isSidebarOpen" class="p-4">
+        <div class="bg-primary-500/5 rounded-xl p-4 border border-primary-500/10">
+          <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase">Organizer Portal</p>
+          <div class="flex items-center gap-3">
+            <UAvatar
+              v-if="user.avatar"
+              :src="user.avatar"
+              :alt="getFullName(user)"
+              size="sm"
+            />
+            <div v-else class="size-10 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-500">
+              <span class="material-symbols-outlined">business</span>
+            </div>
+            <div class="overflow-hidden">
+              <p class="text-sm font-bold truncate text-slate-900 dark:text-white">{{ getFullName(user) }}</p>
+              <p class="text-xs text-slate-500 truncate">{{ user.role || 'Organizer' }}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
 
     <!-- Main content -->
-    <div
-      :class="[
-        'transition-all duration-300',
-        isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'
-      ]"
-    >
+    <main class="flex-1 flex flex-col min-w-0">
       <!-- Header -->
-      <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/80">
-        <div class="flex h-16 items-center justify-between px-4 sm:px-6">
-          <div class="flex items-center gap-4">
+      <header class="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-primary-500/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
+        <div class="flex items-center gap-4 flex-1 ml-12 lg:ml-0">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ pageTitle }}</h2>
+
+          <!-- Search -->
+          <div class="max-w-md w-full ml-4 relative hidden md:block">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search events or attendees..."
+              class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Notifications -->
+          <button class="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative">
+            <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+            <span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800" />
+          </button>
+
+          <!-- Create Event Button -->
+          <NuxtLink
+            to="/organizer/events/create"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+          >
+            <span class="material-symbols-outlined text-sm">add</span>
+            <span class="hidden sm:inline">Create Event</span>
+          </NuxtLink>
+
+          <!-- User Menu -->
+          <UDropdownMenu :items="userMenuItems">
             <UButton
               color="neutral"
               variant="ghost"
-              icon="i-lucide-menu"
-              class="lg:hidden"
-              @click="isMobileSidebarOpen = true"
-            />
-          </div>
-
-          <div class="flex items-center gap-4">
-            <UButton
-              to="/organizer/events/create"
-              icon="i-lucide-plus"
-              size="sm"
+              class="gap-2"
             >
-              <span class="hidden sm:inline">New Event</span>
+              <UAvatar
+                :alt="user ? getFullName(user) : 'Organizer'"
+                :src="user?.avatar"
+                size="xs"
+              />
+              <UIcon
+                name="i-lucide-chevron-down"
+                class="h-4 w-4"
+              />
             </UButton>
-
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-bell"
-            />
-
-            <UDropdownMenu :items="userMenuItems">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                class="gap-2"
-              >
-                <UAvatar
-                  :alt="user ? getFullName(user) : 'Organizer'"
-                  :src="user?.avatar"
-                  size="xs"
-                />
-                <span class="hidden sm:inline">{{ user ? getFullName(user) : 'Organizer' }}</span>
-                <UIcon
-                  name="i-lucide-chevron-down"
-                  class="h-4 w-4"
-                />
-              </UButton>
-            </UDropdownMenu>
-          </div>
+          </UDropdownMenu>
         </div>
       </header>
 
       <!-- Page content -->
-      <main class="min-h-[calc(100vh-4rem)] p-4 sm:p-6 lg:p-8">
+      <div class="p-4 lg:p-8 space-y-8 flex-1">
         <slot />
-      </main>
-    </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="mt-auto p-4 lg:p-8 border-t border-slate-100 dark:border-slate-800 text-center">
+        <p class="text-xs text-slate-400 font-medium">
+          &copy; {{ new Date().getFullYear() }} {{ config.public.appName }}. Built for professional organizers.
+          <a href="#" class="text-primary-500 ml-1 underline underline-offset-2">Terms & Support</a>
+        </p>
+      </footer>
+    </main>
   </div>
 </template>

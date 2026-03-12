@@ -7,10 +7,12 @@ definePageMeta({
 })
 
 const { login, loading } = useAuth()
+const router = useRouter()
 
-const credentials = reactive<LoginCredentials>({
+const form = reactive({
   email: '',
-  password: ''
+  password: '',
+  rememberMe: false
 })
 
 const errors = reactive({
@@ -19,22 +21,23 @@ const errors = reactive({
 })
 
 const showPassword = ref(false)
+const socialLoading = ref<string | null>(null)
 
 function validateForm(): boolean {
   errors.email = ''
   errors.password = ''
 
-  if (!credentials.email) {
+  if (!form.email) {
     errors.email = 'Email is required'
   }
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email)) {
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     errors.email = 'Please enter a valid email'
   }
 
-  if (!credentials.password) {
+  if (!form.password) {
     errors.password = 'Password is required'
   }
-  else if (credentials.password.length < 6) {
+  else if (form.password.length < 6) {
     errors.password = 'Password must be at least 6 characters'
   }
 
@@ -45,114 +48,152 @@ async function handleSubmit() {
   if (!validateForm()) return
 
   try {
+    const credentials: LoginCredentials = {
+      email: form.email,
+      password: form.password
+    }
     await login(credentials)
   }
   catch {
-    credentials.password = ''
+    form.password = ''
+  }
+}
+
+async function handleSocialLogin(provider: string) {
+  socialLoading.value = provider
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    router.push('/attendee')
+  }
+  finally {
+    socialLoading.value = null
   }
 }
 </script>
 
 <template>
   <div>
-    <div class="mb-6 text-center">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-        Welcome back
-      </h1>
-      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        Sign in to your account to continue
-      </p>
+    <!-- Header -->
+    <div class="mb-10 text-center lg:text-left">
+      <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Welcome Back</h2>
+      <p class="text-slate-500 dark:text-slate-400">Please enter your details to sign in.</p>
     </div>
 
-    <form
-      class="space-y-5"
-      @submit.prevent="handleSubmit"
-    >
-      <AppInput
-        v-model="credentials.email"
-        type="email"
-        label="Email"
-        placeholder="you@example.com"
-        icon="i-lucide-mail"
-        autocomplete="email"
-        required
-        :error="errors.email"
+    <!-- Social Login Buttons -->
+    <div class="grid grid-cols-2 gap-4 mb-8">
+      <SocialLoginButton
+        provider="google"
+        :loading="socialLoading === 'google'"
+        @click="handleSocialLogin('google')"
       />
+      <SocialLoginButton
+        provider="facebook"
+        :loading="socialLoading === 'facebook'"
+        @click="handleSocialLogin('facebook')"
+      />
+    </div>
 
-      <div class="relative">
-        <AppInput
-          v-model="credentials.password"
-          :type="showPassword ? 'text' : 'password'"
-          label="Password"
-          placeholder="Enter your password"
-          icon="i-lucide-lock"
-          autocomplete="current-password"
-          required
-          :error="errors.password"
-        />
-        <button
-          type="button"
-          class="absolute right-3 top-9 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          @click="showPassword = !showPassword"
-        >
-          <UIcon
-            :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-            class="size-5"
-          />
-        </button>
+    <!-- Divider -->
+    <div class="relative mb-8">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-slate-200 dark:border-slate-800" />
       </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="px-4 bg-white dark:bg-[var(--color-background-dark)] text-slate-500">Or sign in with email</span>
+      </div>
+    </div>
 
-      <div class="flex items-center justify-between">
-        <label class="flex items-center gap-2">
-          <UCheckbox />
-          <span class="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+    <!-- Login Form -->
+    <form class="space-y-6" @submit.prevent="handleSubmit">
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="email">
+          Email or Phone
         </label>
-        <NuxtLink
-          to="/forgot-password"
-          class="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
-        >
-          Forgot password?
-        </NuxtLink>
+        <input
+          id="email"
+          v-model="form.email"
+          type="text"
+          placeholder="name@example.com"
+          class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none placeholder:text-slate-400"
+          :class="errors.email && 'border-red-500 focus:ring-red-500'"
+        />
+        <p v-if="errors.email" class="mt-2 text-sm text-red-500">{{ errors.email }}</p>
       </div>
 
-      <AppButton
+      <!-- Password -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="password">
+            Password
+          </label>
+          <NuxtLink
+            to="/forgot-password"
+            class="text-sm font-semibold text-primary-500 hover:text-primary-500/80 transition-colors"
+          >
+            Forgot password?
+          </NuxtLink>
+        </div>
+        <div class="relative">
+          <input
+            id="password"
+            v-model="form.password"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="••••••••"
+            class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none placeholder:text-slate-400"
+            :class="errors.password && 'border-red-500 focus:ring-red-500'"
+          />
+          <button
+            type="button"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            @click="showPassword = !showPassword"
+          >
+            <span class="material-symbols-outlined text-lg">
+              {{ showPassword ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        <p v-if="errors.password" class="mt-2 text-sm text-red-500">{{ errors.password }}</p>
+      </div>
+
+      <!-- Remember Me -->
+      <div class="flex items-center">
+        <input
+          id="remember"
+          v-model="form.rememberMe"
+          type="checkbox"
+          class="size-4 text-primary-500 border-slate-300 dark:border-slate-700 rounded focus:ring-primary-500"
+        />
+        <label class="ml-2 block text-sm text-slate-700 dark:text-slate-300" for="remember">
+          Remember me for 30 days
+        </label>
+      </div>
+
+      <!-- Submit Button -->
+      <button
         type="submit"
-        block
-        :loading="loading"
-        size="lg"
+        :disabled="loading"
+        class="w-full bg-primary-500 text-white py-4 rounded-xl font-bold text-base shadow-lg shadow-primary-500/20 hover:bg-primary-500/90 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        Sign in
-      </AppButton>
+        {{ loading ? 'Signing In...' : 'Sign In' }}
+      </button>
     </form>
 
-    <div class="mt-6">
-      <div class="relative">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-200 dark:border-gray-700" />
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="bg-white px-2 text-gray-500 dark:bg-gray-950 dark:text-gray-400">
-            Don't have an account?
-          </span>
-        </div>
-      </div>
+    <!-- Sign Up Link -->
+    <p class="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+      Don't have an account?
+      <NuxtLink
+        to="/register"
+        class="font-bold text-primary-500 hover:text-primary-500/80 transition-colors"
+      >
+        Sign up for free
+      </NuxtLink>
+    </p>
 
-      <div class="mt-6">
-        <NuxtLink to="/register">
-          <AppButton
-            variant="outline"
-            color="neutral"
-            block
-          >
-            Create an account
-          </AppButton>
-        </NuxtLink>
-      </div>
-    </div>
-
-    <div class="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
-      <p class="text-sm text-blue-800 dark:text-blue-200">
-        <strong>Demo credentials:</strong><br>
+    <!-- Demo Credentials -->
+    <div class="mt-6 rounded-xl border border-primary-500/20 bg-primary-500/5 p-4">
+      <p class="text-sm text-slate-600 dark:text-slate-400">
+        <strong class="text-primary-500">Demo credentials:</strong><br>
         Email: demo@example.com<br>
         Password: password123
       </p>
