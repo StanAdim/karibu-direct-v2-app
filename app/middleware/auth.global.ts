@@ -1,6 +1,6 @@
 import { getAuthCookie, isTokenExpired } from '~/utils/jwt'
 
-const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password']
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/events']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   if (import.meta.server) return
@@ -9,10 +9,21 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const token = getAuthCookie()
 
   const isPublicRoute = PUBLIC_ROUTES.some(route =>
-    to.path === route || to.path.startsWith(`${route}/`)
+    to.path === route || (route !== '/' && to.path.startsWith(`${route}/`))
   )
 
+  const isLandingPage = to.path === '/'
+
   if (isPublicRoute) {
+    if (token && !isTokenExpired(token) && !authStore.user) {
+      await authStore.fetchUser()
+    }
+
+    if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
+      const redirectPath = getDefaultRouteForRole(authStore.user?.role)
+      return navigateTo(redirectPath, { replace: true })
+    }
+
     return
   }
 
@@ -28,3 +39,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/login', { replace: true })
   }
 })
+
+function getDefaultRouteForRole(role?: string): string {
+  switch (role) {
+    case 'admin':
+      return '/admin'
+    case 'organizer':
+      return '/organizer'
+    case 'attendee':
+      return '/attendee'
+    default:
+      return '/'
+  }
+}

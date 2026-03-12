@@ -1,10 +1,15 @@
-import type { LoginCredentials, User } from '~/types'
+import type { LoginCredentials, RegisterCredentials, User, UserRole } from '~/types'
 
 interface UseAuthReturn {
   user: ComputedRef<User | null>
   isAuthenticated: ComputedRef<boolean>
   loading: ComputedRef<boolean>
+  isAdmin: ComputedRef<boolean>
+  isOrganizer: ComputedRef<boolean>
+  isAttendee: ComputedRef<boolean>
+  hasRole: (roles: UserRole[]) => boolean
   login: (credentials: LoginCredentials) => Promise<void>
+  register: (credentials: RegisterCredentials) => Promise<void>
   logout: () => void
   fetchUser: () => Promise<User | null>
 }
@@ -16,6 +21,13 @@ export function useAuth(): UseAuthReturn {
   const user = computed(() => authStore.currentUser)
   const isAuthenticated = computed(() => authStore.isAuthenticated)
   const loading = computed(() => authStore.loading)
+  const isAdmin = computed(() => authStore.isAdmin)
+  const isOrganizer = computed(() => authStore.isOrganizer)
+  const isAttendee = computed(() => authStore.isAttendee)
+
+  function hasRole(roles: UserRole[]): boolean {
+    return authStore.hasRole(roles)
+  }
 
   async function login(credentials: LoginCredentials): Promise<void> {
     try {
@@ -27,13 +39,38 @@ export function useAuth(): UseAuthReturn {
         color: 'success'
       })
 
-      await navigateTo('/dashboard')
+      const redirectPath = authStore.getDefaultRoute()
+      await navigateTo(redirectPath)
     }
     catch (error: unknown) {
-      const fetchError = error as { message?: string }
+      const fetchError = error as { message?: string; data?: { message?: string } }
       toast.add({
         title: 'Login Failed',
-        description: fetchError.message || 'Invalid credentials',
+        description: fetchError.data?.message || fetchError.message || 'Invalid credentials',
+        color: 'error'
+      })
+      throw error
+    }
+  }
+
+  async function register(credentials: RegisterCredentials): Promise<void> {
+    try {
+      await authStore.register(credentials)
+
+      toast.add({
+        title: 'Welcome!',
+        description: 'Your account has been created successfully.',
+        color: 'success'
+      })
+
+      const redirectPath = authStore.getDefaultRoute()
+      await navigateTo(redirectPath)
+    }
+    catch (error: unknown) {
+      const fetchError = error as { message?: string; data?: { message?: string } }
+      toast.add({
+        title: 'Registration Failed',
+        description: fetchError.data?.message || fetchError.message || 'Unable to create account',
         color: 'error'
       })
       throw error
@@ -57,7 +94,12 @@ export function useAuth(): UseAuthReturn {
     user,
     isAuthenticated,
     loading,
+    isAdmin,
+    isOrganizer,
+    isAttendee,
+    hasRole,
     login,
+    register,
     logout,
     fetchUser
   }

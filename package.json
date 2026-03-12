@@ -1,5 +1,5 @@
 {
-  "name": "app",
+  "name": "eventhub",
   "type": "module",
   "private": true,
   "scripts": {
@@ -7,7 +7,10 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "@artmizu/nuxt-prometheus": "3.0.0",
@@ -19,9 +22,15 @@
     "@nuxt/ui": "4.5.1",
     "@nuxtjs/device": "4.0.0",
     "@pinia/nuxt": "^0.11.0",
+    "@vueuse/nuxt": "^12.0.0",
     "pinia": "^3.0.3",
     "nuxt": "^4.3.1",
     "vue": "^3.5.30",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "date-fns": "^4.1.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
   }
 }

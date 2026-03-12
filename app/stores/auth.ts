@@ -1,12 +1,21 @@
 import { defineStore } from 'pinia'
-import type { AuthState, LoginCredentials, LoginResponse, User } from '~/types'
+import type {
+  AuthState,
+  LoginCredentials,
+  LoginResponse,
+  RegisterCredentials,
+  RegisterResponse,
+  User,
+  UserRole
+} from '~/types'
 import { getAuthCookie, isTokenExpired, removeAuthCookie, setAuthCookie } from '~/utils/jwt'
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     user: null,
     token: null,
-    loading: false
+    loading: false,
+    initialized: false
   }),
 
   getters: {
@@ -17,7 +26,18 @@ export const useAuthStore = defineStore('auth', {
 
     currentUser: (state): User | null => state.user,
 
-    userRole: (state): string | null => state.user?.role ?? null
+    userRole: (state): UserRole | null => state.user?.role ?? null,
+
+    isAdmin: (state): boolean => state.user?.role === 'admin',
+
+    isOrganizer: (state): boolean => state.user?.role === 'organizer',
+
+    isAttendee: (state): boolean => state.user?.role === 'attendee',
+
+    hasRole: (state) => (roles: UserRole[]): boolean => {
+      if (!state.user?.role) return false
+      return roles.includes(state.user.role)
+    }
   },
 
   actions: {
@@ -26,9 +46,37 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const config = useRuntimeConfig()
-        const response = await $fetch<LoginResponse>(`${config.public.apiBase}/login`, {
+        const response = await $fetch<LoginResponse>(`${config.public.apiBase}/auth/login`, {
           method: 'POST',
           body: credentials
+        })
+
+        this.token = response.token
+        this.user = response.user
+        setAuthCookie(response.token)
+
+        return response
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    async register(credentials: RegisterCredentials): Promise<RegisterResponse> {
+      this.loading = true
+
+      try {
+        const config = useRuntimeConfig()
+        const response = await $fetch<RegisterResponse>(`${config.public.apiBase}/auth/register`, {
+          method: 'POST',
+          body: {
+            email: credentials.email,
+            password: credentials.password,
+            firstName: credentials.firstName,
+            lastName: credentials.lastName,
+            phone: credentials.phone,
+            role: credentials.role || 'attendee'
+          }
         })
 
         this.token = response.token
@@ -45,7 +93,7 @@ export const useAuthStore = defineStore('auth', {
     async fetchUser(): Promise<User | null> {
       const token = this.token || getAuthCookie()
       if (!token || isTokenExpired(token)) {
-        this.logout()
+        this.clearAuth()
         return null
       }
 
@@ -54,7 +102,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const config = useRuntimeConfig()
-        const user = await $fetch<User>(`${config.public.apiBase}/me`, {
+        const user = await $fetch<User>(`${config.public.apiBase}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -64,7 +112,7 @@ export const useAuthStore = defineStore('auth', {
         return user
       }
       catch {
-        this.logout()
+        this.clearAuth()
         return null
       }
       finally {
@@ -73,18 +121,26 @@ export const useAuthStore = defineStore('auth', {
     },
 
     logout(): void {
-      this.user = null
-      this.token = null
-      removeAuthCookie()
+      this.clearAuth()
       navigateTo('/login')
     },
 
+    clearAuth(): void {
+      this.user = null
+      this.token = null
+      removeAuthCookie()
+    },
+
     async initAuth(): Promise<void> {
+      if (this.initialized) return
+
       const token = getAuthCookie()
       if (token && !isTokenExpired(token)) {
         this.token = token
         await this.fetchUser()
       }
+
+      this.initialized = true
     },
 
     setToken(token: string): void {
@@ -94,6 +150,19 @@ export const useAuthStore = defineStore('auth', {
 
     setUser(user: User): void {
       this.user = user
+    },
+
+    getDefaultRoute(): string {
+      switch (this.user?.role) {
+        case 'admin':
+          return '/admin'
+        case 'organizer':
+          return '/organizer'
+        case 'attendee':
+          return '/attendee'
+        default:
+          return '/'
+      }
     }
   }
 })
