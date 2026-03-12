@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@artmizu/nuxt-prometheus": "3.0.0",
+    "@bubblesortt/nuxt-es-toolkit": "1.0.10",
+    "@coremyslo/nuxt-icon-font": "1.2.0",
+    "@morev/vue-transitions": "3.0.5",
+    "@nuxt/eslint": "1.15.2",
+    "@nuxt/image": "2.0.0",
+    "@nuxt/ui": "4.5.1",
+    "@nuxtjs/device": "4.0.0",
+    "@pinia/nuxt": "^0.11.0",
+    "pinia": "^3.0.3",
+    "nuxt": "^4.3.1",
+    "vue": "^3.5.30",
+    "vue-router": "^4.6.4"
+  }
+}
