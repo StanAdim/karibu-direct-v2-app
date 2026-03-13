@@ -58,13 +58,12 @@ export function useAuth(): UseAuthReturn {
       await authStore.register(credentials)
 
       toast.add({
-        title: 'Welcome!',
-        description: 'Your account has been created successfully.',
+        title: 'Account created',
+        description: 'Your account has been created successfully. Please log in to continue.',
         color: 'success'
       })
 
-      const redirectPath = authStore.getDefaultRoute()
-      await navigateTo(redirectPath)
+      await navigateTo('/login')
     }
     catch (error: unknown) {
       const fetchError = error as { message?: string; data?: { message?: string } }

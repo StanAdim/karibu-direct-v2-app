@@ -6,6 +6,8 @@ definePageMeta({
   middleware: 'guest'
 })
 
+import AppModal from '~/components/common/AppModal.vue'
+
 const { login, loading } = useAuth()
 const router = useRouter()
 
@@ -19,6 +21,19 @@ const errors = reactive({
   email: '',
   password: ''
 })
+
+const forgotPasswordOpen = ref(false)
+const resetStep = ref<1 | 2>(1)
+
+const resetForm = reactive({
+  email: ''
+})
+
+const resetErrors = reactive({
+  email: ''
+})
+
+const resetLoading = ref(false)
 
 const showPassword = ref(false)
 const socialLoading = ref<string | null>(null)
@@ -42,6 +57,45 @@ function validateForm(): boolean {
   }
 
   return !errors.email && !errors.password
+}
+
+function validateResetForm(): boolean {
+  resetErrors.email = ''
+
+  if (!resetForm.email) {
+    resetErrors.email = 'Email is required'
+  }
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetForm.email)) {
+    resetErrors.email = 'Please enter a valid email'
+  }
+
+  return !resetErrors.email
+}
+
+function openForgotPassword() {
+  resetStep.value = 1
+  resetForm.email = form.email || ''
+  resetErrors.email = ''
+  forgotPasswordOpen.value = true
+}
+
+function closeForgotPassword() {
+  forgotPasswordOpen.value = false
+  resetLoading.value = false
+}
+
+async function handleResetSubmit() {
+  if (!validateResetForm() || resetLoading.value) return
+
+  resetLoading.value = true
+
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1200))
+    resetStep.value = 2
+  }
+  finally {
+    resetLoading.value = false
+  }
 }
 
 async function handleSubmit() {
@@ -120,12 +174,13 @@ async function handleSocialLogin(provider: string) {
           <span class="block text-sm font-medium text-slate-700 dark:text-slate-300">
             Password
           </span>
-          <NuxtLink
-            to="/forgot-password"
+          <button
+            type="button"
             class="text-sm font-semibold text-primary-500 hover:text-primary-500/80 transition-colors"
+            @click="openForgotPassword"
           >
             Forgot password?
-          </NuxtLink>
+          </button>
         </div>
         <div class="relative">
           <AppInput
@@ -191,5 +246,116 @@ async function handleSocialLogin(provider: string) {
         Password: password123
       </p>
     </div>
+
+    <AppModal
+      v-model="forgotPasswordOpen"
+      max-width="xl"
+    >
+      <div
+        v-if="resetStep === 1"
+        class="space-y-8"
+      >
+        <div class="mx-auto flex max-w-md flex-col items-center text-center">
+          <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-500 shadow-sm dark:bg-primary-500/10">
+            <span class="material-symbols-outlined text-3xl">
+              lock_reset
+            </span>
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            Reset your password
+          </h2>
+          <p class="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            Enter the email address associated with your account and we&apos;ll send you a link to reset your password.
+          </p>
+        </div>
+
+        <form
+          class="mx-auto flex max-w-md flex-col gap-4"
+          @submit.prevent="handleResetSubmit"
+        >
+          <AppInput
+            v-model="resetForm.email"
+            type="email"
+            label="Email Address"
+            placeholder="name@company.com"
+            icon="i-lucide-mail"
+            autocomplete="email"
+            :error="resetErrors.email"
+            required
+          />
+
+          <button
+            type="submit"
+            :disabled="resetLoading"
+            class="mt-2 w-full rounded-xl bg-primary-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary-500/30 transition-all hover:bg-primary-500/90 hover:shadow-primary-500/40 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {{ resetLoading ? 'Sending link...' : 'Send Reset Link' }}
+          </button>
+
+          <button
+            type="button"
+            class="mt-1 text-sm font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            @click="closeForgotPassword"
+          >
+            &lt; Back to sign in
+          </button>
+        </form>
+      </div>
+
+      <div
+        v-else
+        class="space-y-8"
+      >
+        <div class="mx-auto flex max-w-md flex-col items-center text-center">
+          <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 shadow-sm dark:bg-emerald-500/10">
+            <span class="material-symbols-outlined text-3xl">
+              mark_email_unread
+            </span>
+          </div>
+
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-500">
+            Step 2 of 2
+          </p>
+
+          <h2 class="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+            Check your email
+          </h2>
+          <p class="mt-3 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            We&apos;ve sent a password reset link to
+            <span class="font-semibold text-slate-700 dark:text-slate-200">{{ resetForm.email || 'your email address' }}</span>.
+            Please check your inbox and follow the instructions.
+          </p>
+
+          <p class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+            Didn&apos;t receive the email?
+            <button
+              type="button"
+              class="font-semibold text-primary-500 hover:text-primary-500/80"
+              @click="handleResetSubmit"
+            >
+              Resend link
+            </button>
+          </p>
+        </div>
+
+        <div class="mx-auto flex max-w-md flex-col gap-3">
+          <button
+            type="button"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            @click="closeForgotPassword"
+          >
+            Open Mail App
+          </button>
+
+          <button
+            type="button"
+            class="text-xs text-slate-500 underline-offset-2 hover:underline dark:text-slate-400"
+            @click="closeForgotPassword"
+          >
+            Back to sign in
+          </button>
+        </div>
+      </div>
+    </AppModal>
   </div>
 </template>

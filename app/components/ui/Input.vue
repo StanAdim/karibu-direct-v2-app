@@ -76,7 +76,7 @@ function onInput(event: Event) {
         :max="max"
         :step="step"
         :class="[
-          'w-full h-12 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-all outline-none',
+          'w-full h-12 rounded-xl border border-slate-400  bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-all outline-none',
           'focus:ring-2 focus:border-transparent',
           error
             ? 'border-red-500 focus:ring-red-500'

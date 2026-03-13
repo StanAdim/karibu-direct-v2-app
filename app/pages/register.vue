@@ -186,11 +186,12 @@ async function handleSocialSignup(provider: string) {
 
       <!-- Terms -->
       <div>
-        <label class="flex items-start gap-2">
-          <UCheckbox
+        <label class="flex items-start gap-2 cursor-pointer">
+          <input
             v-model="acceptTerms"
-            class="mt-0.5"
-          />
+            type="checkbox"
+            class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 dark:border-slate-600 dark:bg-slate-800"
+          >
           <span class="text-sm text-gray-600 dark:text-gray-400">
             I agree to the
             <NuxtLink

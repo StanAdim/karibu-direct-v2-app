@@ -64,10 +64,6 @@ export const useAuthStore = defineStore('auth', () => {
         role: credentials.role || 'attendee'
       })
 
-      token.value = response.token
-      user.value = response.user
-      setAuthCookie(response.token)
-
       return response
     }
     finally {
