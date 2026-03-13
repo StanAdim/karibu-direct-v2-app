@@ -43,15 +43,15 @@ export const useUsersStore = defineStore('users', () => {
 
   // Getters
   const admins = computed<User[]>(() => {
-    return users.value.filter(user => user.role === 'admin')
+    return users.value.filter(user => user.roles?.includes('Admin'))
   })
 
   const organizers = computed<User[]>(() => {
-    return users.value.filter(user => user.role === 'organizer')
+    return users.value.filter(user => user.roles?.includes('Organizer'))
   })
 
   const attendees = computed<User[]>(() => {
-    return users.value.filter(user => user.role === 'attendee')
+    return users.value.filter(user => user.roles?.includes('Attendee'))
   })
 
   const activeUsers = computed<User[]>(() => {

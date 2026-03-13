@@ -147,7 +147,7 @@ const pageTitle = computed(() => {
             </div>
             <div class="overflow-hidden">
               <p class="text-sm font-bold truncate text-slate-900 dark:text-white">{{ getFullName(user) }}</p>
-              <p class="text-xs text-slate-500 truncate">{{ user.role || 'Organizer' }}</p>
+              <p class="text-xs text-slate-500 truncate">{{ user.roles?.[0] || 'Organizer' }}</p>
             </div>
           </div>
         </div>

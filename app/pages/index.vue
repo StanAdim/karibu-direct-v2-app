@@ -14,61 +14,61 @@ const categories = [
   { id: 'music', label: 'Music', icon: 'music_note' },
   { id: 'business', label: 'Business', icon: 'business_center' },
   { id: 'food', label: 'Food & Drink', icon: 'restaurant' },
-  { id: 'tech', label: 'Technology', icon: 'terminal' },
+  { id: 'tech', label: 'Technology', icon: 'desktop_windows' },
   { id: 'arts', label: 'Arts', icon: 'palette' },
-  { id: 'sports', label: 'Sports', icon: 'fitness_center' }
+  { id: 'sports', label: 'Sports', icon: 'directions_run' }
 ]
 
 const featuredEvents = ref([
   {
     id: '1',
-    title: 'Serengeti Gala Night 2024',
-    image: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800',
-    date: 'Nov 24',
-    location: 'Mlimani City, Dar es Salaam',
-    price: 'TZS 150,000',
-    category: 'Music',
+    title: 'Tech Summit 2024',
+    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
+    date: 'OCT 12',
+    location: 'Downtown Convention Center',
+    price: 99,
+    category: 'Technology',
     attendees: '1.2k'
   },
   {
     id: '2',
-    title: 'Tech & Innovation Expo',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
-    date: 'Dec 02',
-    location: 'AICC, Arusha',
-    price: 'TZS 50,000',
-    category: 'Technology',
+    title: 'Jazz in the Park',
+    image: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800',
+    date: 'OCT 14',
+    location: 'Central Park Amphitheater',
+    price: 'Free',
+    category: 'Music',
     attendees: '850'
   },
   {
     id: '3',
-    title: 'Zanzibar Beach Festival',
-    image: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800',
-    date: 'Dec 15',
-    location: 'Kendwa Rocks, Zanzibar',
-    price: 'TZS 80,000',
-    category: 'Music',
-    attendees: '2.5k'
+    title: 'Startup Weekend',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800',
+    date: 'OCT 20',
+    location: 'Innovation Hub',
+    price: 50,
+    category: 'Business',
+    attendees: '300'
   },
   {
     id: '4',
-    title: 'East African Food Festival',
+    title: 'Cooking Masterclass',
     image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800',
-    date: 'Dec 21',
-    location: 'Oyster Bay, Dar es Salaam',
-    price: 'Free',
-    category: 'Food',
-    attendees: '500'
+    date: 'OCT 21',
+    location: 'Culinary Institute',
+    price: 75,
+    category: 'Food & Drink',
+    attendees: '45'
   }
 ])
 
 const popularCities = [
-  { name: 'Dar es Salaam', image: 'https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=400', eventCount: 156 },
-  { name: 'Arusha', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400', eventCount: 89 },
-  { name: 'Zanzibar', image: 'https://images.unsplash.com/photo-1586861635167-e5223aadc9fe?w=400', eventCount: 124 },
-  { name: 'Mwanza', image: 'https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=400', eventCount: 45 },
-  { name: 'Dodoma', image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=400', eventCount: 32 },
-  { name: 'Moshi', image: 'https://images.unsplash.com/photo-1621414050946-1b936a78491d?w=400', eventCount: 67 }
+  { name: 'New York', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400', eventCount: 320 },
+  { name: 'London', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400', eventCount: 280 },
+  { name: 'Tokyo', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400', eventCount: 195 },
+  { name: 'Berlin', image: 'https://images.unsplash.com/photo-1560930950-5cc20e80e122?w=400', eventCount: 168 },
+  { name: 'Paris', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400', eventCount: 240 },
+  { name: 'San Francisco', image: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400', eventCount: 156 }
 ]
 
 const howItWorks = [
@@ -108,18 +108,19 @@ function handleSelectCity(city: string) {
     <!-- Hero Section -->
     <HeroSection
       title="Discover Amazing Events "
-      highlight="Near You"
+      highlight=" Near You"
       subtitle="Find concerts, workshops, and meetups happening in your city."
       background-image="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600"
       :show-search="true"
       :show-location-select="true"
+      :locations="['New York, NY', 'Dar es Salaam', 'Arusha', 'Zanzibar', 'London', 'Tokyo']"
       @search="handleSearch"
     />
 
-    <!-- Categories -->
-    <section class="px-6 py-8">
+    <!-- Category pills -->
+    <section class="px-4 py-4 md:px-6">
       <div class="mx-auto max-w-7xl">
-        <div class="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar">
+        <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
           <CategoryButton
             v-for="cat in categories"
             :key="cat.id"
@@ -133,37 +134,44 @@ function handleSelectCity(city: string) {
     </section>
 
     <!-- Featured Events -->
-    <section class="px-6 py-12">
+    <section class="px-4 py-12 md:px-6 bg-slate-50/50 dark:bg-slate-900/30">
       <div class="mx-auto max-w-7xl">
-        <div class="flex items-end justify-between mb-10">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
           <div>
-            <h3 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Featured Events</h3>
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Featured Events</h2>
             <p class="mt-2 text-slate-500 dark:text-slate-400">Hand-picked experiences you can't miss</p>
           </div>
           <NuxtLink
             to="/events"
-            class="text-sm font-bold text-primary-500 hover:underline"
+            class="text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors shrink-0"
           >
             View All Events
           </NuxtLink>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <EventCard
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <PublicEventCard
             v-for="event in featuredEvents"
             :key="event.id"
-            :event="event"
+            :id="event.id"
+            :title="event.title"
+            :image="event.image"
+            :date="event.date"
+            :location="event.location"
+            :price="event.price"
+            :category="event.category"
+            :attendees="event.attendees"
             @click="handleViewEvent(event.id)"
           />
         </div>
       </div>
     </section>
 
-    <!-- Popular Cities -->
-    <section class="bg-primary-500/5 px-6 py-20 dark:bg-slate-900/50">
+    <!-- Explore Popular Cities: circular cards -->
+    <section class="px-4 py-16 md:px-6">
       <div class="mx-auto max-w-7xl">
-        <h3 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Explore Popular Cities</h3>
-        <div class="mt-12 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
+        <h2 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Explore Popular Cities</h2>
+        <div class="mt-12 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
           <CityCard
             v-for="city in popularCities"
             :key="city.name"
@@ -177,9 +185,9 @@ function handleSelectCity(city: string) {
     </section>
 
     <!-- How It Works -->
-    <section class="px-6 py-20">
+    <section class="px-4 py-20 md:px-6 bg-slate-50/50 dark:bg-slate-900/30">
       <div class="mx-auto max-w-7xl">
-        <h3 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">How It Works</h3>
+        <h2 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">How It Works</h2>
         <div class="mt-16 grid grid-cols-1 gap-12 md:grid-cols-3">
           <FeatureStep
             v-for="step in howItWorks"

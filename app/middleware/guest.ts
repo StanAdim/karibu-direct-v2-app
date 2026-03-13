@@ -1,11 +1,16 @@
 import { getAuthCookie, isTokenExpired } from '~/utils/jwt'
 
-export default defineNuxtRouteMiddleware(() => {
+export default defineNuxtRouteMiddleware(async () => {
   if (import.meta.server) return
 
+  const authStore = useAuthStore()
   const token = getAuthCookie()
 
   if (token && !isTokenExpired(token)) {
-    return navigateTo('/dashboard', { replace: true })
+    if (!authStore.user) {
+      await authStore.fetchUser()
+    }
+    const redirectPath = authStore.getDefaultRoute()
+    return navigateTo(redirectPath, { replace: true })
   }
 })

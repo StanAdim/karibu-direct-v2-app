@@ -5,14 +5,15 @@ export interface User {
   lastName: string
   avatar?: string
   phone?: string
-  role: UserRole
+  roles?: UserRole[]
   status: UserStatus
   organizationId?: string
+  permissions?: string[]
   createdAt: string
   updatedAt: string
 }
 
-export type UserRole = 'admin' | 'organizer' | 'attendee'
+export type UserRole = 'Admin' | 'Organizer' | 'Attendee'
 
 export type UserStatus = 'active' | 'inactive' | 'pending' | 'suspended'
 

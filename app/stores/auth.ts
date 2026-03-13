@@ -20,17 +20,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   const currentUser = computed<User | null>(() => user.value)
 
-  const userRole = computed<UserRole | null>(() => user.value?.role ?? null)
+  const userRole = computed<UserRole | null>(() => user.value?.roles?.[0] ?? null)
 
-  const isAdmin = computed<boolean>(() => user.value?.role === 'admin')
+  const isAdmin = computed<boolean>(() => user.value?.roles?.includes('Admin') ?? false)
 
-  const isOrganizer = computed<boolean>(() => user.value?.role === 'organizer')
+  const isOrganizer = computed<boolean>(() => user.value?.roles?.includes('Organizer') ?? false)
 
-  const isAttendee = computed<boolean>(() => user.value?.role === 'attendee')
+  const isAttendee = computed<boolean>(() => user.value?.roles?.includes('Attendee') ?? false)
 
   const hasRole = (roles: UserRole[]): boolean => {
-    if (!user.value?.role) return false
-    return roles.includes(user.value.role)
+    if (!user.value?.roles || user.value.roles.length === 0) return false
+    return user.value.roles.some(r => roles.includes(r))
   }
 
   // Actions
@@ -40,10 +40,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await api.post<LoginResponse>('/auth/login', credentials)
 
-      token.value = response.token
-      user.value = response.user
-      setAuthCookie(response.token)
-
+      token.value = response.data.token
+      user.value = response.data.user
+      setAuthCookie(response.data.access_token)
+      // console.log(`+++ user log.res:`, response.data)
       return response
     }
     finally {
@@ -61,9 +61,9 @@ export const useAuthStore = defineStore('auth', () => {
         first_name: credentials.firstName,
         last_name: credentials.lastName,
         phone: credentials.phone,
-        role: credentials.role || 'attendee'
+        role: credentials.role || 'Attendee'
       })
-
+        console.log(`+++ user reg.res:`, response)
       return response
     }
     finally {
@@ -89,9 +89,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const fetchedUser = await api.get<User>('/auth/me')
-
-      user.value = fetchedUser
-      return fetchedUser
+        // console.log(`+++ user current.res:`, fetchedUser)
+      user.value = fetchedUser.data
+      return fetchedUser.data
     }
     catch {
       clearAuth()
@@ -129,12 +129,13 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const getDefaultRoute = (): string => {
-    switch (user.value?.role) {
-      case 'admin':
+    const primaryRole = user.value?.roles?.[0]
+    switch (primaryRole) {
+      case 'Admin':
         return '/admin'
-      case 'organizer':
+      case 'Organizer':
         return '/organizer'
-      case 'attendee':
+      case 'Attendee':
         return '/attendee'
       default:
         return '/'

@@ -19,10 +19,9 @@ const emit = defineEmits<{
 }>()
 
 function formatPrice(price: string | number): string {
-  if (typeof price === 'number') {
-    return `$${price.toFixed(2)}`
-  }
-  return price
+  if (price === 'Free' || price === 0) return 'Free'
+  if (typeof price === 'number') return `$${price.toFixed(2)}`
+  return String(price)
 }
 </script>
 
@@ -39,30 +38,27 @@ function formatPrice(price: string | number): string {
         class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
       />
 
-      <!-- Favorite Button -->
+      <!-- Date: purple circle top-left -->
+      <div class="absolute left-4 top-4 flex size-14 shrink-0 items-center justify-center rounded-full bg-primary-500 text-white text-xs font-bold uppercase leading-tight shadow-md">
+        {{ date }}
+      </div>
+
+      <!-- Favorite Button top-right -->
       <button
         class="absolute right-4 top-4 rounded-full bg-white/90 backdrop-blur-sm p-2 shadow-lg cursor-pointer hover:bg-white transition-colors"
         :class="isFavorite ? 'text-primary-500' : 'text-slate-400 hover:text-primary-500'"
         @click.stop="emit('favorite', id)"
       >
-        <span class="material-symbols-outlined font-bold">favorite</span>
+        <span class="material-symbols-outlined font-bold text-lg">favorite</span>
       </button>
 
-      <!-- Category Badge -->
-      <div
-        v-if="category"
-        class="absolute left-4 bottom-4 rounded-lg bg-primary-500/90 backdrop-blur-md px-3 py-1 text-xs font-bold text-white uppercase"
-      >
-        {{ category }}
-      </div>
+      <!-- Category: small tag below image (optional, design has it below image) -->
     </div>
 
     <!-- Content -->
-    <div class="flex flex-col p-5 gap-3">
-      <!-- Date and Price -->
-      <div class="flex items-center justify-between text-xs font-bold text-primary-500">
-        <span class="uppercase tracking-widest">{{ date }}</span>
-        <span>{{ formatPrice(price) }}</span>
+    <div class="flex flex-col p-5 gap-2">
+      <div v-if="category" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+        {{ category }}
       </div>
 
       <!-- Title -->
@@ -71,14 +67,20 @@ function formatPrice(price: string | number): string {
       </h3>
 
       <!-- Location -->
-      <div class="flex items-center gap-1.5 text-sm text-slate-500">
-        <span class="material-symbols-outlined text-sm">location_on</span>
-        <span>{{ location }}</span>
+      <div class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+        <span class="material-symbols-outlined text-sm shrink-0">location_on</span>
+        <span class="line-clamp-1">{{ location }}</span>
       </div>
 
-      <!-- Attendees -->
-      <div v-if="attendees" class="flex items-center justify-end">
-        <span class="text-xs text-slate-400">{{ attendees }} attending</span>
+      <!-- Price + Attendees -->
+      <div class="flex items-center justify-between mt-1">
+        <span
+          class="text-sm font-semibold"
+          :class="formatPrice(price) === 'Free' ? 'text-primary-500' : 'text-slate-700 dark:text-slate-300'"
+        >
+          {{ formatPrice(price) }}
+        </span>
+        <span v-if="attendees" class="text-xs text-slate-400">{{ attendees }} attending</span>
       </div>
     </div>
   </div>

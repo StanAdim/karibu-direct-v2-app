@@ -16,7 +16,7 @@ const credentials = reactive<RegisterCredentials>({
   firstName: '',
   lastName: '',
   phone: '',
-  role: 'attendee'
+  role: 'Attendee'
 })
 
 const errors = reactive<Record<string, string>>({})
@@ -238,7 +238,7 @@ async function handleSocialSignup(provider: string) {
         <button
           type="button"
           class="flex items-center justify-center gap-2 p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 group hover:bg-primary-500/20 transition-all text-left"
-          @click="credentials.role = 'organizer'"
+          @click="credentials.role = 'Organizer'"
         >
           <span class="material-symbols-outlined text-primary-500">campaign</span>
           <div class="flex flex-col items-start">

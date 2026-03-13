@@ -131,23 +131,27 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <PageHeader
-      title="My Schedule"
-      description="Your personalized event schedule"
-    >
-      <template #actions>
-        <UButton
-          variant="outline"
-          icon="i-lucide-download"
-        >
-          Export to Calendar
-        </UButton>
-      </template>
-    </PageHeader>
+  <div class="space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+          My Schedule
+        </h1>
+        <p class="mt-1 text-slate-600 dark:text-slate-400 text-sm">
+          Your personalized event schedule
+        </p>
+      </div>
+      <UButton
+        variant="outline"
+        icon="i-lucide-download"
+        class="self-start sm:self-center"
+      >
+        Export to Calendar
+      </UButton>
+    </div>
 
     <!-- Date Tabs -->
-    <div class="mb-6 flex flex-wrap gap-2">
+    <div class="flex flex-wrap gap-2">
       <UButton
         v-for="date in uniqueDates"
         :key="date"

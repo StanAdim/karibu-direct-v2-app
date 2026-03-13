@@ -7,16 +7,10 @@ definePageMeta({
   middleware: 'attendee'
 })
 
-const selectedStatus = ref<TicketStatus | ''>('')
+const searchQuery = ref('')
+const activeTab = ref<'active' | 'past'>('active')
 const selectedTicket = ref<Ticket | null>(null)
 const qrModalOpen = ref(false)
-
-const statusOptions = [
-  { value: '', label: 'All Tickets' },
-  { value: 'valid', label: 'Valid' },
-  { value: 'used', label: 'Used' },
-  { value: 'expired', label: 'Expired' }
-]
 
 const tickets = ref<Ticket[]>([
   {
@@ -35,13 +29,14 @@ const tickets = ref<Ticket[]>([
     validUntil: new Date(Date.now() + 86400000 * 30).toISOString(),
     event: {
       id: 'event-1',
-      title: 'Tech Conference 2026',
-      slug: 'tech-conference-2026',
+      title: 'Global Tech Conference 2024',
+      slug: 'global-tech-conference-2024',
       description: 'Annual technology conference',
+      coverImage: 'https://picsum.photos/seed/tech-conf/400/240',
       startDate: new Date(Date.now() + 86400000 * 10).toISOString(),
       endDate: new Date(Date.now() + 86400000 * 11).toISOString(),
       timezone: 'America/New_York',
-      venue: { type: 'physical', name: 'Convention Center', city: 'San Francisco' },
+      venue: { type: 'physical', name: 'Moscone Center', city: 'San Francisco', address: 'San Francisco, CA' },
       status: 'published',
       visibility: 'public',
       capacity: 1000,
@@ -73,19 +68,20 @@ const tickets = ref<Ticket[]>([
     validUntil: new Date(Date.now() + 86400000 * 15).toISOString(),
     event: {
       id: 'event-2',
-      title: 'Developer Workshop',
-      slug: 'developer-workshop',
-      description: 'Hands-on coding workshop',
-      startDate: new Date(Date.now() + 86400000 * 5).toISOString(),
-      endDate: new Date(Date.now() + 86400000 * 5).toISOString(),
-      timezone: 'America/New_York',
-      venue: { type: 'virtual', virtualUrl: 'https://zoom.us' },
+      title: 'Midnight Jazz Festival',
+      slug: 'midnight-jazz-festival',
+      description: 'Live jazz performances',
+      coverImage: 'https://picsum.photos/seed/jazz-fest/400/240',
+      startDate: new Date(Date.now() + 86400000 * 20).toISOString(),
+      endDate: new Date(Date.now() + 86400000 * 20).toISOString(),
+      timezone: 'America/Los_Angeles',
+      venue: { type: 'physical', name: 'Blue Note Lounge', city: 'Seattle', address: 'Seattle, WA' },
       status: 'published',
       visibility: 'public',
-      capacity: 50,
-      registeredCount: 45,
+      capacity: 200,
+      registeredCount: 180,
       organizerId: 'org-1',
-      categories: ['Technology', 'Education'],
+      categories: ['Music'],
       tags: [],
       ticketTypes: [],
       settings: { requireApproval: false, allowWaitlist: false, showAttendeeCount: true, enableCheckIn: true, enableNotifications: true },
@@ -115,10 +111,11 @@ const tickets = ref<Ticket[]>([
       title: 'AI Summit 2026',
       slug: 'ai-summit-2026',
       description: 'AI and Machine Learning conference',
+      coverImage: 'https://picsum.photos/seed/ai-summit/400/240',
       startDate: new Date(Date.now() - 86400000 * 15).toISOString(),
       endDate: new Date(Date.now() - 86400000 * 14).toISOString(),
       timezone: 'America/New_York',
-      venue: { type: 'physical', name: 'Tech Hub', city: 'New York' },
+      venue: { type: 'physical', name: 'Tech Hub', city: 'New York', address: 'New York, NY' },
       status: 'completed',
       visibility: 'public',
       capacity: 500,
@@ -137,8 +134,21 @@ const tickets = ref<Ticket[]>([
 ])
 
 const filteredTickets = computed(() => {
-  if (!selectedStatus.value) return tickets.value
-  return tickets.value.filter(t => t.status === selectedStatus.value)
+  let list = tickets.value
+  if (activeTab.value === 'active') {
+    list = list.filter(t => t.status === 'valid' && new Date(t.validUntil) >= new Date())
+  } else {
+    list = list.filter(t => t.status === 'used' || t.status === 'expired' || new Date(t.validUntil) < new Date())
+  }
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q) {
+    list = list.filter(t =>
+      t.event?.title?.toLowerCase().includes(q) ||
+      t.event?.venue?.name?.toLowerCase().includes(q) ||
+      t.event?.venue?.city?.toLowerCase().includes(q)
+    )
+  }
+  return list
 })
 
 function showQrCode(ticket: Ticket) {
@@ -146,176 +156,185 @@ function showQrCode(ticket: Ticket) {
   qrModalOpen.value = true
 }
 
-function formatDate(dateString: string): string {
+function formatDateWithTime(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
-    weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric'
-  })
+  }) + ' • ' + new Date(dateString).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+}
+
+function getEventImage(ticket: Ticket): string {
+  return ticket.event?.coverImage || 'https://picsum.photos/seed/event/400/240'
+}
+
+function getVenueLine(ticket: Ticket): string {
+  const v = ticket.event?.venue
+  if (!v) return '—'
+  if (v.type === 'virtual') return 'Online'
+  return [v.name, v.city].filter(Boolean).join(', ')
 }
 </script>
 
 <template>
-  <div>
-    <PageHeader
-      title="My Tickets"
-      description="View and manage your event tickets"
-    />
+  <div class="space-y-6">
+    <!-- Page header -->
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+        My Tickets
+      </h1>
+      <p class="mt-1 text-slate-600 dark:text-slate-400 text-sm">
+        Manage and view your upcoming and past event registrations.
+      </p>
+    </div>
 
-    <!-- Filters -->
-    <div class="mb-6 flex items-center gap-4">
-      <USelect
-        v-model="selectedStatus"
-        :items="statusOptions"
-        value-key="value"
-        label-key="label"
-        class="w-44"
+    <!-- Search -->
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+      <input
+        v-model="searchQuery"
+        type="search"
+        placeholder="Search by event name or location"
+        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-2.5 pl-10 pr-4 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none"
       />
     </div>
 
-    <!-- Empty State -->
-    <EmptyState
-      v-if="filteredTickets.length === 0"
-      icon="i-lucide-ticket"
-      title="No tickets found"
-      description="Browse events to get your first ticket"
-    >
-      <template #actions>
-        <UButton
-          icon="i-lucide-search"
-          to="/attendee/events"
-        >
-          Browse Events
-        </UButton>
-      </template>
-    </EmptyState>
+    <!-- Tabs: Active | Past -->
+    <div class="flex border-b border-slate-200 dark:border-slate-800">
+      <button
+        type="button"
+        :class="[
+          'pb-3 px-1 text-sm font-medium border-b-2 transition-colors -mb-px',
+          activeTab === 'active'
+            ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+            : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-400'
+        ]"
+        @click="activeTab = 'active'"
+      >
+        Active
+      </button>
+      <button
+        type="button"
+        :class="[
+          'pb-3 px-1 ml-6 text-sm font-medium border-b-2 transition-colors -mb-px',
+          activeTab === 'past'
+            ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+            : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-400'
+        ]"
+        @click="activeTab = 'past'"
+      >
+        Past
+      </button>
+    </div>
 
-    <!-- Tickets Grid -->
+    <!-- Empty state -->
     <div
-      v-else
-      class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      v-if="filteredTickets.length === 0"
+      class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 px-6 py-16 text-center"
     >
-      <UCard
+      <span class="material-symbols-outlined text-5xl text-slate-400 mb-4">confirmation_number</span>
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-white">No tickets found</h3>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-sm">Browse events to get your first ticket.</p>
+      <NuxtLink
+        to="/attendee/events"
+        class="mt-6 inline-flex items-center rounded-xl bg-primary-500 text-white px-5 py-2.5 text-sm font-semibold hover:bg-primary-600"
+      >
+        Browse Events
+      </NuxtLink>
+    </div>
+
+    <!-- Ticket cards: image left, details right, View Ticket button -->
+    <div v-else class="space-y-4">
+      <article
         v-for="ticket in filteredTickets"
         :key="ticket.id"
-        :class="{ 'opacity-60': ticket.status !== 'valid' }"
+        class="flex flex-col sm:flex-row rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden"
       >
-        <!-- Event Info -->
-        <div class="flex items-start gap-4">
-          <div
-            class="flex h-16 w-16 flex-col items-center justify-center rounded-lg bg-primary-100 text-primary-600 dark:bg-primary-950"
+        <div class="relative w-full sm:w-48 shrink-0 aspect-[2/1] sm:aspect-auto sm:h-auto sm:min-h-[180px] overflow-hidden">
+          <img
+            :src="getEventImage(ticket)"
+            :alt="ticket.event?.title"
+            class="h-full w-full object-cover"
           >
-            <span class="text-xs font-medium uppercase">
-              {{ new Date(ticket.event?.startDate || '').toLocaleDateString('en-US', { month: 'short' }) }}
-            </span>
-            <span class="text-xl font-bold">
-              {{ new Date(ticket.event?.startDate || '').getDate() }}
-            </span>
+          <span
+            class="absolute left-3 top-3 rounded px-2 py-0.5 text-xs font-bold text-white bg-primary-600"
+          >
+            {{ activeTab === 'active' ? 'UPCOMING' : 'PAST' }}
+          </span>
+        </div>
+        <div class="flex flex-1 flex-col p-4 sm:p-5 min-w-0">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white truncate">
+            {{ ticket.event?.title }}
+          </h3>
+          <p class="mt-1 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+            <span class="material-symbols-outlined text-lg">calendar_today</span>
+            {{ formatDateWithTime(ticket.event?.startDate || '') }}
+          </p>
+          <p class="mt-1 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+            <span class="material-symbols-outlined text-lg">location_on</span>
+            {{ getVenueLine(ticket) }}
+          </p>
+          <div class="mt-3 flex items-center gap-2">
+            <div class="flex -space-x-2">
+              <div class="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/50 border-2 border-white dark:border-slate-900 flex items-center justify-center text-xs font-medium text-primary-600 dark:text-primary-400">A</div>
+              <div class="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-900/50 border-2 border-white dark:border-slate-900 flex items-center justify-center text-xs font-medium text-primary-600 dark:text-primary-400">J</div>
+            </div>
+            <span class="text-xs text-slate-500">+2</span>
           </div>
-
-          <div class="flex-1 min-w-0">
-            <h3 class="font-semibold text-gray-900 dark:text-white truncate">
-              {{ ticket.event?.title }}
-            </h3>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {{ ticket.ticketTypeName }}
-            </p>
-            <UBadge
-              :color="getTicketStatusColor(ticket.status) as 'success' | 'error' | 'warning' | 'info' | 'neutral'"
-              variant="soft"
-              size="xs"
-              class="mt-2"
+          <div class="mt-auto pt-4 flex justify-end sm:justify-end">
+            <UButton
+              v-if="isTicketValid(ticket)"
+              color="primary"
+              icon="i-lucide-qr-code"
+              @click="showQrCode(ticket)"
             >
-              {{ getTicketStatusLabel(ticket.status) }}
-            </UBadge>
+              View Ticket
+            </UButton>
+            <NuxtLink v-else :to="`/attendee/events/${ticket.eventId}`">
+              <UButton variant="soft">
+                View Event
+              </UButton>
+            </NuxtLink>
           </div>
         </div>
+      </article>
+    </div>
 
-        <!-- Ticket Details -->
-        <div class="mt-4 space-y-2 border-t border-dashed border-gray-200 pt-4 dark:border-gray-800">
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600 dark:text-gray-400">Ticket #</span>
-            <span class="font-mono font-medium text-gray-900 dark:text-white">
-              {{ ticket.ticketNumber }}
-            </span>
-          </div>
-
-          <div
-            v-if="ticket.event?.venue"
-            class="flex items-center justify-between text-sm"
-          >
-            <span class="text-gray-600 dark:text-gray-400">Venue</span>
-            <span class="text-gray-900 dark:text-white">
-              {{ ticket.event.venue.type === 'virtual' ? 'Online' : ticket.event.venue.city }}
-            </span>
-          </div>
-
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600 dark:text-gray-400">Price</span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              ${{ ticket.price }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="mt-4 flex gap-2">
-          <UButton
-            v-if="isTicketValid(ticket)"
-            block
-            icon="i-lucide-qr-code"
-            @click="showQrCode(ticket)"
-          >
-            Show QR Code
-          </UButton>
-          <UButton
-            v-else
-            block
-            variant="soft"
-            :to="`/attendee/events/${ticket.eventId}`"
-          >
-            View Event
-          </UButton>
-        </div>
-      </UCard>
+    <!-- Promo code section -->
+    <div class="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 p-8 text-center">
+      <span class="material-symbols-outlined text-4xl text-primary-500">add_circle</span>
+      <h3 class="mt-3 text-base font-semibold text-slate-900 dark:text-white">
+        Have a promo code?
+      </h3>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        Add a new ticket to your account by entering your registration code.
+      </p>
+      <NuxtLink
+        to="/attendee"
+        class="mt-4 inline-block text-sm font-medium text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
+      >
+        Redeem Ticket Code
+      </NuxtLink>
     </div>
 
     <!-- QR Code Modal -->
     <UModal v-model:open="qrModalOpen">
       <template #content>
-        <div
-          v-if="selectedTicket"
-          class="p-6 text-center"
-        >
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        <div v-if="selectedTicket" class="p-6 text-center">
+          <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
             {{ selectedTicket.event?.title }}
           </h3>
-          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
             {{ selectedTicket.ticketTypeName }}
           </p>
-
-          <!-- QR Code Placeholder -->
-          <div class="mx-auto mt-6 flex h-48 w-48 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-            <UIcon
-              name="i-lucide-qr-code"
-              class="h-32 w-32 text-gray-400"
-            />
+          <div class="mx-auto mt-6 flex h-48 w-48 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
+            <UIcon name="i-lucide-qr-code" class="h-32 w-32 text-slate-400" />
           </div>
-
-          <p class="mt-4 font-mono text-sm text-gray-600 dark:text-gray-400">
+          <p class="mt-4 font-mono text-sm text-slate-600 dark:text-slate-400">
             {{ selectedTicket.ticketNumber }}
           </p>
-
-          <p class="mt-2 text-xs text-gray-500">
-            Present this QR code at the event entrance
-          </p>
-
-          <UButton
-            class="mt-6"
-            block
-            @click="qrModalOpen = false"
-          >
+          <p class="mt-2 text-xs text-slate-500">Present this QR code at the event entrance</p>
+          <UButton class="mt-6" block @click="qrModalOpen = false">
             Close
           </UButton>
         </div>

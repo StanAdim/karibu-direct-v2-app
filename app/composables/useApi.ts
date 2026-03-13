@@ -12,7 +12,7 @@ interface UseApiReturn {
 
 export function useApi(): UseApiReturn {
   const config = useRuntimeConfig()
-  const toast = useToast()
+  const notifications = useNotifications()
 
   async function request<T>(
     method: HttpMethod,
@@ -52,10 +52,9 @@ export function useApi(): UseApiReturn {
         authStore.logout()
       }
 
-      toast.add({
+      notifications.error({
         title: 'Error',
-        description: message,
-        color: 'error'
+        description: message
       })
 
       throw error

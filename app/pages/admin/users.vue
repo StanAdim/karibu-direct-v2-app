@@ -19,9 +19,9 @@ const userToDelete = ref<User | null>(null)
 
 const roleOptions = [
   { value: '', label: 'All Roles' },
-  { value: 'admin', label: 'Admin' },
-  { value: 'organizer', label: 'Organizer' },
-  { value: 'attendee', label: 'Attendee' }
+  { value: 'Admin', label: 'Admin' },
+  { value: 'Organizer', label: 'Organizer' },
+  { value: 'Attendee', label: 'Attendee' }
 ]
 
 const statusOptions = [
@@ -199,10 +199,14 @@ onMounted(loadUsers)
             <!-- Role -->
             <td class="px-4 py-4">
               <UBadge
-                :color="user.role === 'admin' ? 'error' : user.role === 'organizer' ? 'warning' : 'info'"
+                :color="(user.roles?.[0] || '') === 'Admin'
+                  ? 'error'
+                  : (user.roles?.[0] || '') === 'Organizer'
+                    ? 'warning'
+                    : 'info'"
                 variant="soft"
               >
-                {{ user.role }}
+                {{ user.roles?.[0] || '—' }}
               </UBadge>
             </td>
 

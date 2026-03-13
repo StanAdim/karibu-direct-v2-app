@@ -18,6 +18,8 @@ export interface RegisterCredentials {
 export interface LoginResponse {
   user: User
   token: string
+  access_token: string
+  refresh_token: string
   expiresAt: number
 }
 

@@ -5,24 +5,25 @@ export default defineNuxtRouteMiddleware(() => {
     return navigateTo('/login', { replace: true })
   }
 
-  if (authStore.user?.role !== 'admin') {
-    const toast = useToast()
-    toast.add({
+  const userRoles = authStore.user?.roles || []
+  if (!userRoles.includes('Admin')) {
+    const notifications = useNotifications()
+    notifications.error({
       title: 'Access Denied',
-      description: 'You do not have permission to access the admin area.',
-      color: 'error'
+      description: 'You do not have permission to access the admin area.'
     })
 
-    const redirectPath = getDefaultRouteForRole(authStore.user?.role)
+    const redirectPath = getDefaultRouteForRoles(authStore.user?.roles)
     return navigateTo(redirectPath, { replace: true })
   }
 })
 
-function getDefaultRouteForRole(role?: string): string {
-  switch (role) {
-    case 'organizer':
+function getDefaultRouteForRoles(roles?: string[]): string {
+  const primaryRole = roles?.[0]
+  switch (primaryRole) {
+    case 'Organizer':
       return '/organizer'
-    case 'attendee':
+    case 'Attendee':
       return '/attendee'
     default:
       return '/'

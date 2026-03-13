@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const config = useRuntimeConfig()
 const { user } = useAuth()
+const route = useRoute()
 const isMobileMenuOpen = ref(false)
 
 interface NavLink {
@@ -17,17 +18,24 @@ interface Props {
   showAuthButtons?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   showNavbar: true,
   showFooter: true,
   navLinks: () => [
-    { label: 'Explore', to: '/events', active: true },
+    { label: 'Explore', to: '/events' },
     { label: 'Host an Event', to: '/organizer' },
     { label: 'Help', to: '/help' }
   ],
   showSearch: false,
   showAuthButtons: true
 })
+
+const resolvedNavLinks = computed(() =>
+  props.navLinks.map(link => ({
+    ...link,
+    active: link.active ?? (route.path === link.to || (link.to !== '/' && route.path.startsWith(link.to)) || (link.to === '/events' && route.path === '/'))
+  }))
+)
 
 const footerSections = [
   {
@@ -61,29 +69,29 @@ const footerSections = [
 </script>
 
 <template>
-  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[var(--color-background-light)] dark:bg-[var(--color-background-dark)]">
+  <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-white dark:bg-slate-950">
     <!-- Navbar -->
     <header
       v-if="showNavbar"
-      class="sticky top-0 z-50 w-full border-b border-primary-500/10 bg-white/80 dark:bg-[var(--color-background-dark)]/80 backdrop-blur-md"
+      class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md"
     >
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <!-- Brand -->
+      <div class="flex items-center justify-between px-6 py-4">
+        <!-- Brand: icon + app name (dark) -->
         <NuxtLink to="/" class="flex items-center gap-2">
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500 text-white">
-            <span class="material-symbols-outlined">event_seat</span>
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500 text-white shrink-0">
+            <span class="material-symbols-outlined text-xl">event</span>
           </div>
-          <h1 class="text-xl font-bold tracking-tight text-primary-500">{{ config.public.appName }}</h1>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</h1>
         </NuxtLink>
 
-        <!-- Desktop Navigation -->
+        <!-- Desktop Navigation: Explore, Host an Event, Help -->
         <nav class="hidden md:flex items-center gap-8">
           <NuxtLink
-            v-for="link in navLinks"
+            v-for="link in resolvedNavLinks"
             :key="link.to"
             :to="link.to"
-            class="text-sm font-semibold transition-colors"
-            :class="link.active ? 'text-primary-500' : 'text-slate-600 dark:text-slate-400 hover:text-primary-500'"
+            class="text-sm font-semibold transition-colors text-slate-700 dark:text-slate-300 hover:text-primary-500"
+            :class="{ 'text-primary-500': link.active }"
           >
             {{ link.label }}
           </NuxtLink>
@@ -92,28 +100,28 @@ const footerSections = [
         <!-- Search (optional) -->
         <div
           v-if="showSearch"
-          class="hidden lg:flex w-full max-w-md items-center gap-2 rounded-xl bg-primary-500/5 dark:bg-primary-500/10 px-4 py-2 border border-primary-500/10 mx-8"
+          class="hidden lg:flex w-full max-w-md items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2.5 mx-8"
         >
-          <span class="material-symbols-outlined text-primary-500/60">search</span>
+          <span class="material-symbols-outlined text-slate-400">search</span>
           <input
             type="text"
             placeholder="Search events, artists..."
-            class="w-full border-none bg-transparent p-0 text-sm focus:ring-0 placeholder:text-slate-400 outline-none"
+            class="w-full border-none bg-transparent p-0 text-sm focus:ring-0 placeholder:text-slate-400 outline-none text-slate-900 dark:text-white"
           />
         </div>
 
-        <!-- Auth Buttons / User Avatar -->
+        <!-- Auth: Log in (text) + Sign Up (purple button) -->
         <div class="flex items-center gap-4">
           <template v-if="showAuthButtons && !user">
             <NuxtLink
               to="/login"
-              class="text-sm font-semibold hover:text-primary-500 transition-colors px-4 hidden sm:block"
+              class="text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-primary-500 transition-colors hidden sm:inline"
             >
-              Log In
+              Log in
             </NuxtLink>
             <NuxtLink
               to="/register"
-              class="rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/25 hover:bg-primary-500/90 transition-all"
+              class="rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-600 transition-colors shadow-sm"
             >
               Sign Up
             </NuxtLink>
@@ -156,11 +164,11 @@ const footerSections = [
       >
         <div
           v-if="isMobileMenuOpen"
-          class="md:hidden border-t border-primary-500/10 bg-white dark:bg-[var(--color-background-dark)] px-6 py-4"
+          class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-6 py-4"
         >
           <nav class="flex flex-col gap-4">
             <NuxtLink
-              v-for="link in navLinks"
+              v-for="link in resolvedNavLinks"
               :key="link.to"
               :to="link.to"
               class="text-base font-semibold py-2"
@@ -182,53 +190,51 @@ const footerSections = [
     <!-- Footer -->
     <footer
       v-if="showFooter"
-      class="border-t border-primary-500/10 bg-white dark:bg-[var(--color-background-dark)] px-6 py-16"
+      class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-6 py-16"
     >
       <div class="mx-auto max-w-7xl">
         <div class="grid grid-cols-1 gap-12 md:grid-cols-4 lg:grid-cols-5">
           <!-- Brand Column -->
           <div class="col-span-1 lg:col-span-2">
             <div class="flex items-center gap-2">
-              <div class="flex h-8 w-8 items-center justify-center rounded bg-primary-500 text-white">
-                <span class="material-symbols-outlined text-sm">event_seat</span>
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500 text-white shrink-0">
+                <span class="material-symbols-outlined text-sm">event</span>
               </div>
-              <h2 class="text-lg font-bold tracking-tight text-primary-500">{{ config.public.appName }}</h2>
+              <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</h2>
             </div>
-            <p class="mt-6 max-w-xs text-sm text-slate-500 leading-relaxed">
+            <p class="mt-6 max-w-sm text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               Connecting people through shared experiences. Discover, host, and manage amazing events worldwide.
             </p>
-            <div class="mt-8 flex gap-4">
-              <a
-                v-for="social in ['facebook', 'twitter', 'instagram']"
-                :key="social"
-                href="#"
-                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary-500 hover:text-white transition-colors text-slate-600 dark:text-slate-400"
-              >
-                <span class="material-symbols-outlined text-sm">{{ social === 'twitter' ? 'close' : social }}</span>
+            <div class="mt-8 flex gap-3">
+              <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary-500 hover:text-white transition-colors text-slate-600 dark:text-slate-400" aria-label="Twitter">
+                <span class="material-symbols-outlined text-lg">chat</span>
+              </a>
+              <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary-500 hover:text-white transition-colors text-slate-600 dark:text-slate-400" aria-label="Instagram">
+                <span class="material-symbols-outlined text-lg">photo_camera</span>
               </a>
             </div>
           </div>
 
-          <!-- Link Columns -->
+          <!-- Link Columns: PLAN EVENTS, FIND EVENTS, CONNECT -->
           <div v-for="section in footerSections" :key="section.title">
-            <h5 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">{{ section.title }}</h5>
-            <ul class="mt-6 space-y-4 text-sm text-slate-500">
+            <h5 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">{{ section.title }}</h5>
+            <ul class="mt-6 space-y-3 text-sm text-slate-500 dark:text-slate-400">
               <li v-for="link in section.links" :key="link.href">
-                <a :href="link.href" class="hover:text-primary-500 transition-colors">
+                <NuxtLink :to="link.href" class="hover:text-primary-500 transition-colors">
                   {{ link.label }}
-                </a>
+                </NuxtLink>
               </li>
             </ul>
           </div>
         </div>
 
         <!-- Bottom Bar -->
-        <div class="mt-16 flex flex-col items-center justify-between gap-6 border-t border-slate-100 dark:border-slate-800 pt-10 md:flex-row">
-          <p class="text-xs text-slate-400">&copy; {{ new Date().getFullYear() }} {{ config.public.appName }}. All rights reserved.</p>
+        <div class="mt-16 flex flex-col items-center justify-between gap-6 border-t border-slate-200 dark:border-slate-800 pt-10 md:flex-row">
+          <p class="text-xs text-slate-400">&copy; {{ new Date().getFullYear() }} {{ config.public.appName }} Inc. All rights reserved.</p>
           <div class="flex gap-8 text-xs text-slate-400">
-            <a href="/terms" class="hover:text-primary-500">Terms of Service</a>
-            <a href="/privacy" class="hover:text-primary-500">Privacy Policy</a>
-            <a href="/cookies" class="hover:text-primary-500">Cookie Settings</a>
+            <NuxtLink to="/terms" class="hover:text-primary-500 transition-colors">Terms of Service</NuxtLink>
+            <NuxtLink to="/privacy" class="hover:text-primary-500 transition-colors">Privacy Policy</NuxtLink>
+            <NuxtLink to="/cookies" class="hover:text-primary-500 transition-colors">Cookie Settings</NuxtLink>
           </div>
         </div>
       </div>

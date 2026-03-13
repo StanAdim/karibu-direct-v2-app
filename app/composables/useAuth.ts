@@ -16,7 +16,7 @@ interface UseAuthReturn {
 
 export function useAuth(): UseAuthReturn {
   const authStore = useAuthStore()
-  const toast = useToast()
+  const notifications = useNotifications()
 
   const user = computed(() => authStore.currentUser)
   const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -31,23 +31,19 @@ export function useAuth(): UseAuthReturn {
 
   async function login(credentials: LoginCredentials): Promise<void> {
     try {
-      await authStore.login(credentials)
-
-      toast.add({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
-        color: 'success'
-      })
-
+      const res = await authStore.login(credentials)
+        // console.log(`login res: `,res)
       const redirectPath = authStore.getDefaultRoute()
-      await navigateTo(redirectPath)
+        console.log(`+++ user log.res:`, redirectPath)
+      // Ensure cookie and store are committed before middleware runs
+      await nextTick()
+      await navigateTo(redirectPath, { replace: true })
     }
     catch (error: unknown) {
       const fetchError = error as { message?: string; data?: { message?: string } }
-      toast.add({
+      notifications.error({
         title: 'Login Failed',
-        description: fetchError.data?.message || fetchError.message || 'Invalid credentials',
-        color: 'error'
+        description: fetchError.data?.message || fetchError.message || 'Invalid credentials'
       })
       throw error
     }
@@ -57,20 +53,18 @@ export function useAuth(): UseAuthReturn {
     try {
       await authStore.register(credentials)
 
-      toast.add({
+      notifications.success({
         title: 'Account created',
-        description: 'Your account has been created successfully. Please log in to continue.',
-        color: 'success'
+        description: 'Your account has been created successfully. Please log in to continue.'
       })
 
       await navigateTo('/login')
     }
     catch (error: unknown) {
       const fetchError = error as { message?: string; data?: { message?: string } }
-      toast.add({
+      notifications.error({
         title: 'Registration Failed',
-        description: fetchError.data?.message || fetchError.message || 'Unable to create account',
-        color: 'error'
+        description: fetchError.data?.message || fetchError.message || 'Unable to create account'
       })
       throw error
     }
@@ -78,10 +72,9 @@ export function useAuth(): UseAuthReturn {
 
   function logout(): void {
     authStore.logout()
-    toast.add({
+    notifications.info({
       title: 'Logged out',
-      description: 'You have been logged out successfully.',
-      color: 'info'
+      description: 'You have been logged out successfully.'
     })
   }
 

@@ -5,26 +5,27 @@ export default defineNuxtRouteMiddleware(() => {
     return navigateTo('/login', { replace: true })
   }
 
-  const allowedRoles = ['admin', 'organizer']
+  const allowedRoles = ['Admin', 'Organizer']
 
-  if (!authStore.user?.role || !allowedRoles.includes(authStore.user.role)) {
-    const toast = useToast()
-    toast.add({
+  const userRoles = authStore.user?.roles || []
+  if (userRoles.length === 0 || !userRoles.some(role => allowedRoles.includes(role))) {
+    const notifications = useNotifications()
+    notifications.error({
       title: 'Access Denied',
-      description: 'You do not have permission to access the organizer area.',
-      color: 'error'
+      description: 'You do not have permission to access the organizer area.'
     })
 
-    const redirectPath = getDefaultRouteForRole(authStore.user?.role)
+    const redirectPath = getDefaultRouteForRoles(authStore.user?.roles)
     return navigateTo(redirectPath, { replace: true })
   }
 })
 
-function getDefaultRouteForRole(role?: string): string {
-  switch (role) {
-    case 'admin':
+function getDefaultRouteForRoles(roles?: string[]): string {
+  const primaryRole = roles?.[0]
+  switch (primaryRole) {
+    case 'Admin':
       return '/admin'
-    case 'attendee':
+    case 'Attendee':
       return '/attendee'
     default:
       return '/'

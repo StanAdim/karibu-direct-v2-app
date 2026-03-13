@@ -2,17 +2,19 @@ export default defineNuxtRouteMiddleware(() => {
   const authStore = useAuthStore()
 
   if (!authStore.isAuthenticated) {
+      console.log(`Lost authentication returned from auth store`)
     return navigateTo('/login', { replace: true })
   }
 
-  const allowedRoles = ['admin', 'organizer', 'attendee']
+  const allowedRoles = ['Admin', 'Organizer', 'Attendee']
 
-  if (!authStore.user?.role || !allowedRoles.includes(authStore.user.role)) {
-    const toast = useToast()
-    toast.add({
+  const userRoles = authStore.user?.roles || []
+    console.log('userRoles:', userRoles)
+  if (userRoles.length === 0 || !userRoles.some(role => allowedRoles.includes(role))) {
+    const notifications = useNotifications()
+    notifications.error({
       title: 'Access Denied',
-      description: 'You do not have permission to access this area.',
-      color: 'error'
+      description: 'You do not have permission to access this area.'
     })
 
     return navigateTo('/', { replace: true })

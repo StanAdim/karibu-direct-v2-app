@@ -13,26 +13,26 @@ defineEmits<{
 </script>
 
 <template>
-  <div
-    class="group relative cursor-pointer overflow-hidden rounded-2xl"
+  <button
+    type="button"
+    class="group flex flex-col items-center text-center"
     @click="$emit('click', name)"
   >
-    <!-- Image -->
-    <div class="aspect-square overflow-hidden">
+    <!-- Circular image -->
+    <div class="relative w-full max-w-[140px] aspect-square mx-auto overflow-hidden rounded-full ring-4 ring-slate-100 dark:ring-slate-800 shadow-lg">
       <img
         :src="image"
         :alt="name"
         class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
-      />
+      >
     </div>
 
-    <!-- Overlay -->
-    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-    <!-- Content -->
-    <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
-      <h4 class="font-bold text-lg">{{ name }}</h4>
-      <p v-if="eventCount" class="text-sm text-white/80">{{ eventCount }} events</p>
-    </div>
-  </div>
+    <!-- City name below -->
+    <h4 class="mt-4 font-bold text-slate-900 dark:text-white text-base group-hover:text-primary-500 transition-colors">
+      {{ name }}
+    </h4>
+    <p v-if="eventCount" class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      {{ eventCount }} events
+    </p>
+  </button>
 </template>

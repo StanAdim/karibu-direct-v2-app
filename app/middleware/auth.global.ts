@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
     if (authStore.isAuthenticated && (to.path === '/login' || to.path === '/register')) {
-      const redirectPath = getDefaultRouteForRole(authStore.user?.role)
+      const redirectPath = getDefaultRouteForRoles(authStore.user?.roles)
       return navigateTo(redirectPath, { replace: true })
     }
 
@@ -40,13 +40,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 })
 
-function getDefaultRouteForRole(role?: string): string {
-  switch (role) {
-    case 'admin':
+function getDefaultRouteForRoles(roles?: string[]): string {
+  const primaryRole = roles?.[0]
+  switch (primaryRole) {
+    case 'Admin':
       return '/admin'
-    case 'organizer':
+    case 'Organizer':
       return '/organizer'
-    case 'attendee':
+    case 'Attendee':
       return '/attendee'
     default:
       return '/'

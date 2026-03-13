@@ -20,11 +20,11 @@ export function useUser(): UseUserReturn {
   const userId = computed(() => user.value?.id ?? null)
   const userName = computed(() => user.value?.name ?? null)
   const userEmail = computed(() => user.value?.email ?? null)
-  const userRole = computed(() => user.value?.role ?? null)
+  const userRole = computed(() => user.value?.roles?.[0] ?? null)
   const userAvatar = computed(() => user.value?.avatar ?? null)
 
-  const isAdmin = computed(() => userRole.value === 'admin')
-  const isModerator = computed(() => userRole.value === 'moderator' || isAdmin.value)
+  const isAdmin = computed(() => userRole.value === 'Admin')
+  const isModerator = computed(() => userRole.value === 'Organizer' || isAdmin.value)
 
   function hasRole(role: UserRole): boolean {
     return userRole.value === role

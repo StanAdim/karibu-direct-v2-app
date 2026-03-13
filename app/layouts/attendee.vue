@@ -10,6 +10,7 @@ const searchQuery = ref('')
 
 const mainNavItems = [
   { id: 'overview', label: 'Overview', icon: 'grid_view', to: '/attendee' },
+  { id: 'events', label: 'Explore Events', icon: 'explore', to: '/attendee/events' },
   { id: 'tickets', label: 'My Tickets', icon: 'confirmation_number', to: '/attendee/tickets' },
   { id: 'saved', label: 'Saved Events', icon: 'favorite', to: '/attendee/saved' },
   { id: 'calendar', label: 'Calendar', icon: 'calendar_today', to: '/attendee/schedule' }
@@ -59,13 +60,15 @@ function closeMobileSidebar() {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-[var(--color-background-light)] dark:bg-[var(--color-background-dark)]">
+  <div class="flex min-h-screen bg-slate-50 dark:bg-slate-950">
     <!-- Mobile menu button -->
     <button
-      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700"
+      type="button"
+      class="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700"
+      aria-label="Toggle menu"
       @click="isMobileSidebarOpen = !isMobileSidebarOpen"
     >
-      <span class="material-symbols-outlined">{{ isMobileSidebarOpen ? 'close' : 'menu' }}</span>
+      <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">{{ isMobileSidebarOpen ? 'close' : 'menu' }}</span>
     </button>
 
     <!-- Mobile sidebar backdrop -->
@@ -73,25 +76,26 @@ function closeMobileSidebar() {
       <div
         v-if="isMobileSidebarOpen"
         class="lg:hidden fixed inset-0 bg-black/50 z-40"
+        aria-hidden="true"
         @click="closeMobileSidebar"
       />
     </Transition>
 
-    <!-- Sidebar -->
+    <!-- Sidebar: fixed on mobile (drawer), static on desktop -->
     <aside
       :class="[
-        'fixed lg:static h-full z-40 transition-all duration-300 lg:translate-x-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col',
-        isSidebarOpen ? 'w-64' : 'w-20',
-        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        'fixed lg:static h-full z-40 transition-transform duration-300 ease-out lg:translate-x-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0',
+        isSidebarOpen ? 'w-[260px]' : 'w-20',
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       ]"
     >
-      <!-- Brand -->
-      <div class="p-6 flex items-center gap-3">
-        <NuxtLink to="/attendee" class="flex items-center gap-3">
-          <div class="bg-primary-500 rounded-lg p-2 text-white flex-shrink-0">
-            <span class="material-symbols-outlined">confirmation_number</span>
+      <!-- Brand: logo + app name + Attendee Hub -->
+      <div class="p-5 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800">
+        <NuxtLink to="/attendee" class="flex items-center gap-3 min-w-0" @click="closeMobileSidebar">
+          <div class="size-10 rounded-xl bg-primary-500 flex items-center justify-center text-white shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-xl">confirmation_number</span>
           </div>
-          <div v-if="isSidebarOpen" class="overflow-hidden">
+          <div v-if="isSidebarOpen" class="overflow-hidden min-w-0">
             <h1 class="text-slate-900 dark:text-white font-bold text-lg leading-tight truncate">
               {{ config.public.appName }}
             </h1>
@@ -101,28 +105,28 @@ function closeMobileSidebar() {
       </div>
 
       <!-- Main Navigation -->
-      <nav class="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
+      <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         <NuxtLink
           v-for="item in mainNavItems"
           :key="item.id"
           :to="item.to"
           :class="[
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group',
+            'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
             isActiveRoute(item.to)
-              ? 'bg-primary-500/10 text-primary-500'
+              ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
           :title="!isSidebarOpen ? item.label : undefined"
           @click="closeMobileSidebar"
         >
-          <span class="material-symbols-outlined">{{ item.icon }}</span>
-          <span v-if="isSidebarOpen" class="font-medium text-sm flex-1">{{ item.label }}</span>
+          <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+          <span v-if="isSidebarOpen" class="text-sm flex-1 truncate">{{ item.label }}</span>
         </NuxtLink>
 
-        <!-- Account Section -->
+        <!-- ACCOUNT section -->
         <div
           v-if="isSidebarOpen"
-          class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+          class="pt-6 pb-2 px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
         >
           Account
         </div>
@@ -132,22 +136,23 @@ function closeMobileSidebar() {
           :key="item.id"
           :to="item.to"
           :class="[
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group',
+            'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
             isActiveRoute(item.to)
-              ? 'bg-primary-500/10 text-primary-500'
+              ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
           :title="!isSidebarOpen ? item.label : undefined"
           @click="closeMobileSidebar"
         >
-          <span class="material-symbols-outlined">{{ item.icon }}</span>
-          <span v-if="isSidebarOpen" class="font-medium text-sm flex-1">{{ item.label }}</span>
+          <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+          <span v-if="isSidebarOpen" class="text-sm flex-1 truncate">{{ item.label }}</span>
         </NuxtLink>
       </nav>
 
-      <!-- Collapse Button -->
-      <div class="hidden lg:block p-4 border-t border-slate-200 dark:border-slate-800">
+      <!-- Collapse (desktop only) -->
+      <div class="hidden lg:block p-3 border-t border-slate-200 dark:border-slate-800">
         <button
+          type="button"
           class="flex items-center justify-center w-full p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           @click="isSidebarOpen = !isSidebarOpen"
         >
@@ -155,92 +160,87 @@ function closeMobileSidebar() {
         </button>
       </div>
 
-      <!-- User Card -->
+      <!-- User block at bottom -->
       <div v-if="user && isSidebarOpen" class="p-4 border-t border-slate-200 dark:border-slate-800">
-        <div class="flex items-center gap-3 p-2">
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
           <UAvatar
             v-if="user.avatar"
             :src="user.avatar"
             :alt="getFullName(user)"
             size="sm"
-            class="border border-slate-200 dark:border-slate-700"
+            class="border border-slate-200 dark:border-slate-700 shrink-0"
           />
           <div
             v-else
-            class="w-10 h-10 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-500 flex-shrink-0"
+            class="size-10 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-500 shrink-0"
           >
             <span class="material-symbols-outlined">person</span>
           </div>
-          <div class="overflow-hidden">
+          <div class="overflow-hidden min-w-0">
             <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">
               {{ getFullName(user) }}
             </p>
-            <p class="text-xs text-slate-500 truncate">{{ user.email }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ user.email }}</p>
           </div>
         </div>
       </div>
     </aside>
 
     <!-- Main content -->
-    <main class="flex-1 min-h-screen flex flex-col lg:ml-0">
-      <!-- Header -->
-      <header class="sticky top-0 z-10 flex items-center justify-between px-4 lg:px-8 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <!-- Search -->
-        <div class="relative w-full max-w-md ml-12 lg:ml-0">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+    <main class="flex-1 min-h-screen flex flex-col min-w-0">
+      <!-- Header: search + actions -->
+      <header class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="relative flex-1 min-w-0 order-2 sm:order-1 pl-12 sm:pl-0 max-w-full sm:max-w-md">
+          <span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none hidden sm:inline ml-1">search</span>
           <input
             v-model="searchQuery"
-            type="text"
+            type="search"
             placeholder="Search events, venues, or bookings..."
-            class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none"
+            class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl py-2.5 pl-10 pr-4 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
           />
         </div>
 
-        <div class="flex items-center gap-3">
-          <!-- Notifications -->
-          <button class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative">
+        <div class="flex items-center gap-2 sm:gap-3 order-1 sm:order-2 ml-auto">
+          <button
+            type="button"
+            class="p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl relative transition-colors"
+            aria-label="Notifications"
+          >
             <span class="material-symbols-outlined">notifications</span>
-            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
+            <span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
           </button>
-
-          <!-- Help -->
-          <button class="hidden sm:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+          <button
+            type="button"
+            class="hidden sm:flex p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            aria-label="Help"
+          >
             <span class="material-symbols-outlined">help_outline</span>
           </button>
-
-          <div class="hidden sm:block h-6 w-px bg-slate-200 dark:border-slate-700 mx-2" />
-
-          <!-- Find Events Button -->
           <NuxtLink
             to="/attendee/events"
-            class="hidden sm:flex bg-primary-500 hover:bg-primary-500/90 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+            class="flex items-center justify-center bg-primary-500 hover:bg-primary-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
           >
             Find Events
           </NuxtLink>
-
-          <!-- User Menu -->
           <UDropdownMenu :items="userMenuItems" class="hidden sm:block">
             <UButton
               color="neutral"
               variant="ghost"
-              class="gap-2"
+              class="gap-2 rounded-xl"
             >
               <UAvatar
                 :alt="user ? getFullName(user) : 'Attendee'"
                 :src="user?.avatar"
                 size="xs"
               />
-              <UIcon
-                name="i-lucide-chevron-down"
-                class="h-4 w-4"
-              />
+              <UIcon name="i-lucide-chevron-down" class="h-4 w-4" />
             </UButton>
           </UDropdownMenu>
         </div>
       </header>
 
-      <!-- Page content -->
-      <div class="p-4 lg:p-8 flex-1">
+      <!-- Page content: consistent padding for all attendee routes -->
+      <div class="p-4 sm:p-6 lg:p-8 flex-1 overflow-x-hidden">
         <slot />
       </div>
     </main>

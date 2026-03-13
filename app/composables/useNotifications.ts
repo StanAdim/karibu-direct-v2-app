@@ -4,6 +4,7 @@ interface NotificationOptions {
   title: string
   description?: string
   duration?: number
+  type?: 'foreground' | 'background'
 }
 
 interface UseNotificationsReturn {
@@ -25,7 +26,7 @@ export function useNotifications(): UseNotificationsReturn {
   }
 
   function notify(type: NotificationType, options: NotificationOptions | string): void {
-    const { title, description, duration = 5000 } = normalizeOptions(options)
+    const { title, description, duration = 5000, type: toastType = 'foreground' } = normalizeOptions(options)
 
     const colorMap: Record<NotificationType, string> = {
       success: 'success',
@@ -46,7 +47,8 @@ export function useNotifications(): UseNotificationsReturn {
       description,
       color: colorMap[type],
       icon: iconMap[type],
-      timeout: duration
+      duration,
+      type: toastType
     })
   }
 

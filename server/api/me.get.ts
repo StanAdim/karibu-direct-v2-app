@@ -4,8 +4,9 @@ const MOCK_USERS: User[] = [
   {
     id: '1',
     email: 'demo@example.com',
-    name: 'Demo User',
-    role: 'user',
+    firstName: 'Demo',
+    lastName: 'User',
+    roles: ['Attendee'],
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
     createdAt: '2024-01-15T10:30:00Z',
     updatedAt: '2024-03-10T14:20:00Z'
@@ -13,8 +14,9 @@ const MOCK_USERS: User[] = [
   {
     id: '2',
     email: 'admin@example.com',
-    name: 'Admin User',
-    role: 'admin',
+    firstName: 'Admin',
+    lastName: 'User',
+    roles: ['Admin'],
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
     createdAt: '2024-01-01T08:00:00Z',
     updatedAt: '2024-03-12T09:15:00Z'
