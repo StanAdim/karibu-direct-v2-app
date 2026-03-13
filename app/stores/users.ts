@@ -1,3 +1,4 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type {
   PaginatedResponse,
@@ -7,6 +8,7 @@ import type {
   UserStatus,
   UserUpdateInput
 } from '~/types'
+import { useApi } from '~/composables/useApi'
 
 interface UsersState {
   users: User[]
@@ -25,186 +27,190 @@ interface UsersState {
   }
 }
 
-export const useUsersStore = defineStore('users', {
-  state: (): UsersState => ({
-    users: [],
-    currentUser: null,
-    loading: false,
-    pagination: {
-      total: 0,
-      page: 1,
-      perPage: 10,
-      lastPage: 1
-    },
-    filters: {}
-  }),
+export const useUsersStore = defineStore('users', () => {
+  // States
+  const users = ref<User[]>([])
+  const currentUser = ref<User | null>(null)
+  const loading = ref(false)
+  const pagination = ref<UsersState['pagination']>({
+    total: 0,
+    page: 1,
+    perPage: 10,
+    lastPage: 1
+  })
+  const filters = ref<UsersState['filters']>({})
+  const api = useApi()
 
-  getters: {
-    admins: (state): User[] => {
-      return state.users.filter(user => user.role === 'admin')
-    },
+  // Getters
+  const admins = computed<User[]>(() => {
+    return users.value.filter(user => user.role === 'admin')
+  })
 
-    organizers: (state): User[] => {
-      return state.users.filter(user => user.role === 'organizer')
-    },
+  const organizers = computed<User[]>(() => {
+    return users.value.filter(user => user.role === 'organizer')
+  })
 
-    attendees: (state): User[] => {
-      return state.users.filter(user => user.role === 'attendee')
-    },
+  const attendees = computed<User[]>(() => {
+    return users.value.filter(user => user.role === 'attendee')
+  })
 
-    activeUsers: (state): User[] => {
-      return state.users.filter(user => user.status === 'active')
-    },
+  const activeUsers = computed<User[]>(() => {
+    return users.value.filter(user => user.status === 'active')
+  })
 
-    hasMorePages: (state): boolean => {
-      return state.pagination.page < state.pagination.lastPage
+  const hasMorePages = computed<boolean>(() => {
+    return pagination.value.page < pagination.value.lastPage
+  })
+
+  // Actions
+  const fetchUsers = async (userFilters?: { role?: UserRole; status?: UserStatus; search?: string }): Promise<void> => {
+    loading.value = true
+    filters.value = userFilters || {}
+
+    try {
+      const params = new URLSearchParams()
+
+      params.append('page', String(pagination.value.page))
+      params.append('perPage', String(pagination.value.perPage))
+
+      if (userFilters?.role) params.append('role', userFilters.role)
+      if (userFilters?.status) params.append('status', userFilters.status)
+      if (userFilters?.search) params.append('search', userFilters.search)
+
+      const response = await api.get<PaginatedResponse<User>>(`/users?${params.toString()}`)
+
+      users.value = response.data
+      pagination.value = response.meta
     }
-  },
-
-  actions: {
-    async fetchUsers(filters?: { role?: UserRole; status?: UserStatus; search?: string }): Promise<void> {
-      this.loading = true
-      this.filters = filters || {}
-
-      try {
-        const config = useRuntimeConfig()
-        const params = new URLSearchParams()
-
-        params.append('page', String(this.pagination.page))
-        params.append('perPage', String(this.pagination.perPage))
-
-        if (filters?.role) params.append('role', filters.role)
-        if (filters?.status) params.append('status', filters.status)
-        if (filters?.search) params.append('search', filters.search)
-
-        const response = await $fetch<PaginatedResponse<User>>(
-          `${config.public.apiBase}/users?${params.toString()}`,
-          {
-            headers: getAuthHeaders()
-          }
-        )
-
-        this.users = response.data
-        this.pagination = response.meta
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async fetchUser(id: string): Promise<User | null> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const user = await $fetch<User>(`${config.public.apiBase}/users/${id}`, {
-          headers: getAuthHeaders()
-        })
-
-        this.currentUser = user
-        return user
-      }
-      catch {
-        this.currentUser = null
-        return null
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async createUser(input: UserCreateInput): Promise<User> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const user = await $fetch<User>(`${config.public.apiBase}/users`, {
-          method: 'POST',
-          body: input,
-          headers: getAuthHeaders()
-        })
-
-        this.users.unshift(user)
-        return user
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async updateUser(id: string, input: UserUpdateInput): Promise<User> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const user = await $fetch<User>(`${config.public.apiBase}/users/${id}`, {
-          method: 'PATCH',
-          body: input,
-          headers: getAuthHeaders()
-        })
-
-        const index = this.users.findIndex(u => u.id === id)
-        if (index !== -1) {
-          this.users[index] = user
-        }
-
-        if (this.currentUser?.id === id) {
-          this.currentUser = user
-        }
-
-        return user
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async deleteUser(id: string): Promise<void> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        await $fetch(`${config.public.apiBase}/users/${id}`, {
-          method: 'DELETE',
-          headers: getAuthHeaders()
-        })
-
-        this.users = this.users.filter(u => u.id !== id)
-
-        if (this.currentUser?.id === id) {
-          this.currentUser = null
-        }
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async suspendUser(id: string): Promise<User> {
-      return this.updateUser(id, { status: 'suspended' })
-    },
-
-    async activateUser(id: string): Promise<User> {
-      return this.updateUser(id, { status: 'active' })
-    },
-
-    setPage(page: number): void {
-      this.pagination.page = page
-    },
-
-    setPerPage(perPage: number): void {
-      this.pagination.perPage = perPage
-      this.pagination.page = 1
-    },
-
-    clearCurrentUser(): void {
-      this.currentUser = null
-    },
-
-    clearFilters(): void {
-      this.filters = {}
-      this.pagination.page = 1
+    finally {
+      loading.value = false
     }
+  }
+
+  const fetchUser = async (id: string): Promise<User | null> => {
+    loading.value = true
+
+    try {
+      const user = await api.get<User>(`/users/${id}`)
+
+      currentUser.value = user
+      return user
+    }
+    catch {
+      currentUser.value = null
+      return null
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const createUser = async (input: UserCreateInput): Promise<User> => {
+    loading.value = true
+
+    try {
+      const user = await api.post<User>('/users', input)
+
+      users.value.unshift(user)
+      return user
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const updateUser = async (id: string, input: UserUpdateInput): Promise<User> => {
+    loading.value = true
+
+    try {
+      const user = await api.patch<User>(`/users/${id}`, input)
+
+      const index = users.value.findIndex(u => u.id === id)
+      if (index !== -1) {
+        users.value[index] = user
+      }
+
+      if (currentUser.value?.id === id) {
+        currentUser.value = user
+      }
+
+      return user
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const deleteUser = async (id: string): Promise<void> => {
+    loading.value = true
+
+    try {
+      await api.delete(`/users/${id}`)
+
+      users.value = users.value.filter(u => u.id !== id)
+
+      if (currentUser.value?.id === id) {
+        currentUser.value = null
+      }
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const suspendUser = async (id: string): Promise<User> => {
+    return updateUser(id, { status: 'suspended' })
+  }
+
+  const activateUser = async (id: string): Promise<User> => {
+    return updateUser(id, { status: 'active' })
+  }
+
+  const setPage = (page: number): void => {
+    pagination.value.page = page
+  }
+
+  const setPerPage = (perPage: number): void => {
+    pagination.value.perPage = perPage
+    pagination.value.page = 1
+  }
+
+  const clearCurrentUser = (): void => {
+    currentUser.value = null
+  }
+
+  const clearFilters = (): void => {
+    filters.value = {}
+    pagination.value.page = 1
+  }
+
+  return {
+    // State
+    users,
+    currentUser,
+    loading,
+    pagination,
+    filters,
+
+    // Getters
+    admins,
+    organizers,
+    attendees,
+    activeUsers,
+    hasMorePages,
+
+    // Actions
+    fetchUsers,
+    fetchUser,
+    createUser,
+    updateUser,
+    deleteUser,
+    suspendUser,
+    activateUser,
+    setPage,
+    setPerPage,
+    clearCurrentUser,
+    clearFilters
   }
 })
 

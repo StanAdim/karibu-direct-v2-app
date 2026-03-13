@@ -1,3 +1,4 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type {
   PaginatedResponse,
@@ -6,6 +7,7 @@ import type {
   SessionFilters,
   SessionUpdateInput
 } from '~/types'
+import { useApi } from '~/composables/useApi'
 
 interface SessionsState {
   sessions: Session[]
@@ -20,228 +22,223 @@ interface SessionsState {
   filters: SessionFilters
 }
 
-export const useSessionsStore = defineStore('sessions', {
-  state: (): SessionsState => ({
-    sessions: [],
-    currentSession: null,
-    loading: false,
-    pagination: {
-      total: 0,
-      page: 1,
-      perPage: 20,
-      lastPage: 1
-    },
-    filters: {}
-  }),
+export const useSessionsStore = defineStore('sessions', () => {
+  // States
+  const sessions = ref<Session[]>([])
+  const currentSession = ref<Session | null>(null)
+  const loading = ref(false)
+  const pagination = ref<SessionsState['pagination']>({
+    total: 0,
+    page: 1,
+    perPage: 20,
+    lastPage: 1
+  })
+  const filters = ref<SessionFilters>({} as SessionFilters)
+  const api = useApi()
 
-  getters: {
-    sessionsByDate: (state) => {
-      const grouped: Record<string, Session[]> = {}
+  // Getters
+  const sessionsByDate = computed<Record<string, Session[]>>(() => {
+    const grouped: Record<string, Session[]> = {}
 
-      state.sessions.forEach(session => {
-        const date = new Date(session.startTime).toDateString()
-        if (!grouped[date]) {
-          grouped[date] = []
-        }
-        grouped[date].push(session)
-      })
+    sessions.value.forEach(session => {
+      const date = new Date(session.startTime).toDateString()
+      if (!grouped[date]) {
+        grouped[date] = []
+      }
+      grouped[date].push(session)
+    })
 
-      Object.keys(grouped).forEach(date => {
-        grouped[date].sort((a, b) =>
-          new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-        )
-      })
-
-      return grouped
-    },
-
-    sessionsByTrack: (state) => {
-      const grouped: Record<string, Session[]> = {}
-
-      state.sessions.forEach(session => {
-        const track = session.track || 'General'
-        if (!grouped[track]) {
-          grouped[track] = []
-        }
-        grouped[track].push(session)
-      })
-
-      return grouped
-    },
-
-    upcomingSessions: (state): Session[] => {
-      const now = new Date()
-      return state.sessions.filter(session =>
-        new Date(session.startTime) > now && session.status === 'scheduled'
+    Object.keys(grouped).forEach(date => {
+      grouped[date].sort((a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
       )
-    },
+    })
 
-    liveSessions: (state): Session[] => {
-      const now = new Date()
-      return state.sessions.filter(session => {
-        const start = new Date(session.startTime)
-        const end = new Date(session.endTime)
-        return now >= start && now <= end && session.status === 'scheduled'
-      })
+    return grouped
+  })
+
+  const sessionsByTrack = computed<Record<string, Session[]>>(() => {
+    const grouped: Record<string, Session[]> = {}
+
+    sessions.value.forEach(session => {
+      const track = session.track || 'General'
+      if (!grouped[track]) {
+        grouped[track] = []
+      }
+      grouped[track].push(session)
+    })
+
+    return grouped
+  })
+
+  const upcomingSessions = computed<Session[]>(() => {
+    const now = new Date()
+    return sessions.value.filter(session =>
+      new Date(session.startTime) > now && session.status === 'scheduled'
+    )
+  })
+
+  const liveSessions = computed<Session[]>(() => {
+    const now = new Date()
+    return sessions.value.filter(session => {
+      const start = new Date(session.startTime)
+      const end = new Date(session.endTime)
+      return now >= start && now <= end && session.status === 'scheduled'
+    })
+  })
+
+  // Actions
+  const fetchSessions = async (sessionFilters?: SessionFilters): Promise<void> => {
+    loading.value = true
+    filters.value = sessionFilters || ({} as SessionFilters)
+
+    try {
+      const params = new URLSearchParams()
+
+      params.append('page', String(pagination.value.page))
+      params.append('perPage', String(pagination.value.perPage))
+
+      if (sessionFilters?.eventId) params.append('eventId', sessionFilters.eventId)
+      if (sessionFilters?.type) params.append('type', sessionFilters.type)
+      if (sessionFilters?.track) params.append('track', sessionFilters.track)
+      if (sessionFilters?.level) params.append('level', sessionFilters.level)
+      if (sessionFilters?.speakerId) params.append('speakerId', sessionFilters.speakerId)
+      if (sessionFilters?.date) params.append('date', sessionFilters.date)
+      if (sessionFilters?.search) params.append('search', sessionFilters.search)
+
+      const response = await api.get<PaginatedResponse<Session>>(`/sessions?${params.toString()}`)
+
+      sessions.value = response.data
+      pagination.value = response.meta
     }
-  },
-
-  actions: {
-    async fetchSessions(filters?: SessionFilters): Promise<void> {
-      this.loading = true
-      this.filters = filters || {}
-
-      try {
-        const config = useRuntimeConfig()
-        const params = new URLSearchParams()
-
-        params.append('page', String(this.pagination.page))
-        params.append('perPage', String(this.pagination.perPage))
-
-        if (filters?.eventId) params.append('eventId', filters.eventId)
-        if (filters?.type) params.append('type', filters.type)
-        if (filters?.track) params.append('track', filters.track)
-        if (filters?.level) params.append('level', filters.level)
-        if (filters?.speakerId) params.append('speakerId', filters.speakerId)
-        if (filters?.date) params.append('date', filters.date)
-        if (filters?.search) params.append('search', filters.search)
-
-        const response = await $fetch<PaginatedResponse<Session>>(
-          `${config.public.apiBase}/sessions?${params.toString()}`,
-          {
-            headers: getAuthHeaders()
-          }
-        )
-
-        this.sessions = response.data
-        this.pagination = response.meta
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async fetchSession(id: string): Promise<Session | null> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const session = await $fetch<Session>(`${config.public.apiBase}/sessions/${id}`, {
-          headers: getAuthHeaders()
-        })
-
-        this.currentSession = session
-        return session
-      }
-      catch {
-        this.currentSession = null
-        return null
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async fetchEventSessions(eventId: string): Promise<Session[]> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const response = await $fetch<PaginatedResponse<Session>>(
-          `${config.public.apiBase}/events/${eventId}/sessions`,
-          {
-            headers: getAuthHeaders()
-          }
-        )
-
-        this.sessions = response.data
-        this.pagination = response.meta
-        return response.data
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async createSession(input: SessionCreateInput): Promise<Session> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const session = await $fetch<Session>(`${config.public.apiBase}/sessions`, {
-          method: 'POST',
-          body: input,
-          headers: getAuthHeaders()
-        })
-
-        this.sessions.push(session)
-        return session
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async updateSession(id: string, input: SessionUpdateInput): Promise<Session> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const session = await $fetch<Session>(`${config.public.apiBase}/sessions/${id}`, {
-          method: 'PATCH',
-          body: input,
-          headers: getAuthHeaders()
-        })
-
-        const index = this.sessions.findIndex(s => s.id === id)
-        if (index !== -1) {
-          this.sessions[index] = session
-        }
-
-        if (this.currentSession?.id === id) {
-          this.currentSession = session
-        }
-
-        return session
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async deleteSession(id: string): Promise<void> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        await $fetch(`${config.public.apiBase}/sessions/${id}`, {
-          method: 'DELETE',
-          headers: getAuthHeaders()
-        })
-
-        this.sessions = this.sessions.filter(s => s.id !== id)
-
-        if (this.currentSession?.id === id) {
-          this.currentSession = null
-        }
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    setPage(page: number): void {
-      this.pagination.page = page
-    },
-
-    clearCurrentSession(): void {
-      this.currentSession = null
-    },
-
-    clearFilters(): void {
-      this.filters = {}
-      this.pagination.page = 1
+    finally {
+      loading.value = false
     }
+  }
+
+  const fetchSession = async (id: string): Promise<Session | null> => {
+    loading.value = true
+
+    try {
+      const session = await api.get<Session>(`/sessions/${id}`)
+
+      currentSession.value = session
+      return session
+    }
+    catch {
+      currentSession.value = null
+      return null
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const fetchEventSessions = async (eventId: string): Promise<Session[]> => {
+    loading.value = true
+
+    try {
+      const response = await api.get<PaginatedResponse<Session>>(`/events/${eventId}/sessions`)
+
+      sessions.value = response.data
+      pagination.value = response.meta
+      return response.data
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const createSession = async (input: SessionCreateInput): Promise<Session> => {
+    loading.value = true
+
+    try {
+      const session = await api.post<Session>('/sessions', input)
+
+      sessions.value.push(session)
+      return session
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const updateSession = async (id: string, input: SessionUpdateInput): Promise<Session> => {
+    loading.value = true
+
+    try {
+      const session = await api.patch<Session>(`/sessions/${id}`, input)
+
+      const index = sessions.value.findIndex(s => s.id === id)
+      if (index !== -1) {
+        sessions.value[index] = session
+      }
+
+      if (currentSession.value?.id === id) {
+        currentSession.value = session
+      }
+
+      return session
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const deleteSession = async (id: string): Promise<void> => {
+    loading.value = true
+
+    try {
+      await api.delete(`/sessions/${id}`)
+
+      sessions.value = sessions.value.filter(s => s.id !== id)
+
+      if (currentSession.value?.id === id) {
+        currentSession.value = null
+      }
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const setPage = (page: number): void => {
+    pagination.value.page = page
+  }
+
+  const clearCurrentSession = (): void => {
+    currentSession.value = null
+  }
+
+  const clearFilters = (): void => {
+    filters.value = {} as SessionFilters
+    pagination.value.page = 1
+  }
+
+  return {
+    // State
+    sessions,
+    currentSession,
+    loading,
+    pagination,
+    filters,
+
+    // Getters
+    sessionsByDate,
+    sessionsByTrack,
+    upcomingSessions,
+    liveSessions,
+
+    // Actions
+    fetchSessions,
+    fetchSession,
+    fetchEventSessions,
+    createSession,
+    updateSession,
+    deleteSession,
+    setPage,
+    clearCurrentSession,
+    clearFilters
   }
 })
 

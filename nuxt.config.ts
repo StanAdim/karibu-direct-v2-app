@@ -16,7 +16,7 @@ export default defineNuxtConfig({
     '@artmizu/nuxt-prometheus',
     '@bubblesortt/nuxt-es-toolkit',
     '@coremyslo/nuxt-icon-font',
-    '@morev/vue-transitions',
+    '@morev/vue-transitions/nuxt',
     '@nuxtjs/device'
   ],
 

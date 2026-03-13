@@ -1,3 +1,4 @@
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type {
   Event,
@@ -7,6 +8,7 @@ import type {
   EventUpdateInput,
   PaginatedResponse
 } from '~/types'
+import { useApi } from '~/composables/useApi'
 
 interface EventsState {
   events: Event[]
@@ -22,218 +24,218 @@ interface EventsState {
   filters: EventFilters
 }
 
-export const useEventsStore = defineStore('events', {
-  state: (): EventsState => ({
-    events: [],
-    currentEvent: null,
-    eventStats: null,
-    loading: false,
-    pagination: {
-      total: 0,
-      page: 1,
-      perPage: 10,
-      lastPage: 1
-    },
-    filters: {}
-  }),
+export const useEventsStore = defineStore('events', () => {
+  // States
+  const events = ref<Event[]>([])
+  const currentEvent = ref<Event | null>(null)
+  const eventStats = ref<EventStats | null>(null)
+  const loading = ref(false)
+  const pagination = ref<EventsState['pagination']>({
+    total: 0,
+    page: 1,
+    perPage: 10,
+    lastPage: 1
+  })
+  const filters = ref<EventFilters>({} as EventFilters)
+  const api = useApi()
 
-  getters: {
-    upcomingEvents: (state): Event[] => {
-      const now = new Date()
-      return state.events.filter(event => {
-        const startDate = new Date(event.startDate)
-        return startDate > now && event.status === 'published'
-      })
-    },
+  // Getters
+  const upcomingEvents = computed<Event[]>(() => {
+    const now = new Date()
+    return events.value.filter(event => {
+      const startDate = new Date(event.startDate)
+      return startDate > now && event.status === 'published'
+    })
+  })
 
-    pastEvents: (state): Event[] => {
-      const now = new Date()
-      return state.events.filter(event => {
-        const endDate = new Date(event.endDate)
-        return endDate < now
-      })
-    },
+  const pastEvents = computed<Event[]>(() => {
+    const now = new Date()
+    return events.value.filter(event => {
+      const endDate = new Date(event.endDate)
+      return endDate < now
+    })
+  })
 
-    draftEvents: (state): Event[] => {
-      return state.events.filter(event => event.status === 'draft')
-    },
+  const draftEvents = computed<Event[]>(() => {
+    return events.value.filter(event => event.status === 'draft')
+  })
 
-    publishedEvents: (state): Event[] => {
-      return state.events.filter(event => event.status === 'published')
-    },
+  const publishedEvents = computed<Event[]>(() => {
+    return events.value.filter(event => event.status === 'published')
+  })
 
-    hasMorePages: (state): boolean => {
-      return state.pagination.page < state.pagination.lastPage
+  const hasMorePages = computed<boolean>(() => {
+    return pagination.value.page < pagination.value.lastPage
+  })
+
+  // Actions
+  const fetchEvents = async (eventFilters?: EventFilters): Promise<void> => {
+    loading.value = true
+    filters.value = eventFilters || ({} as EventFilters)
+
+    try {
+      const params = new URLSearchParams()
+
+      params.append('page', String(pagination.value.page))
+      params.append('perPage', String(pagination.value.perPage))
+
+      if (eventFilters?.status) params.append('status', eventFilters.status)
+      if (eventFilters?.visibility) params.append('visibility', eventFilters.visibility)
+      if (eventFilters?.category) params.append('category', eventFilters.category)
+      if (eventFilters?.search) params.append('search', eventFilters.search)
+      if (eventFilters?.startDate) params.append('startDate', eventFilters.startDate)
+      if (eventFilters?.endDate) params.append('endDate', eventFilters.endDate)
+      if (eventFilters?.organizerId) params.append('organizerId', eventFilters.organizerId)
+
+      const response = await api.get<PaginatedResponse<Event>>(`/events?${params.toString()}`)
+
+      events.value = response.data
+      pagination.value = response.meta
     }
-  },
-
-  actions: {
-    async fetchEvents(filters?: EventFilters): Promise<void> {
-      this.loading = true
-      this.filters = filters || {}
-
-      try {
-        const config = useRuntimeConfig()
-        const params = new URLSearchParams()
-
-        params.append('page', String(this.pagination.page))
-        params.append('perPage', String(this.pagination.perPage))
-
-        if (filters?.status) params.append('status', filters.status)
-        if (filters?.visibility) params.append('visibility', filters.visibility)
-        if (filters?.category) params.append('category', filters.category)
-        if (filters?.search) params.append('search', filters.search)
-        if (filters?.startDate) params.append('startDate', filters.startDate)
-        if (filters?.endDate) params.append('endDate', filters.endDate)
-        if (filters?.organizerId) params.append('organizerId', filters.organizerId)
-
-        const response = await $fetch<PaginatedResponse<Event>>(
-          `${config.public.apiBase}/events?${params.toString()}`,
-          {
-            headers: getAuthHeaders()
-          }
-        )
-
-        this.events = response.data
-        this.pagination = response.meta
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async fetchEvent(id: string): Promise<Event | null> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const event = await $fetch<Event>(`${config.public.apiBase}/events/${id}`, {
-          headers: getAuthHeaders()
-        })
-
-        this.currentEvent = event
-        return event
-      }
-      catch {
-        this.currentEvent = null
-        return null
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async fetchEventStats(eventId: string): Promise<EventStats | null> {
-      try {
-        const config = useRuntimeConfig()
-        const stats = await $fetch<EventStats>(
-          `${config.public.apiBase}/events/${eventId}/stats`,
-          {
-            headers: getAuthHeaders()
-          }
-        )
-
-        this.eventStats = stats
-        return stats
-      }
-      catch {
-        return null
-      }
-    },
-
-    async createEvent(input: EventCreateInput): Promise<Event> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const event = await $fetch<Event>(`${config.public.apiBase}/events`, {
-          method: 'POST',
-          body: input,
-          headers: getAuthHeaders()
-        })
-
-        this.events.unshift(event)
-        return event
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async updateEvent(id: string, input: EventUpdateInput): Promise<Event> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        const event = await $fetch<Event>(`${config.public.apiBase}/events/${id}`, {
-          method: 'PATCH',
-          body: input,
-          headers: getAuthHeaders()
-        })
-
-        const index = this.events.findIndex(e => e.id === id)
-        if (index !== -1) {
-          this.events[index] = event
-        }
-
-        if (this.currentEvent?.id === id) {
-          this.currentEvent = event
-        }
-
-        return event
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async deleteEvent(id: string): Promise<void> {
-      this.loading = true
-
-      try {
-        const config = useRuntimeConfig()
-        await $fetch(`${config.public.apiBase}/events/${id}`, {
-          method: 'DELETE',
-          headers: getAuthHeaders()
-        })
-
-        this.events = this.events.filter(e => e.id !== id)
-
-        if (this.currentEvent?.id === id) {
-          this.currentEvent = null
-        }
-      }
-      finally {
-        this.loading = false
-      }
-    },
-
-    async publishEvent(id: string): Promise<Event> {
-      return this.updateEvent(id, { status: 'published' })
-    },
-
-    async cancelEvent(id: string): Promise<Event> {
-      return this.updateEvent(id, { status: 'cancelled' })
-    },
-
-    setPage(page: number): void {
-      this.pagination.page = page
-    },
-
-    setPerPage(perPage: number): void {
-      this.pagination.perPage = perPage
-      this.pagination.page = 1
-    },
-
-    clearCurrentEvent(): void {
-      this.currentEvent = null
-      this.eventStats = null
-    },
-
-    clearFilters(): void {
-      this.filters = {}
-      this.pagination.page = 1
+    finally {
+      loading.value = false
     }
+  }
+
+  const fetchEvent = async (id: string): Promise<Event | null> => {
+    loading.value = true
+
+    try {
+      const event = await api.get<Event>(`/events/${id}`)
+
+      currentEvent.value = event
+      return event
+    }
+    catch {
+      currentEvent.value = null
+      return null
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const fetchEventStats = async (eventId: string): Promise<EventStats | null> => {
+    try {
+      const stats = await api.get<EventStats>(`/events/${eventId}/stats`)
+
+      eventStats.value = stats
+      return stats
+    }
+    catch {
+      return null
+    }
+  }
+
+  const createEvent = async (input: EventCreateInput): Promise<Event> => {
+    loading.value = true
+
+    try {
+      const event = await api.post<Event>('/events', input)
+
+      events.value.unshift(event)
+      return event
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const updateEvent = async (id: string, input: EventUpdateInput): Promise<Event> => {
+    loading.value = true
+
+    try {
+      const event = await api.patch<Event>(`/events/${id}`, input)
+
+      const index = events.value.findIndex(e => e.id === id)
+      if (index !== -1) {
+        events.value[index] = event
+      }
+
+      if (currentEvent.value?.id === id) {
+        currentEvent.value = event
+      }
+
+      return event
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const deleteEvent = async (id: string): Promise<void> => {
+    loading.value = true
+
+    try {
+      await api.delete(`/events/${id}`)
+
+      events.value = events.value.filter(e => e.id !== id)
+
+      if (currentEvent.value?.id === id) {
+        currentEvent.value = null
+      }
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  const publishEvent = async (id: string): Promise<Event> => {
+    return updateEvent(id, { status: 'published' })
+  }
+
+  const cancelEvent = async (id: string): Promise<Event> => {
+    return updateEvent(id, { status: 'cancelled' })
+  }
+
+  const setPage = (page: number): void => {
+    pagination.value.page = page
+  }
+
+  const setPerPage = (perPage: number): void => {
+    pagination.value.perPage = perPage
+    pagination.value.page = 1
+  }
+
+  const clearCurrentEvent = (): void => {
+    currentEvent.value = null
+    eventStats.value = null
+  }
+
+  const clearFilters = (): void => {
+    filters.value = {} as EventFilters
+    pagination.value.page = 1
+  }
+
+  return {
+    // State
+    events,
+    currentEvent,
+    eventStats,
+    loading,
+    pagination,
+    filters,
+
+    // Getters
+    upcomingEvents,
+    pastEvents,
+    draftEvents,
+    publishedEvents,
+    hasMorePages,
+
+    // Actions
+    fetchEvents,
+    fetchEvent,
+    fetchEventStats,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    publishEvent,
+    cancelEvent,
+    setPage,
+    setPerPage,
+    clearCurrentEvent,
+    clearFilters
   }
 })
 
