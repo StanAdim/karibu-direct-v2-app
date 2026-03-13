@@ -95,7 +95,10 @@ function handleSubmit() {
     @submit.prevent="handleSubmit"
   >
     <!-- Session Type -->
-    <UFormField label="Session Type">
+    <div class="space-y-2">
+      <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+        Session Type
+      </p>
       <div class="flex flex-wrap gap-2">
         <button
           v-for="type in sessionTypes"
@@ -116,7 +119,7 @@ function handleSubmit() {
           {{ type.label }}
         </button>
       </div>
-    </UFormField>
+    </div>
 
     <!-- Title -->
     <AppInput
@@ -128,37 +131,35 @@ function handleSubmit() {
     />
 
     <!-- Description -->
-    <UFormField label="Description">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+        Description
+      </label>
       <UTextarea
         v-model="form.description"
         placeholder="Session description"
         :rows="4"
+        class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
       />
-    </UFormField>
+    </div>
 
     <!-- Time -->
     <div class="grid gap-6 sm:grid-cols-2">
-      <UFormField
+      <AppInput
+        v-model="form.startTime"
+        type="datetime-local"
         label="Start Time"
         required
         :error="errors.startTime"
-      >
-        <UInput
-          v-model="form.startTime"
-          type="datetime-local"
-        />
-      </UFormField>
+      />
 
-      <UFormField
+      <AppInput
+        v-model="form.endTime"
+        type="datetime-local"
         label="End Time"
         required
         :error="errors.endTime"
-      >
-        <UInput
-          v-model="form.endTime"
-          type="datetime-local"
-        />
-      </UFormField>
+      />
     </div>
 
     <!-- Location -->
@@ -177,28 +178,32 @@ function handleSubmit() {
     </div>
 
     <!-- Level & Capacity (for non-break sessions) -->
-    <div
-      v-if="!form.isBreak"
-      class="grid gap-6 sm:grid-cols-2"
-    >
-      <UFormField label="Level">
-        <USelect
-          v-model="form.level"
-          :items="sessionLevels"
-          value-key="value"
-          label-key="label"
-          placeholder="Select level"
-        />
-      </UFormField>
+      <div
+        v-if="!form.isBreak"
+        class="grid gap-6 sm:grid-cols-2"
+      >
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+            Level
+          </label>
+          <USelect
+            v-model="form.level"
+            :items="sessionLevels"
+            value-key="value"
+            label-key="label"
+            placeholder="Select level"
+            class="h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+          />
+        </div>
 
-      <AppInput
-        v-model.number="form.capacity"
-        label="Capacity (optional)"
-        type="number"
-        placeholder="Leave empty for unlimited"
-        :min="1"
-      />
-    </div>
+        <AppInput
+          v-model.number="form.capacity"
+          label="Capacity (optional)"
+          type="number"
+          placeholder="Leave empty for unlimited"
+          :min="1"
+        />
+      </div>
 
     <!-- Actions -->
     <div class="flex items-center justify-end gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">

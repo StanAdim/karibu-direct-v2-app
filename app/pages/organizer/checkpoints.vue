@@ -235,7 +235,11 @@ async function createCheckpoint() {
               required
             />
 
-            <UFormField label="Type">
+            <UFormField
+              label="Type"
+              orientation="vertical"
+              size="md"
+            >
               <USelect
                 v-model="newCheckpoint.type"
                 :items="checkpointTypes"
@@ -250,7 +254,11 @@ async function createCheckpoint() {
               placeholder="e.g., Building A, Ground Floor"
             />
 
-            <UFormField label="Description">
+            <UFormField
+              label="Description"
+              orientation="vertical"
+              size="md"
+            >
               <UTextarea
                 v-model="newCheckpoint.description"
                 placeholder="Optional description"

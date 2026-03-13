@@ -106,27 +106,20 @@ async function handleSocialLogin(provider: string) {
     <!-- Login Form -->
     <form class="space-y-6" @submit.prevent="handleSubmit">
       <!-- Email -->
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2" for="email">
-          Email or Phone
-        </label>
-        <input
-          id="email"
-          v-model="form.email"
-          type="text"
-          placeholder="name@example.com"
-          class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none placeholder:text-slate-400"
-          :class="errors.email && 'border-red-500 focus:ring-red-500'"
-        />
-        <p v-if="errors.email" class="mt-2 text-sm text-red-500">{{ errors.email }}</p>
-      </div>
+      <AppInput
+        v-model="form.email"
+        type="text"
+        label="Email or Phone"
+        placeholder="name@example.com"
+        :error="errors.email"
+      />
 
       <!-- Password -->
       <div>
         <div class="flex items-center justify-between mb-2">
-          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="password">
+          <span class="block text-sm font-medium text-slate-700 dark:text-slate-300">
             Password
-          </label>
+          </span>
           <NuxtLink
             to="/forgot-password"
             class="text-sm font-semibold text-primary-500 hover:text-primary-500/80 transition-colors"
@@ -135,13 +128,11 @@ async function handleSocialLogin(provider: string) {
           </NuxtLink>
         </div>
         <div class="relative">
-          <input
-            id="password"
+          <AppInput
             v-model="form.password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            class="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none placeholder:text-slate-400"
-            :class="errors.password && 'border-red-500 focus:ring-red-500'"
+            :error="errors.password"
           />
           <button
             type="button"
@@ -153,21 +144,23 @@ async function handleSocialLogin(provider: string) {
             </span>
           </button>
         </div>
-        <p v-if="errors.password" class="mt-2 text-sm text-red-500">{{ errors.password }}</p>
       </div>
 
       <!-- Remember Me -->
-      <div class="flex items-center">
-        <input
-          id="remember"
-          v-model="form.rememberMe"
-          type="checkbox"
-          class="size-4 text-primary-500 border-slate-300 dark:border-slate-700 rounded focus:ring-primary-500"
-        />
-        <label class="ml-2 block text-sm text-slate-700 dark:text-slate-300" for="remember">
-          Remember me for 30 days
+      <UFormField
+        orientation="vertical"
+        size="md"
+      >
+        <label class="flex items-center">
+          <UCheckbox
+            v-model="form.rememberMe"
+            class="size-4 text-primary-500 border-slate-300 dark:border-slate-700 rounded focus:ring-primary-500"
+          />
+          <span class="ml-2 block text-sm text-slate-700 dark:text-slate-300">
+            Remember me for 30 days
+          </span>
         </label>
-      </div>
+      </UFormField>
 
       <!-- Submit Button -->
       <button

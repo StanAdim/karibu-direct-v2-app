@@ -13,12 +13,15 @@ interface Props {
   trailingIcon?: string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   autocomplete?: string
+  min?: string | number
+  max?: string | number
+  step?: string | number
 }
 
 withDefaults(defineProps<Props>(), {
   modelValue: '',
   type: 'text',
-  size: 'md',
+  size: 'lg',
   required: false,
   disabled: false,
   readonly: false
@@ -33,29 +36,84 @@ const emit = defineEmits<{
 function handleInput(value: string | number) {
   emit('update:modelValue', value)
 }
+
+function onInput(event: Event) {
+  const target = event.target as HTMLInputElement | null
+  if (!target) return
+  handleInput(target.value)
+}
 </script>
 
 <template>
-  <UFormField
-    :label="label"
-    :hint="hint"
-    :error="error"
-    :required="required"
-  >
-    <UInput
-      :model-value="modelValue"
-      :type="type"
-      :placeholder="placeholder"
-      :disabled="disabled"
-      :readonly="readonly"
-      :icon="icon"
-      :trailing-icon="trailingIcon"
-      :size="size"
-      :autocomplete="autocomplete"
-      :color="error ? 'error' : undefined"
-      @update:model-value="handleInput"
-      @blur="$emit('blur', $event)"
-      @focus="$emit('focus', $event)"
-    />
-  </UFormField>
+  <div class="flex flex-col gap-1.5">
+    <label
+      v-if="label"
+      class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1"
+    >
+      {{ label }}
+      <span v-if="required" class="text-red-500">*</span>
+    </label>
+
+    <div class="relative">
+      <span
+        v-if="icon"
+        class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none"
+      >
+        <UIcon
+          :name="icon"
+          class="size-4"
+        />
+      </span>
+
+      <input
+        :value="modelValue != null ? String(modelValue) : ''"
+        :type="type"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :readonly="readonly"
+        :autocomplete="autocomplete"
+        :min="min"
+        :max="max"
+        :step="step"
+        :class="[
+          'w-full h-12 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-all outline-none',
+          'focus:ring-2 focus:border-transparent',
+          error
+            ? 'border-red-500 focus:ring-red-500'
+            : 'border-slate-200 dark:border-slate-700 focus:ring-primary-500',
+          icon ? 'pl-11 pr-4' : 'px-4',
+          trailingIcon ? 'pr-11' : ''
+        ]"
+        @input="onInput"
+        @blur="$emit('blur', $event)"
+        @focus="$emit('focus', $event)"
+      />
+
+      <button
+        v-if="trailingIcon"
+        type="button"
+        class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+        tabindex="-1"
+      >
+        <UIcon
+          :name="trailingIcon"
+          class="size-4"
+        />
+      </button>
+    </div>
+
+    <p
+      v-if="hint && !error"
+      class="text-xs text-slate-500 dark:text-slate-400 ml-1"
+    >
+      {{ hint }}
+    </p>
+
+    <p
+      v-if="error"
+      class="text-xs text-red-500 ml-1"
+    >
+      {{ error }}
+    </p>
+  </div>
 </template>

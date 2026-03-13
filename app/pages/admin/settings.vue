@@ -99,6 +99,8 @@ const timezones = [
           <UFormField
             label="Default Timezone"
             class="sm:col-span-2"
+            orientation="vertical"
+            size="md"
           >
             <USelect
               v-model="settings.general.timezone"
@@ -111,6 +113,8 @@ const timezones = [
           <UFormField
             label="Site Description"
             class="sm:col-span-2"
+            orientation="vertical"
+            size="md"
           >
             <UTextarea
               v-model="settings.general.siteDescription"

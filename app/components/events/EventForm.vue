@@ -118,17 +118,24 @@ function handleSubmit() {
         hint="Maximum 200 characters"
       />
 
-      <UFormField
-        label="Description"
-        required
-        :error="errors.description"
-      >
+      <div class="flex flex-col gap-1.5">
+        <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+          Description
+          <span class="text-red-500">*</span>
+        </label>
         <UTextarea
           v-model="form.description"
           placeholder="Detailed event description"
           :rows="6"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none"
         />
-      </UFormField>
+        <p
+          v-if="errors.description"
+          class="text-xs text-red-500 ml-1"
+        >
+          {{ errors.description }}
+        </p>
+      </div>
 
       <AppInput
         v-model="form.coverImage"
@@ -145,27 +152,21 @@ function handleSubmit() {
       </h3>
 
       <div class="grid gap-6 sm:grid-cols-2">
-        <UFormField
+        <AppInput
+          v-model="form.startDate"
+          type="datetime-local"
           label="Start Date & Time"
           required
           :error="errors.startDate"
-        >
-          <UInput
-            v-model="form.startDate"
-            type="datetime-local"
-          />
-        </UFormField>
+        />
 
-        <UFormField
+        <AppInput
+          v-model="form.endDate"
+          type="datetime-local"
           label="End Date & Time"
           required
           :error="errors.endDate"
-        >
-          <UInput
-            v-model="form.endDate"
-            type="datetime-local"
-          />
-        </UFormField>
+        />
       </div>
     </div>
 
@@ -175,7 +176,10 @@ function handleSubmit() {
         Venue
       </h3>
 
-      <UFormField label="Event Type">
+      <div class="space-y-2">
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+          Event Type
+        </p>
         <div class="flex flex-wrap gap-3">
           <button
             v-for="type in venueTypes"
@@ -196,7 +200,7 @@ function handleSubmit() {
             {{ type.label }}
           </button>
         </div>
-      </UFormField>
+      </div>
 
       <div
         v-if="form.venue.type !== 'virtual'"
@@ -243,7 +247,10 @@ function handleSubmit() {
         Settings
       </h3>
 
-      <UFormField label="Visibility">
+      <div class="space-y-2">
+        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+          Visibility
+        </p>
         <div class="space-y-2">
           <label
             v-for="option in visibilityOptions"
@@ -265,19 +272,16 @@ function handleSubmit() {
             </div>
           </label>
         </div>
-      </UFormField>
+      </div>
 
-      <UFormField
+      <AppInput
+        v-model.number="form.capacity"
         label="Maximum Capacity"
+        type="number"
+        min="1"
+        placeholder="100"
         :error="errors.capacity"
-      >
-        <UInput
-          v-model.number="form.capacity"
-          type="number"
-          min="1"
-          placeholder="100"
-        />
-      </UFormField>
+      />
     </div>
 
     <!-- Actions -->

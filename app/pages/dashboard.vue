@@ -214,7 +214,7 @@ const recentActivity = ref([
 
     <div
       v-if="!isAuthenticated"
-      class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950"
+      class="rounded-lg border pl-4 border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950"
     >
       <p class="text-sm text-yellow-800 dark:text-yellow-200">
         You are viewing this page in demo mode. Some features may be limited.

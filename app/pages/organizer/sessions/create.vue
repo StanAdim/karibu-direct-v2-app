@@ -84,6 +84,8 @@ onMounted(() => {
         <UFormField
           label="Event"
           required
+          orientation="vertical"
+          size="md"
         >
           <USelect
             v-model="selectedEventId"

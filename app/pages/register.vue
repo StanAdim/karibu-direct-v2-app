@@ -7,6 +7,7 @@ definePageMeta({
 })
 
 const { register, loading } = useAuth()
+const router = useRouter()
 
 const credentials = reactive<RegisterCredentials>({
   email: '',
@@ -21,11 +22,7 @@ const credentials = reactive<RegisterCredentials>({
 const errors = reactive<Record<string, string>>({})
 const showPassword = ref(false)
 const acceptTerms = ref(false)
-
-const roleOptions: { value: UserRole; label: string; description: string }[] = [
-  { value: 'attendee', label: 'Attendee', description: 'Browse and attend events' },
-  { value: 'organizer', label: 'Organizer', description: 'Create and manage events' }
-]
+const socialLoading = ref<string | null>(null)
 
 function validateForm(): boolean {
   const newErrors: Record<string, string> = {}
@@ -52,9 +49,11 @@ function validateForm(): boolean {
     newErrors.password = 'Password must be at least 8 characters'
   }
 
-  if (credentials.password !== credentials.confirmPassword) {
-    newErrors.confirmPassword = 'Passwords do not match'
+  if (!(credentials.phone ?? '').trim()) {
+    newErrors.phone = 'Phone number is required'
   }
+
+  // Confirm password is handled implicitly by using the same password value
 
   if (!acceptTerms.value) {
     newErrors.terms = 'You must accept the terms and conditions'
@@ -74,6 +73,7 @@ async function handleSubmit() {
   if (!validateForm()) return
 
   try {
+    credentials.confirmPassword = credentials.password
     await register(credentials)
   }
   catch {
@@ -81,50 +81,39 @@ async function handleSubmit() {
     credentials.confirmPassword = ''
   }
 }
+
+async function handleSocialSignup(provider: string) {
+  socialLoading.value = provider
+
+  try {
+    // TODO: Replace with real social sign up flow
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    router.push('/attendee')
+  }
+  finally {
+    socialLoading.value = null
+  }
+}
 </script>
 
 <template>
   <div>
-    <div class="mb-6 text-center">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+    <!-- Header -->
+    <div class="mb-10 text-center lg:text-left">
+      <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
         Create an account
-      </h1>
-      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        Join EventHub to discover and manage events
+      </h2>
+      <p class="text-slate-500 dark:text-slate-400">
+        Join the community and start attending events.
       </p>
     </div>
 
     <form
-      class="space-y-5"
+      class="space-y-6"
       @submit.prevent="handleSubmit"
     >
-      <!-- Role Selection -->
-      <UFormField label="I want to">
-        <div class="grid grid-cols-2 gap-3">
-          <button
-            v-for="option in roleOptions"
-            :key="option.value"
-            type="button"
-            :class="[
-              'rounded-lg border p-3 text-left transition-colors',
-              credentials.role === option.value
-                ? 'border-primary-500 bg-primary-50 dark:bg-primary-950'
-                : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
-            ]"
-            @click="credentials.role = option.value"
-          >
-            <span class="block font-medium text-gray-900 dark:text-white">
-              {{ option.label }}
-            </span>
-            <span class="text-xs text-gray-600 dark:text-gray-400">
-              {{ option.description }}
-            </span>
-          </button>
-        </div>
-      </UFormField>
-
       <!-- Name -->
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <AppInput
           v-model="credentials.firstName"
           label="First Name"
@@ -133,11 +122,11 @@ async function handleSubmit() {
           required
           :error="errors.firstName"
         />
-
         <AppInput
           v-model="credentials.lastName"
           label="Last Name"
           placeholder="Doe"
+          icon="i-lucide-user"
           required
           :error="errors.lastName"
         />
@@ -147,8 +136,8 @@ async function handleSubmit() {
       <AppInput
         v-model="credentials.email"
         type="email"
-        label="Email"
-        placeholder="you@example.com"
+        label="Email Address"
+        placeholder="john@example.com"
         icon="i-lucide-mail"
         autocomplete="email"
         required
@@ -159,10 +148,12 @@ async function handleSubmit() {
       <AppInput
         v-model="credentials.phone"
         type="tel"
-        label="Phone (optional)"
-        placeholder="+1 234 567 8900"
+        label="Phone Number"
+        placeholder="+1 (555) 000-0000"
         icon="i-lucide-phone"
         autocomplete="tel"
+        required
+        :error="errors.phone"
       />
 
       <!-- Password -->
@@ -171,7 +162,7 @@ async function handleSubmit() {
           v-model="credentials.password"
           :type="showPassword ? 'text' : 'password'"
           label="Password"
-          placeholder="At least 8 characters"
+          placeholder="••••••••"
           icon="i-lucide-lock"
           autocomplete="new-password"
           required
@@ -189,17 +180,9 @@ async function handleSubmit() {
         </button>
       </div>
 
-      <!-- Confirm Password -->
-      <AppInput
-        v-model="credentials.confirmPassword"
-        :type="showPassword ? 'text' : 'password'"
-        label="Confirm Password"
-        placeholder="Confirm your password"
-        icon="i-lucide-lock"
-        autocomplete="new-password"
-        required
-        :error="errors.confirmPassword"
-      />
+      <p class="text-[11px] text-slate-500 dark:text-slate-400 ml-1 italic">
+        Must be at least 8 characters with one special symbol.
+      </p>
 
       <!-- Terms -->
       <div>
@@ -233,38 +216,73 @@ async function handleSubmit() {
         </p>
       </div>
 
-      <AppButton
+      <!-- Submit Button -->
+      <button
         type="submit"
-        block
-        :loading="loading"
-        size="lg"
+        :disabled="loading"
+        class="w-full bg-primary-500 text-white py-4 rounded-xl font-bold text-base shadow-lg shadow-primary-500/20 hover:bg-primary-500/90 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        Create Account
-      </AppButton>
+        <span>
+          {{ loading ? 'Creating Account...' : 'Create Account' }}
+        </span>
+        <span class="material-symbols-outlined text-base">
+          arrow_forward
+        </span>
+      </button>
     </form>
 
-    <div class="mt-6">
-      <div class="relative">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-200 dark:border-gray-700" />
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="bg-white px-2 text-gray-500 dark:bg-gray-950 dark:text-gray-400">
-            Already have an account?
-          </span>
-        </div>
+    <!-- Organizer CTA & Login Link -->
+    <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+      <div class="flex flex-col gap-4">
+        <button
+          type="button"
+          class="flex items-center justify-center gap-2 p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 group hover:bg-primary-500/20 transition-all text-left"
+          @click="credentials.role = 'organizer'"
+        >
+          <span class="material-symbols-outlined text-primary-500">campaign</span>
+          <div class="flex flex-col items-start">
+            <span class="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Want to host events?
+            </span>
+            <span class="text-xs text-primary-500 font-semibold uppercase tracking-wider group-hover:underline">
+              Sign up as an organizer
+            </span>
+          </div>
+        </button>
+
+        <p class="text-center text-sm text-slate-600 dark:text-slate-400">
+          Already have an account?
+          <NuxtLink
+            to="/login"
+            class="text-primary-500 font-bold hover:underline"
+          >
+            Log in
+          </NuxtLink>
+        </p>
+      </div>
+    </div>
+
+    <!-- Social Signup alternative -->
+    <div class="mt-8">
+      <div class="flex items-center gap-4 mb-6">
+        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+        <span class="text-xs font-bold text-slate-400 uppercase">
+          Or continue with
+        </span>
+        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
       </div>
 
-      <div class="mt-6">
-        <NuxtLink to="/login">
-          <AppButton
-            variant="outline"
-            color="neutral"
-            block
-          >
-            Sign in instead
-          </AppButton>
-        </NuxtLink>
+      <div class="grid grid-cols-2 gap-4">
+        <SocialLoginButton
+          provider="google"
+          :loading="socialLoading === 'google'"
+          @click="handleSocialSignup('google')"
+        />
+        <SocialLoginButton
+          provider="facebook"
+          :loading="socialLoading === 'facebook'"
+          @click="handleSocialSignup('facebook')"
+        />
       </div>
     </div>
   </div>

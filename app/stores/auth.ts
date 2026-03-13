@@ -58,8 +58,8 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await api.post<RegisterResponse>('/auth/register', {
         email: credentials.email,
         password: credentials.password,
-        firstName: credentials.firstName,
-        lastName: credentials.lastName,
+        first_name: credentials.firstName,
+        last_name: credentials.lastName,
         phone: credentials.phone,
         role: credentials.role || 'attendee'
       })
