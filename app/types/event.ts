@@ -5,24 +5,24 @@ export interface Event {
   title: string
   slug: string
   description: string
-  shortDescription?: string
-  coverImage?: string
-  startDate: string
-  endDate: string
+  short_description?: string
+  cover_image?: string
+  start_date: string
+  end_date: string
   timezone: string
   venue: EventVenue
   status: EventStatus
   visibility: EventVisibility
   capacity: number
-  registeredCount: number
-  organizerId: string
+  registered_count: number
+  organizer_id: string
   organizer?: User
   categories: string[]
   tags: string[]
-  ticketTypes: TicketType[]
+  ticket_types: TicketType[]
   settings: EventSettings
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed' | 'archived'
@@ -39,8 +39,8 @@ export interface EventVenue {
     lat: number
     lng: number
   }
-  virtualUrl?: string
-  virtualPlatform?: string
+  virtual_url?: string
+  virtual_platform?: string
 }
 
 export interface TicketType {
@@ -50,20 +50,20 @@ export interface TicketType {
   price: number
   currency: string
   quantity: number
-  soldCount: number
-  maxPerOrder: number
-  salesStart: string
-  salesEnd: string
+  sold_count: number
+  max_per_order: number
+  sales_start: string
+  sales_end: string
   status: 'available' | 'sold_out' | 'expired' | 'hidden'
 }
 
 export interface EventSettings {
-  requireApproval: boolean
-  allowWaitlist: boolean
-  showAttendeeCount: boolean
-  enableCheckIn: boolean
-  enableNotifications: boolean
-  customFields?: EventCustomField[]
+  require_approval: boolean
+  allow_waitlist: boolean
+  show_attendee_count: boolean
+  enable_check_in: boolean
+  enable_notifications: boolean
+  custom_fields?: EventCustomField[]
 }
 
 export interface EventCustomField {
@@ -77,10 +77,10 @@ export interface EventCustomField {
 export interface EventCreateInput {
   title: string
   description: string
-  shortDescription?: string
-  coverImage?: string
-  startDate: string
-  endDate: string
+  short_description?: string
+  cover_image?: string
+  start_date: string
+  end_date: string
   timezone: string
   venue: EventVenue
   visibility: EventVisibility
@@ -99,40 +99,40 @@ export interface EventFilters {
   visibility?: EventVisibility
   category?: string
   search?: string
-  startDate?: string
-  endDate?: string
-  organizerId?: string
+  start_date?: string
+  end_date?: string
+  organizer_id?: string
 }
 
 export interface EventStats {
-  totalRegistrations: number
-  checkedIn: number
-  ticketsSold: number
+  total_registrations: number
+  checked_in: number
+  tickets_sold: number
   revenue: number
-  pageViews: number
-  conversionRate: number
+  page_views: number
+  conversion_rate: number
 }
 
 export function isEventLive(event: Event): boolean {
   const now = new Date()
-  const start = new Date(event.startDate)
-  const end = new Date(event.endDate)
+  const start = new Date(event.start_date)
+  const end = new Date(event.end_date)
   return now >= start && now <= end && event.status === 'published'
 }
 
 export function isEventUpcoming(event: Event): boolean {
   const now = new Date()
-  const start = new Date(event.startDate)
+  const start = new Date(event.start_date)
   return now < start && event.status === 'published'
 }
 
 export function isEventPast(event: Event): boolean {
   const now = new Date()
-  const end = new Date(event.endDate)
+  const end = new Date(event.end_date)
   return now > end
 }
 
 export function getEventCapacityPercentage(event: Event): number {
   if (event.capacity === 0) return 0
-  return Math.round((event.registeredCount / event.capacity) * 100)
+  return Math.round((event.registered_count / event.capacity) * 100)
 }

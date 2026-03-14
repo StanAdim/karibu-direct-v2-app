@@ -3,7 +3,7 @@ import type { Session, SessionCreateInput, SessionLevel, SessionType, SessionUpd
 
 interface Props {
   session?: Session
-  eventId: string
+  event_id: string
   loading?: boolean
 }
 
@@ -17,19 +17,19 @@ const emit = defineEmits<{
 const isEditing = computed(() => !!props.session)
 
 const form = reactive<SessionCreateInput>({
-  eventId: props.eventId,
+  event_id: props.event_id,
   title: props.session?.title || '',
   description: props.session?.description || '',
   type: props.session?.type || 'talk',
-  startTime: props.session?.startTime || '',
-  endTime: props.session?.endTime || '',
+  start_time: props.session?.start_time || '',
+  end_time: props.session?.end_time || '',
   location: props.session?.location || '',
   room: props.session?.room || '',
   capacity: props.session?.capacity,
   speakers: props.session?.speakers || [],
   track: props.session?.track || '',
   level: props.session?.level,
-  isBreak: props.session?.isBreak || false
+  is_break: props.session?.is_break || false
 })
 
 const errors = reactive<Record<string, string>>({})
@@ -52,7 +52,7 @@ const sessionLevels: { value: SessionLevel; label: string }[] = [
 ]
 
 watch(() => form.type, (newType) => {
-  form.isBreak = newType === 'break'
+  form.is_break = newType === 'break'
 })
 
 function validateForm(): boolean {
@@ -62,15 +62,15 @@ function validateForm(): boolean {
     newErrors.title = 'Title is required'
   }
 
-  if (!form.startTime) {
-    newErrors.startTime = 'Start time is required'
+  if (!form.start_time) {
+    newErrors.start_time = 'Start time is required'
   }
 
-  if (!form.endTime) {
-    newErrors.endTime = 'End time is required'
+  if (!form.end_time) {
+    newErrors.end_time = 'End time is required'
   }
-  else if (form.startTime && new Date(form.endTime) <= new Date(form.startTime)) {
-    newErrors.endTime = 'End time must be after start time'
+  else if (form.start_time && new Date(form.end_time) <= new Date(form.start_time)) {
+    newErrors.end_time = 'End time must be after start time'
   }
 
   Object.assign(errors, newErrors)
@@ -146,19 +146,19 @@ function handleSubmit() {
     <!-- Time -->
     <div class="grid gap-6 sm:grid-cols-2">
       <AppInput
-        v-model="form.startTime"
+        v-model="form.start_time"
         type="datetime-local"
         label="Start Time"
         required
-        :error="errors.startTime"
+        :error="errors.start_time"
       />
 
       <AppInput
-        v-model="form.endTime"
+        v-model="form.end_time"
         type="datetime-local"
         label="End Time"
         required
-        :error="errors.endTime"
+        :error="errors.end_time"
       />
     </div>
 
@@ -179,7 +179,7 @@ function handleSubmit() {
 
     <!-- Level & Capacity (for non-break sessions) -->
       <div
-        v-if="!form.isBreak"
+        v-if="!form.is_break"
         class="grid gap-6 sm:grid-cols-2"
       >
         <div class="flex flex-col gap-1.5">

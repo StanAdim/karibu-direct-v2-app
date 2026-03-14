@@ -32,7 +32,7 @@ const quickActions = [
   <div>
     <PageHeader
       title="Admin Dashboard"
-      :description="`Welcome back, ${user?.firstName || 'Admin'}. Here's what's happening.`"
+      :description="`Welcome back, ${user?.first_name || 'Admin'}. Here's what's happening.`"
     />
 
     <!-- Stats -->

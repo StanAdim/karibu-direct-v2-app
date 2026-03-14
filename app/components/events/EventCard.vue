@@ -57,8 +57,8 @@ function formatTime(dateString: string): string {
       ]"
     >
       <img
-        v-if="event.coverImage"
-        :src="event.coverImage"
+        v-if="event.cover_image"
+        :src="event.cover_image"
         :alt="event.title"
         class="h-full w-full object-cover"
       >
@@ -106,14 +106,14 @@ function formatTime(dateString: string): string {
                 name="i-lucide-calendar"
                 class="h-4 w-4"
               />
-              {{ formatDate(event.startDate) }}
+              {{ formatDate(event.start_date) }}
             </span>
             <span class="flex items-center gap-1">
               <UIcon
                 name="i-lucide-clock"
                 class="h-4 w-4"
               />
-              {{ formatTime(event.startDate) }}
+              {{ formatTime(event.start_date) }}
             </span>
           </div>
 
@@ -160,7 +160,7 @@ function formatTime(dateString: string): string {
       >
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-600 dark:text-gray-400">
-            {{ event.registeredCount }} / {{ event.capacity }} registered
+            {{ event.registered_count }} / {{ event.capacity }} registered
           </span>
           <span
             :class="[

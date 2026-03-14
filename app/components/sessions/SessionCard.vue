@@ -50,14 +50,14 @@ const levelColors: Record<string, string> = {
         <div
           :class="[
             'flex h-12 w-12 items-center justify-center rounded-lg',
-            isLive ? 'bg-red-100 dark:bg-red-950' : session.isBreak ? 'bg-gray-100 dark:bg-gray-800' : 'bg-primary-100 dark:bg-primary-950'
+            isLive ? 'bg-red-100 dark:bg-red-950' : session.is_break ? 'bg-gray-100 dark:bg-gray-800' : 'bg-primary-100 dark:bg-primary-950'
           ]"
         >
           <UIcon
             :name="sessionTypeIcons[session.type] || 'i-lucide-calendar'"
             :class="[
               'h-6 w-6',
-              isLive ? 'text-red-600' : session.isBreak ? 'text-gray-600' : 'text-primary-600'
+              isLive ? 'text-red-600' : session.is_break ? 'text-gray-600' : 'text-primary-600'
             ]"
           />
         </div>
@@ -74,7 +74,7 @@ const levelColors: Record<string, string> = {
               <h4
                 :class="[
                   'font-semibold line-clamp-1',
-                  session.isBreak ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
+                  session.is_break ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
                 ]"
               >
                 {{ session.title }}
@@ -124,7 +124,7 @@ const levelColors: Record<string, string> = {
             </div>
 
             <p
-              v-if="session.description && !session.isBreak"
+              v-if="session.description && !session.is_break"
               class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2"
             >
               {{ session.description }}
@@ -174,7 +174,7 @@ const levelColors: Record<string, string> = {
           </div>
 
           <UDropdownMenu
-            v-if="showActions && !session.isBreak"
+            v-if="showActions && !session.is_break"
             :items="[
               [
                 { label: 'Edit', icon: 'i-lucide-pencil', click: () => $emit('edit', session) },

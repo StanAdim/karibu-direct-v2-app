@@ -12,7 +12,7 @@ const eventsStore = useEventsStore()
 const notifications = useNotifications()
 const router = useRouter()
 
-const eventId = computed(() => route.query.eventId as string || '')
+const eventId = computed(() => route.query.event_id as string || '')
 const loading = ref(false)
 const eventsLoading = ref(false)
 
@@ -44,7 +44,7 @@ async function handleSubmit(data: SessionCreateInput) {
   loading.value = true
 
   try {
-    const sessionData = { ...data, eventId: selectedEventId.value }
+    const sessionData = { ...data, event_id: selectedEventId.value }
     const session = await sessionsStore.createSession(sessionData)
     notifications.success('Session created successfully')
     router.push(`/organizer/sessions/${session.id}`)

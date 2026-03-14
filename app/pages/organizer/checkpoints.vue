@@ -10,49 +10,49 @@ definePageMeta({
 const route = useRoute()
 const notifications = useNotifications()
 
-const eventId = computed(() => route.query.eventId as string | undefined)
+const eventId = computed(() => route.query.event_id as string | undefined)
 const loading = ref(false)
 const createModalOpen = ref(false)
 
 const checkpoints = ref<Checkpoint[]>([
   {
     id: '1',
-    eventId: 'event-1',
+    event_id: 'event-1',
     name: 'Main Entrance',
     description: 'Primary entry point for attendees',
     type: 'entry',
     location: 'Building A, Ground Floor',
-    isActive: true,
-    scanCount: 245,
-    settings: { allowMultipleScans: false, requireTicket: true },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    is_active: true,
+    scan_count: 245,
+    settings: { allow_multiple_scans: false, require_ticket: true },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '2',
-    eventId: 'event-1',
+    event_id: 'event-1',
     name: 'Session Hall A',
     description: 'Check-in for keynote sessions',
     type: 'session',
     location: 'Building A, Floor 2',
-    isActive: true,
-    scanCount: 180,
-    settings: { allowMultipleScans: false, requireTicket: true },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    is_active: true,
+    scan_count: 180,
+    settings: { allow_multiple_scans: false, require_ticket: true },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '3',
-    eventId: 'event-1',
+    event_id: 'event-1',
     name: 'Sponsor Booth',
     description: 'Track booth visits',
     type: 'booth',
     location: 'Exhibition Hall',
-    isActive: true,
-    scanCount: 89,
-    settings: { allowMultipleScans: true, requireTicket: false },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    is_active: true,
+    scan_count: 89,
+    settings: { allow_multiple_scans: true, require_ticket: false },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ])
 
@@ -72,8 +72,8 @@ const checkpointTypes: { value: CheckpointType; label: string }[] = [
 ]
 
 async function toggleCheckpoint(checkpoint: Checkpoint) {
-  checkpoint.isActive = !checkpoint.isActive
-  notifications.success(`Checkpoint ${checkpoint.isActive ? 'activated' : 'deactivated'}`)
+  checkpoint.is_active = !checkpoint.is_active
+  notifications.success(`Checkpoint ${checkpoint.is_active ? 'activated' : 'deactivated'}`)
 }
 
 async function createCheckpoint() {
@@ -89,16 +89,16 @@ async function createCheckpoint() {
 
     checkpoints.value.push({
       id: String(checkpoints.value.length + 1),
-      eventId: eventId.value || 'event-1',
+      event_id: eventId.value || 'event-1',
       name: newCheckpoint.name,
       description: newCheckpoint.description,
       type: newCheckpoint.type,
       location: newCheckpoint.location,
-      isActive: true,
-      scanCount: 0,
-      settings: { allowMultipleScans: false, requireTicket: true },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      is_active: true,
+      scan_count: 0,
+      settings: { allow_multiple_scans: false, require_ticket: true },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     })
 
     notifications.success('Checkpoint created successfully')
@@ -141,14 +141,14 @@ async function createCheckpoint() {
             <div
               :class="[
                 'flex h-12 w-12 items-center justify-center rounded-lg',
-                checkpoint.isActive ? 'bg-emerald-100 dark:bg-emerald-950' : 'bg-gray-100 dark:bg-gray-800'
+                checkpoint.is_active ? 'bg-emerald-100 dark:bg-emerald-950' : 'bg-gray-100 dark:bg-gray-800'
               ]"
             >
               <UIcon
                 :name="getCheckpointTypeIcon(checkpoint.type)"
                 :class="[
                   'h-6 w-6',
-                  checkpoint.isActive ? 'text-emerald-600' : 'text-gray-400'
+                  checkpoint.is_active ? 'text-emerald-600' : 'text-gray-400'
                 ]"
               />
             </div>
@@ -163,7 +163,7 @@ async function createCheckpoint() {
           </div>
 
           <USwitch
-            :model-value="checkpoint.isActive"
+            :model-value="checkpoint.is_active"
             @update:model-value="toggleCheckpoint(checkpoint)"
           />
         </div>
@@ -189,7 +189,7 @@ async function createCheckpoint() {
         <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-800">
           <div class="text-center">
             <p class="text-2xl font-bold text-gray-900 dark:text-white">
-              {{ checkpoint.scanCount }}
+              {{ checkpoint.scan_count }}
             </p>
             <p class="text-xs text-gray-600 dark:text-gray-400">
               Total Scans

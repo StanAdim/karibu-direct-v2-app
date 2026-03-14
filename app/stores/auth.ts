@@ -58,8 +58,8 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await api.post<RegisterResponse>('/auth/register', {
         email: credentials.email,
         password: credentials.password,
-        first_name: credentials.firstName,
-        last_name: credentials.lastName,
+        first_name: credentials.first_name,
+        last_name: credentials.last_name,
         phone: credentials.phone,
         role: credentials.role || 'Attendee'
       })
@@ -130,6 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const getDefaultRoute = (): string => {
     const primaryRole = user.value?.roles?.[0]
+      console.log(`+++ xsPrimary Role: ${primaryRole}`)
     switch (primaryRole) {
       case 'Admin':
         return '/admin'

@@ -17,7 +17,7 @@ const selectedType = ref<SessionType | ''>('')
 const deleteLoading = ref(false)
 const sessionToDelete = ref<Session | null>(null)
 
-const eventId = computed(() => route.query.eventId as string | undefined)
+const eventId = computed(() => route.query.event_id as string | undefined)
 
 const typeOptions = [
   { value: '', label: 'All Types' },
@@ -31,7 +31,7 @@ const typeOptions = [
 
 async function loadSessions() {
   await sessionsStore.fetchSessions({
-    eventId: eventId.value,
+    event_id: eventId.value,
     type: selectedType.value || undefined,
     search: searchQuery.value || undefined
   })
@@ -84,7 +84,7 @@ onMounted(loadSessions)
       <template #actions>
         <UButton
           icon="i-lucide-plus"
-          :to="eventId ? `/organizer/sessions/create?eventId=${eventId}` : '/organizer/sessions/create'"
+          :to="eventId ? `/organizer/sessions/create?event_id=${eventId}` : '/organizer/sessions/create'"
         >
           Add Session
         </UButton>
@@ -131,7 +131,7 @@ onMounted(loadSessions)
       <template #actions>
         <UButton
           icon="i-lucide-plus"
-          :to="eventId ? `/organizer/sessions/create?eventId=${eventId}` : '/organizer/sessions/create'"
+          :to="eventId ? `/organizer/sessions/create?event_id=${eventId}` : '/organizer/sessions/create'"
         >
           Add Session
         </UButton>
@@ -156,19 +156,19 @@ onMounted(loadSessions)
 
     <!-- Pagination -->
     <div
-      v-if="sessionsStore.pagination.lastPage > 1"
+      v-if="sessionsStore.pagination.last_page > 1"
       class="mt-6 flex items-center justify-between"
     >
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        Showing {{ (sessionsStore.pagination.page - 1) * sessionsStore.pagination.perPage + 1 }} to
-        {{ Math.min(sessionsStore.pagination.page * sessionsStore.pagination.perPage, sessionsStore.pagination.total) }}
+        Showing {{ (sessionsStore.pagination.page - 1) * sessionsStore.pagination.per_page + 1 }} to
+        {{ Math.min(sessionsStore.pagination.page * sessionsStore.pagination.per_page, sessionsStore.pagination.total) }}
         of {{ sessionsStore.pagination.total }} sessions
       </p>
 
       <UPagination
         :model-value="sessionsStore.pagination.page"
         :total="sessionsStore.pagination.total"
-        :page-count="sessionsStore.pagination.perPage"
+        :page-count="sessionsStore.pagination.per_page"
         @update:model-value="(page) => { sessionsStore.setPage(page); loadSessions() }"
       />
     </div>

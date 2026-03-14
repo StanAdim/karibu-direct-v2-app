@@ -37,41 +37,41 @@ const mockEvents: Partial<Event>[] = [
     id: 'm1',
     title: 'Dar Midnight Serenade',
     categories: ['Music Festival'],
-    startDate: new Date(Date.now() + 86400000 * 10).toISOString(),
-    endDate: new Date(Date.now() + 86400000 * 11).toISOString(),
+    start_date: new Date(Date.now() + 86400000 * 10).toISOString(),
+    end_date: new Date(Date.now() + 86400000 * 11).toISOString(),
     venue: { type: 'physical', name: 'Posta', city: 'Dar es Salaam' },
-    coverImage: 'https://picsum.photos/seed/serenade/800/500',
-    ticketTypes: [{ id: 't1', name: 'General', price: 45000, currency: 'TSh', quantity: 100, soldCount: 0, maxPerOrder: 5, salesStart: '', salesEnd: '', status: 'available' }]
+    cover_image: 'https://picsum.photos/seed/serenade/800/500',
+    ticket_types: [{ id: 't1', name: 'General', price: 45000, currency: 'TSh', quantity: 100, sold_count: 0, max_per_order: 5, sales_start: '', sales_end: '', status: 'available' }]
   },
   {
     id: 'm2',
     title: 'Bongo Tech Summit 2024',
     categories: ['Technology'],
-    startDate: new Date(Date.now() + 86400000 * 19).toISOString(),
-    endDate: new Date(Date.now() + 86400000 * 20).toISOString(),
+    start_date: new Date(Date.now() + 86400000 * 19).toISOString(),
+    end_date: new Date(Date.now() + 86400000 * 20).toISOString(),
     venue: { type: 'physical', name: 'Mlimani City', city: 'Dar es Salaam' },
-    coverImage: 'https://picsum.photos/seed/tech-summit/800/500',
-    ticketTypes: [{ id: 't2', name: 'Standard', price: 20000, currency: 'TSh', quantity: 200, soldCount: 0, maxPerOrder: 5, salesStart: '', salesEnd: '', status: 'available' }]
+    cover_image: 'https://picsum.photos/seed/tech-summit/800/500',
+    ticket_types: [{ id: 't2', name: 'Standard', price: 20000, currency: 'TSh', quantity: 200, sold_count: 0, max_per_order: 5, sales_start: '', sales_end: '', status: 'available' }]
   },
   {
     id: 'm3',
     title: 'Coastal Cocktails Night',
     categories: ['Lifestyle'],
-    startDate: new Date(Date.now() + 86400000 * 22).toISOString(),
-    endDate: new Date(Date.now() + 86400000 * 23).toISOString(),
+    start_date: new Date(Date.now() + 86400000 * 22).toISOString(),
+    end_date: new Date(Date.now() + 86400000 * 23).toISOString(),
     venue: { type: 'physical', name: 'Masaki', city: 'Dar es Salaam' },
-    coverImage: 'https://picsum.photos/seed/cocktails/800/500'
-    // no ticketTypes = Free Entry
+    cover_image: 'https://picsum.photos/seed/cocktails/800/500'
+    // no ticket_types = Free Entry
   },
   {
     id: 'm4',
     title: 'Arusha Art Collective',
     categories: ['Art & Culture'],
-    startDate: new Date(Date.now() + 86400000 * 29).toISOString(),
-    endDate: new Date(Date.now() + 86400000 * 30).toISOString(),
+    start_date: new Date(Date.now() + 86400000 * 29).toISOString(),
+    end_date: new Date(Date.now() + 86400000 * 30).toISOString(),
     venue: { type: 'physical', name: 'Cultural Heritage Center', city: 'Arusha' },
-    coverImage: 'https://picsum.photos/seed/art/800/500',
-    ticketTypes: [{ id: 't4', name: 'Entry', price: 15000, currency: 'TSh', quantity: 50, soldCount: 0, maxPerOrder: 4, salesStart: '', salesEnd: '', status: 'available' }]
+    cover_image: 'https://picsum.photos/seed/art/800/500',
+    ticket_types: [{ id: 't4', name: 'Entry', price: 15000, currency: 'TSh', quantity: 50, sold_count: 0, max_per_order: 4, sales_start: '', sales_end: '', status: 'available' }]
   }
 ]
 
@@ -109,7 +109,7 @@ function formatTime(dateString: string): string {
 }
 
 function getEventPrice(event: Event): { from: number | null; label: string } {
-  const types = event.ticketTypes?.filter(t => t.price >= 0) || []
+  const types = event.ticket_types?.filter(t => t.price >= 0) || []
   if (types.length === 0) return { from: null, label: 'Free Entry' }
   const min = Math.min(...types.map(t => t.price))
   if (min === 0) return { from: null, label: 'Free Entry' }
@@ -117,7 +117,7 @@ function getEventPrice(event: Event): { from: number | null; label: string } {
 }
 
 function getEventImage(event: Event): string {
-  return event.coverImage || 'https://picsum.photos/seed/event-' + event.id + '/800/500'
+  return event.cover_image || 'https://picsum.photos/seed/event-' + event.id + '/800/500'
 }
 
 function getLocationLine(event: Event): string {
@@ -308,7 +308,7 @@ onMounted(loadEvents)
                 class="h-full w-full object-cover"
               >
               <span class="absolute left-4 top-4 rounded-lg bg-slate-900/90 px-2.5 py-1 text-xs font-bold text-white">
-                {{ formatDateBadge(event.startDate) }}
+                {{ formatDateBadge(event.start_date) }}
               </span>
               <button
                 type="button"
@@ -325,7 +325,7 @@ onMounted(loadEvents)
                 </span>
                 <span class="text-slate-400">·</span>
                 <span class="text-sm text-slate-600 dark:text-slate-400">
-                  {{ formatTime(event.startDate) }}
+                  {{ formatTime(event.start_date) }}
                 </span>
               </div>
               <h3 class="text-lg font-bold text-slate-900 dark:text-white line-clamp-2 mb-2">

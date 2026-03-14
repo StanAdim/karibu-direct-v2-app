@@ -18,10 +18,10 @@ const isEditing = computed(() => !!props.event)
 const form = reactive<EventCreateInput>({
   title: props.event?.title || '',
   description: props.event?.description || '',
-  shortDescription: props.event?.shortDescription || '',
-  coverImage: props.event?.coverImage || '',
-  startDate: props.event?.startDate || '',
-  endDate: props.event?.endDate || '',
+  short_description: props.event?.short_description || '',
+  cover_image: props.event?.cover_image || '',
+  start_date: props.event?.start_date || '',
+  end_date: props.event?.end_date || '',
   timezone: props.event?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
   venue: props.event?.venue || {
     type: 'physical',
@@ -61,15 +61,15 @@ function validateForm(): boolean {
     newErrors.description = 'Description is required'
   }
 
-  if (!form.startDate) {
-    newErrors.startDate = 'Start date is required'
+  if (!form.start_date) {
+    newErrors.start_date = 'Start date is required'
   }
 
-  if (!form.endDate) {
-    newErrors.endDate = 'End date is required'
+  if (!form.end_date) {
+    newErrors.end_date = 'End date is required'
   }
-  else if (form.startDate && new Date(form.endDate) < new Date(form.startDate)) {
-    newErrors.endDate = 'End date must be after start date'
+  else if (form.start_date && new Date(form.end_date) < new Date(form.start_date)) {
+    newErrors.end_date = 'End date must be after start date'
   }
 
   if (form.capacity < 1) {
@@ -112,7 +112,7 @@ function handleSubmit() {
       />
 
       <AppInput
-        v-model="form.shortDescription"
+        v-model="form.short_description"
         label="Short Description"
         placeholder="Brief summary for event cards"
         hint="Maximum 200 characters"
@@ -138,7 +138,7 @@ function handleSubmit() {
       </div>
 
       <AppInput
-        v-model="form.coverImage"
+        v-model="form.cover_image"
         label="Cover Image URL"
         placeholder="https://example.com/image.jpg"
         hint="Recommended size: 1200x630 pixels"
@@ -153,19 +153,19 @@ function handleSubmit() {
 
       <div class="grid gap-6 sm:grid-cols-2">
         <AppInput
-          v-model="form.startDate"
+          v-model="form.start_date"
           type="datetime-local"
           label="Start Date & Time"
           required
-          :error="errors.startDate"
+          :error="errors.start_date"
         />
 
         <AppInput
-          v-model="form.endDate"
+          v-model="form.end_date"
           type="datetime-local"
           label="End Date & Time"
           required
-          :error="errors.endDate"
+          :error="errors.end_date"
         />
       </div>
     </div>

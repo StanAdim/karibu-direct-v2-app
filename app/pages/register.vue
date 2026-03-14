@@ -12,9 +12,9 @@ const router = useRouter()
 const credentials = reactive<RegisterCredentials>({
   email: '',
   password: '',
-  confirmPassword: '',
-  firstName: '',
-  lastName: '',
+  confirm_password: '',
+  first_name: '',
+  last_name: '',
   phone: '',
   role: 'Attendee'
 })
@@ -27,12 +27,12 @@ const socialLoading = ref<string | null>(null)
 function validateForm(): boolean {
   const newErrors: Record<string, string> = {}
 
-  if (!credentials.firstName.trim()) {
-    newErrors.firstName = 'First name is required'
+  if (!credentials.first_name.trim()) {
+    newErrors.first_name = 'First name is required'
   }
 
-  if (!credentials.lastName.trim()) {
-    newErrors.lastName = 'Last name is required'
+  if (!credentials.last_name.trim()) {
+    newErrors.last_name = 'Last name is required'
   }
 
   if (!credentials.email) {
@@ -73,12 +73,12 @@ async function handleSubmit() {
   if (!validateForm()) return
 
   try {
-    credentials.confirmPassword = credentials.password
+    credentials.confirm_password = credentials.password
     await register(credentials)
   }
   catch {
     credentials.password = ''
-    credentials.confirmPassword = ''
+    credentials.confirm_password = ''
   }
 }
 
@@ -115,20 +115,20 @@ async function handleSocialSignup(provider: string) {
       <!-- Name -->
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <AppInput
-          v-model="credentials.firstName"
+          v-model="credentials.first_name"
           label="First Name"
           placeholder="John"
           icon="i-lucide-user"
           required
-          :error="errors.firstName"
+          :error="errors.first_name"
         />
         <AppInput
-          v-model="credentials.lastName"
+          v-model="credentials.last_name"
           label="Last Name"
           placeholder="Doe"
           icon="i-lucide-user"
           required
-          :error="errors.lastName"
+          :error="errors.last_name"
         />
       </div>
 

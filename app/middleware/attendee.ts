@@ -1,5 +1,6 @@
 export default defineNuxtRouteMiddleware(() => {
   const authStore = useAuthStore()
+    console.log(`++++ Attendees Layout`)
 
   if (!authStore.isAuthenticated) {
       console.log(`Lost authentication returned from auth store`)

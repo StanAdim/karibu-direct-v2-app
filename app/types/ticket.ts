@@ -3,66 +3,66 @@ import type { User } from './user'
 
 export interface Ticket {
   id: string
-  ticketNumber: string
-  eventId: string
+  ticket_number: string
+  event_id: string
   event?: Event
-  userId: string
+  user_id: string
   user?: User
-  ticketTypeId: string
-  ticketTypeName: string
-  qrCode: string
+  ticket_type_id: string
+  ticket_type_name: string
+  qr_code: string
   status: TicketStatus
   price: number
   currency: string
-  purchasedAt: string
-  validFrom: string
-  validUntil: string
-  checkedInAt?: string
-  transferredFrom?: string
-  createdAt: string
-  updatedAt: string
+  purchased_at: string
+  valid_from: string
+  valid_until: string
+  checked_in_at?: string
+  transferred_from?: string
+  created_at: string
+  updated_at: string
 }
 
 export type TicketStatus = 'valid' | 'used' | 'expired' | 'cancelled' | 'transferred'
 
 export interface TicketTransfer {
   id: string
-  ticketId: string
-  fromUserId: string
-  toUserId: string
-  toEmail: string
+  ticket_id: string
+  from_user_id: string
+  to_user_id: string
+  to_email: string
   status: 'pending' | 'accepted' | 'rejected' | 'expired'
-  transferredAt?: string
-  expiresAt: string
-  createdAt: string
+  transferred_at?: string
+  expires_at: string
+  created_at: string
 }
 
 export interface TicketPurchase {
-  eventId: string
-  ticketTypeId: string
+  event_id: string
+  ticket_type_id: string
   quantity: number
-  buyerInfo: {
-    firstName: string
-    lastName: string
+  buyer_info: {
+    first_name: string
+    last_name: string
     email: string
     phone?: string
   }
   attendees?: {
-    firstName: string
-    lastName: string
+    first_name: string
+    last_name: string
     email: string
   }[]
-  paymentMethodId?: string
-  promoCode?: string
+  payment_method_id?: string
+  promo_code?: string
 }
 
 export interface TicketFilters {
-  eventId?: string
+  event_id?: string
   status?: TicketStatus
-  userId?: string
+  user_id?: string
   search?: string
-  purchasedFrom?: string
-  purchasedTo?: string
+  purchased_from?: string
+  purchased_to?: string
 }
 
 export function getTicketStatusColor(status: TicketStatus): string {
@@ -90,7 +90,7 @@ export function getTicketStatusLabel(status: TicketStatus): string {
 export function isTicketValid(ticket: Ticket): boolean {
   if (ticket.status !== 'valid') return false
   const now = new Date()
-  const validFrom = new Date(ticket.validFrom)
-  const validUntil = new Date(ticket.validUntil)
+  const validFrom = new Date(ticket.valid_from)
+  const validUntil = new Date(ticket.valid_until)
   return now >= validFrom && now <= validUntil
 }

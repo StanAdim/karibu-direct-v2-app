@@ -116,7 +116,7 @@ const recentActivity = ref([
                 Member Since
               </p>
               <p class="mt-1 text-sm text-gray-900 dark:text-white">
-                {{ user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' }}
+                {{ user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A' }}
               </p>
             </div>
           </div>

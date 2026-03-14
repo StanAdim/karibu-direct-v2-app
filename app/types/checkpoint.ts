@@ -1,34 +1,34 @@
 export interface Checkpoint {
   id: string
-  eventId: string
+  event_id: string
   name: string
   description?: string
   type: CheckpointType
   location?: string
-  isActive: boolean
-  scanCount: number
+  is_active: boolean
+  scan_count: number
   settings: CheckpointSettings
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export type CheckpointType = 'entry' | 'exit' | 'session' | 'booth' | 'custom'
 
 export interface CheckpointSettings {
-  allowMultipleScans: boolean
-  requireTicket: boolean
-  restrictToTicketTypes?: string[]
-  maxCapacity?: number
-  autoClose?: string
+  allow_multiple_scans: boolean
+  require_ticket: boolean
+  restrict_to_ticket_types?: string[]
+  max_capacity?: number
+  auto_close?: string
 }
 
 export interface CheckpointScan {
   id: string
-  checkpointId: string
-  participantId: string
-  ticketId?: string
-  scannedAt: string
-  scannedBy?: string
+  checkpoint_id: string
+  participant_id: string
+  ticket_id?: string
+  scanned_at: string
+  scanned_by?: string
   status: ScanStatus
   notes?: string
 }
@@ -36,7 +36,7 @@ export interface CheckpointScan {
 export type ScanStatus = 'success' | 'failed' | 'duplicate' | 'invalid_ticket' | 'capacity_reached'
 
 export interface CheckpointCreateInput {
-  eventId: string
+  event_id: string
   name: string
   description?: string
   type: CheckpointType
@@ -44,16 +44,16 @@ export interface CheckpointCreateInput {
   settings?: Partial<CheckpointSettings>
 }
 
-export interface CheckpointUpdateInput extends Partial<Omit<CheckpointCreateInput, 'eventId'>> {
-  isActive?: boolean
+export interface CheckpointUpdateInput extends Partial<Omit<CheckpointCreateInput, 'event_id'>> {
+  is_active?: boolean
 }
 
 export interface CheckpointStats {
-  totalScans: number
-  uniqueScans: number
-  failedScans: number
-  lastScanTime?: string
-  scansByHour: { hour: string; count: number }[]
+  total_scans: number
+  unique_scans: number
+  failed_scans: number
+  last_scan_time?: string
+  scans_by_hour: { hour: string; count: number }[]
 }
 
 export function getCheckpointTypeLabel(type: CheckpointType): string {

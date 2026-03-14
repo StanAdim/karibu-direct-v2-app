@@ -5,23 +5,25 @@ const MOCK_USERS: Array<User & { password: string }> = [
     id: '1',
     email: 'demo@example.com',
     password: 'password123',
-    firstName: 'Demo',
-    lastName: 'User',
+    first_name: 'Demo',
+    last_name: 'User',
     roles: ['Attendee'],
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
-    createdAt: '2024-01-15T10:30:00Z',
-    updatedAt: '2024-03-10T14:20:00Z'
+    status: 'active',
+    created_at: '2024-01-15T10:30:00Z',
+    updated_at: '2024-03-10T14:20:00Z'
   },
   {
     id: '2',
     email: 'admin@example.com',
     password: 'admin123',
-    firstName: 'Admin',
-    lastName: 'User',
+    first_name: 'Admin',
+    last_name: 'User',
     roles: ['Admin'],
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-    createdAt: '2024-01-01T08:00:00Z',
-    updatedAt: '2024-03-12T09:15:00Z'
+    status: 'active',
+    created_at: '2024-01-01T08:00:00Z',
+    updated_at: '2024-03-12T09:15:00Z'
   }
 ]
 
@@ -68,11 +70,13 @@ export default defineEventHandler(async (event): Promise<LoginResponse> => {
   const { password: _, ...userWithoutPassword } = user
 
   const token = generateMockJWT(userWithoutPassword)
-  const expiresAt = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+  const expires_at = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
 
   return {
     user: userWithoutPassword,
     token,
-    expiresAt
+    access_token: token,
+    refresh_token: token,
+    expires_at
   }
 })

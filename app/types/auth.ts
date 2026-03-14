@@ -8,9 +8,9 @@ export interface LoginCredentials {
 export interface RegisterCredentials {
   email: string
   password: string
-  confirmPassword: string
-  firstName: string
-  lastName: string
+  confirm_password: string
+  first_name: string
+  last_name: string
   phone?: string
   role?: UserRole
 }
@@ -20,7 +20,7 @@ export interface LoginResponse {
   token: string
   access_token: string
   refresh_token: string
-  expiresAt: number
+  expires_at: number
 }
 
 export interface RegisterResponse {
@@ -46,7 +46,7 @@ export interface JwtPayload {
 
 export interface RefreshTokenResponse {
   token: string
-  expiresAt: number
+  expires_at: number
 }
 
 export interface PasswordResetRequest {
@@ -56,5 +56,5 @@ export interface PasswordResetRequest {
 export interface PasswordResetConfirm {
   token: string
   password: string
-  confirmPassword: string
+  confirm_password: string
 }

@@ -36,7 +36,7 @@ const columns = [
   { key: 'user', label: 'User' },
   { key: 'role', label: 'Role' },
   { key: 'status', label: 'Status' },
-  { key: 'createdAt', label: 'Joined' },
+  { key: 'created_at', label: 'Joined' },
   { key: 'actions', label: '' }
 ]
 
@@ -217,7 +217,7 @@ onMounted(loadUsers)
 
             <!-- Joined -->
             <td class="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
-              {{ formatDate(user.createdAt) }}
+              {{ formatDate(user.created_at) }}
             </td>
 
             <!-- Actions -->
@@ -248,19 +248,19 @@ onMounted(loadUsers)
 
     <!-- Pagination -->
     <div
-      v-if="usersStore.pagination.lastPage > 1"
+      v-if="usersStore.pagination.last_page > 1"
       class="mt-6 flex items-center justify-between"
     >
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        Showing {{ (usersStore.pagination.page - 1) * usersStore.pagination.perPage + 1 }} to
-        {{ Math.min(usersStore.pagination.page * usersStore.pagination.perPage, usersStore.pagination.total) }}
+        Showing {{ (usersStore.pagination.page - 1) * usersStore.pagination.per_page + 1 }} to
+        {{ Math.min(usersStore.pagination.page * usersStore.pagination.per_page, usersStore.pagination.total) }}
         of {{ usersStore.pagination.total }} users
       </p>
 
       <UPagination
         :model-value="usersStore.pagination.page"
         :total="usersStore.pagination.total"
-        :page-count="usersStore.pagination.perPage"
+        :page-count="usersStore.pagination.per_page"
         @update:model-value="(page) => { usersStore.setPage(page); loadUsers() }"
       />
     </div>

@@ -12,70 +12,70 @@ const selectedDate = ref<string>('')
 const mySessions = ref<Session[]>([
   {
     id: '1',
-    eventId: 'event-1',
+    event_id: 'event-1',
     title: 'Opening Keynote: The Future of Technology',
     description: 'Join us for the opening keynote session',
     type: 'keynote',
-    startTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 9).toISOString(),
-    endTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 10).toISOString(),
+    start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 9).toISOString(),
+    end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10).toISOString(),
     room: 'Main Hall',
-    attendeeCount: 500,
+    attendee_count: 500,
     speakers: [
       { id: 's1', name: 'John Smith', title: 'CEO', company: 'TechCorp' }
     ],
     track: 'General',
     level: 'all',
     status: 'scheduled',
-    isBreak: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    is_break: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '2',
-    eventId: 'event-1',
+    event_id: 'event-1',
     title: 'Coffee Break',
     type: 'break',
-    startTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 10).toISOString(),
-    endTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 10.5).toISOString(),
+    start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10).toISOString(),
+    end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10.5).toISOString(),
     room: 'Lobby',
-    attendeeCount: 0,
+    attendee_count: 0,
     speakers: [],
     status: 'scheduled',
-    isBreak: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    is_break: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '3',
-    eventId: 'event-1',
+    event_id: 'event-1',
     title: 'Building Scalable Applications with Vue 3',
     description: 'Learn best practices for building large-scale Vue applications',
     type: 'workshop',
-    startTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 10.5).toISOString(),
-    endTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 12).toISOString(),
+    start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10.5).toISOString(),
+    end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 12).toISOString(),
     room: 'Workshop Room A',
     capacity: 30,
-    attendeeCount: 28,
+    attendee_count: 28,
     speakers: [
       { id: 's2', name: 'Jane Doe', title: 'Senior Developer', company: 'VueCo' }
     ],
     track: 'Frontend',
     level: 'intermediate',
     status: 'scheduled',
-    isBreak: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    is_break: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '4',
-    eventId: 'event-1',
+    event_id: 'event-1',
     title: 'AI in Production: Real-world Case Studies',
     description: 'Panel discussion on deploying AI in production environments',
     type: 'panel',
-    startTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 14).toISOString(),
-    endTime: new Date(Date.now() + 86400000 * 10 + 3600000 * 15).toISOString(),
+    start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 14).toISOString(),
+    end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 15).toISOString(),
     room: 'Main Hall',
-    attendeeCount: 200,
+    attendee_count: 200,
     speakers: [
       { id: 's3', name: 'Alice Johnson', title: 'ML Engineer', company: 'AIStartup' },
       { id: 's4', name: 'Bob Williams', title: 'CTO', company: 'DataCorp' }
@@ -83,16 +83,16 @@ const mySessions = ref<Session[]>([
     track: 'AI/ML',
     level: 'advanced',
     status: 'scheduled',
-    isBreak: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    is_break: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ])
 
 const uniqueDates = computed(() => {
   const dates = new Set<string>()
   mySessions.value.forEach((session) => {
-    dates.add(new Date(session.startTime).toDateString())
+    dates.add(new Date(session.start_time).toDateString())
   })
   return Array.from(dates).sort()
 })
@@ -101,8 +101,8 @@ const filteredSessions = computed(() => {
   if (!selectedDate.value) return mySessions.value
 
   return mySessions.value.filter((session) => {
-    return new Date(session.startTime).toDateString() === selectedDate.value
-  }).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+    return new Date(session.start_time).toDateString() === selectedDate.value
+  }).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
 })
 
 function formatDateLabel(dateString: string): string {
@@ -188,7 +188,7 @@ onMounted(() => {
       <UCard
         v-for="session in filteredSessions"
         :key="session.id"
-        :class="{ 'bg-gray-50 dark:bg-gray-900': session.isBreak }"
+        :class="{ 'bg-gray-50 dark:bg-gray-900': session.is_break }"
       >
         <div class="flex items-start gap-4">
           <!-- Time -->
@@ -196,14 +196,14 @@ onMounted(() => {
             <div
               :class="[
                 'flex h-12 w-12 items-center justify-center rounded-lg',
-                session.isBreak ? 'bg-gray-100 dark:bg-gray-800' : 'bg-primary-100 dark:bg-primary-950'
+                session.is_break ? 'bg-gray-100 dark:bg-gray-800' : 'bg-primary-100 dark:bg-primary-950'
               ]"
             >
               <UIcon
                 :name="sessionTypeIcons[session.type] || 'i-lucide-calendar'"
                 :class="[
                   'h-6 w-6',
-                  session.isBreak ? 'text-gray-600' : 'text-primary-600'
+                  session.is_break ? 'text-gray-600' : 'text-primary-600'
                 ]"
               />
             </div>
@@ -219,7 +219,7 @@ onMounted(() => {
                 <h3
                   :class="[
                     'font-semibold',
-                    session.isBreak ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
+                    session.is_break ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'
                   ]"
                 >
                   {{ session.title }}
@@ -247,7 +247,7 @@ onMounted(() => {
                 </div>
 
                 <p
-                  v-if="session.description && !session.isBreak"
+                  v-if="session.description && !session.is_break"
                   class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2"
                 >
                   {{ session.description }}
@@ -275,7 +275,7 @@ onMounted(() => {
               </div>
 
               <div
-                v-if="!session.isBreak"
+                v-if="!session.is_break"
                 class="flex flex-wrap gap-2"
               >
                 <UBadge

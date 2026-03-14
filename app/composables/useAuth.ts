@@ -31,13 +31,10 @@ export function useAuth(): UseAuthReturn {
 
   async function login(credentials: LoginCredentials): Promise<void> {
     try {
-      const res = await authStore.login(credentials)
-        // console.log(`login res: `,res)
+      await authStore.login(credentials)
       const redirectPath = authStore.getDefaultRoute()
-        console.log(`+++ user log.res:`, redirectPath)
-      // Ensure cookie and store are committed before middleware runs
       await nextTick()
-      await navigateTo(redirectPath, { replace: true })
+      await navigateTo(redirectPath, { replace: false })
     }
     catch (error: unknown) {
       const fetchError = error as { message?: string; data?: { message?: string } }

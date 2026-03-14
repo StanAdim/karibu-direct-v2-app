@@ -18,8 +18,8 @@ interface EventsState {
   pagination: {
     total: number
     page: number
-    perPage: number
-    lastPage: number
+    per_page: number
+    last_page: number
   }
   filters: EventFilters
 }
@@ -33,8 +33,8 @@ export const useEventsStore = defineStore('events', () => {
   const pagination = ref<EventsState['pagination']>({
     total: 0,
     page: 1,
-    perPage: 10,
-    lastPage: 1
+    per_page: 10,
+    last_page: 1
   })
   const filters = ref<EventFilters>({} as EventFilters)
   const api = useApi()
@@ -43,7 +43,7 @@ export const useEventsStore = defineStore('events', () => {
   const upcomingEvents = computed<Event[]>(() => {
     const now = new Date()
     return events.value.filter(event => {
-      const startDate = new Date(event.startDate)
+      const startDate = new Date(event.start_date)
       return startDate > now && event.status === 'published'
     })
   })
@@ -51,7 +51,7 @@ export const useEventsStore = defineStore('events', () => {
   const pastEvents = computed<Event[]>(() => {
     const now = new Date()
     return events.value.filter(event => {
-      const endDate = new Date(event.endDate)
+      const endDate = new Date(event.end_date)
       return endDate < now
     })
   })
@@ -65,7 +65,7 @@ export const useEventsStore = defineStore('events', () => {
   })
 
   const hasMorePages = computed<boolean>(() => {
-    return pagination.value.page < pagination.value.lastPage
+    return pagination.value.page < pagination.value.last_page
   })
 
   // Actions
@@ -77,15 +77,15 @@ export const useEventsStore = defineStore('events', () => {
       const params = new URLSearchParams()
 
       params.append('page', String(pagination.value.page))
-      params.append('perPage', String(pagination.value.perPage))
+      params.append('per_page', String(pagination.value.per_page))
 
       if (eventFilters?.status) params.append('status', eventFilters.status)
       if (eventFilters?.visibility) params.append('visibility', eventFilters.visibility)
       if (eventFilters?.category) params.append('category', eventFilters.category)
       if (eventFilters?.search) params.append('search', eventFilters.search)
-      if (eventFilters?.startDate) params.append('startDate', eventFilters.startDate)
-      if (eventFilters?.endDate) params.append('endDate', eventFilters.endDate)
-      if (eventFilters?.organizerId) params.append('organizerId', eventFilters.organizerId)
+      if (eventFilters?.start_date) params.append('start_date', eventFilters.start_date)
+      if (eventFilters?.end_date) params.append('end_date', eventFilters.end_date)
+      if (eventFilters?.organizer_id) params.append('organizer_id', eventFilters.organizer_id)
 
       const response = await api.get<PaginatedResponse<Event>>(`/events?${params.toString()}`)
 
@@ -192,8 +192,8 @@ export const useEventsStore = defineStore('events', () => {
     pagination.value.page = page
   }
 
-  const setPerPage = (perPage: number): void => {
-    pagination.value.perPage = perPage
+  const setPerPage = (per_page: number): void => {
+    pagination.value.per_page = per_page
     pagination.value.page = 1
   }
 

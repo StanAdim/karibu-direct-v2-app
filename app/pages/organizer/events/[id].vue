@@ -26,7 +26,7 @@ const capacityPercentage = computed(() => event.value ? getEventCapacityPercenta
 const stats = computed(() => [
   {
     title: 'Registered',
-    value: event.value?.registeredCount || 0,
+    value: event.value?.registered_count || 0,
     icon: 'i-lucide-users',
     color: 'primary' as const
   },
@@ -137,7 +137,7 @@ onUnmounted(() => {
     <template v-else>
       <PageHeader
         :title="event.title"
-        :description="event.shortDescription"
+        :description="event.short_description"
       >
         <template #actions>
           <UButton
@@ -226,7 +226,7 @@ onUnmounted(() => {
                     Date
                   </p>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ formatDate(event.startDate) }}
+                    {{ formatDate(event.start_date) }}
                   </p>
                 </div>
               </div>
@@ -243,7 +243,7 @@ onUnmounted(() => {
                     Time
                   </p>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ formatTime(event.startDate) }} - {{ formatTime(event.endDate) }}
+                    {{ formatTime(event.start_date) }} - {{ formatTime(event.end_date) }}
                   </p>
                 </div>
               </div>
@@ -277,7 +277,7 @@ onUnmounted(() => {
                     Capacity
                   </p>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ event.registeredCount }} / {{ event.capacity }}
+                    {{ event.registered_count }} / {{ event.capacity }}
                   </p>
                 </div>
               </div>
@@ -294,7 +294,7 @@ onUnmounted(() => {
                 <UButton
                   size="sm"
                   icon="i-lucide-plus"
-                  :to="`/organizer/sessions/create?eventId=${event.id}`"
+                  :to="`/organizer/sessions/create?event_id=${event.id}`"
                 >
                   Add Session
                 </UButton>
@@ -352,7 +352,7 @@ onUnmounted(() => {
                 block
                 variant="soft"
                 icon="i-lucide-users"
-                :to="`/organizer/participants?eventId=${event.id}`"
+                :to="`/organizer/participants?event_id=${event.id}`"
               >
                 View Participants
               </UButton>
@@ -360,7 +360,7 @@ onUnmounted(() => {
                 block
                 variant="soft"
                 icon="i-lucide-qr-code"
-                :to="`/organizer/checkpoints?eventId=${event.id}`"
+                :to="`/organizer/checkpoints?event_id=${event.id}`"
               >
                 Manage Checkpoints
               </UButton>
@@ -368,7 +368,7 @@ onUnmounted(() => {
                 block
                 variant="soft"
                 icon="i-lucide-bar-chart-3"
-                :to="`/organizer/analytics?eventId=${event.id}`"
+                :to="`/organizer/analytics?event_id=${event.id}`"
               >
                 View Analytics
               </UButton>
@@ -388,7 +388,7 @@ onUnmounted(() => {
                 {{ capacityPercentage }}%
               </div>
               <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ event.registeredCount }} of {{ event.capacity }} spots filled
+                {{ event.registered_count }} of {{ event.capacity }} spots filled
               </p>
               <UProgress
                 :value="capacityPercentage"

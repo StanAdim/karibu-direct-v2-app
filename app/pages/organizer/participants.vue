@@ -10,7 +10,7 @@ definePageMeta({
 const route = useRoute()
 const notifications = useNotifications()
 
-const eventId = computed(() => route.query.eventId as string | undefined)
+const eventId = computed(() => route.query.event_id as string | undefined)
 const searchQuery = ref('')
 const selectedStatus = ref<ParticipantStatus | ''>('')
 const loading = ref(false)
@@ -18,68 +18,68 @@ const loading = ref(false)
 const participants = ref<Participant[]>([
   {
     id: '1',
-    eventId: 'event-1',
-    firstName: 'John',
-    lastName: 'Doe',
+    event_id: 'event-1',
+    first_name: 'John',
+    last_name: 'Doe',
     email: 'john@example.com',
     phone: '+1234567890',
     ticket: {
       id: 't1',
-      ticketType: { id: 'tt1', name: 'VIP', description: '', price: 199, currency: 'USD', quantity: 100, soldCount: 50, maxPerOrder: 2, salesStart: '', salesEnd: '', status: 'available' },
-      ticketNumber: 'TKT-001',
-      qrCode: 'qr-001',
+      ticket_type: { id: 'tt1', name: 'VIP', description: '', price: 199, currency: 'USD', quantity: 100, sold_count: 50, max_per_order: 2, sales_start: '', sales_end: '', status: 'available' },
+      ticket_number: 'TKT-001',
+      qr_code: 'qr-001',
       price: 199,
       currency: 'USD',
-      paymentStatus: 'completed',
-      purchasedAt: new Date().toISOString()
+      payment_status: 'completed',
+      purchased_at: new Date().toISOString()
     },
     status: 'checked_in',
-    registeredAt: new Date(Date.now() - 86400000).toISOString(),
-    checkedInAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    registered_at: new Date(Date.now() - 86400000).toISOString(),
+    checked_in_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '2',
-    eventId: 'event-1',
-    firstName: 'Jane',
-    lastName: 'Smith',
+    event_id: 'event-1',
+    first_name: 'Jane',
+    last_name: 'Smith',
     email: 'jane@example.com',
     ticket: {
       id: 't2',
-      ticketType: { id: 'tt2', name: 'General', description: '', price: 99, currency: 'USD', quantity: 500, soldCount: 200, maxPerOrder: 5, salesStart: '', salesEnd: '', status: 'available' },
-      ticketNumber: 'TKT-002',
-      qrCode: 'qr-002',
+      ticket_type: { id: 'tt2', name: 'General', description: '', price: 99, currency: 'USD', quantity: 500, sold_count: 200, max_per_order: 5, sales_start: '', sales_end: '', status: 'available' },
+      ticket_number: 'TKT-002',
+      qr_code: 'qr-002',
       price: 99,
       currency: 'USD',
-      paymentStatus: 'completed',
-      purchasedAt: new Date().toISOString()
+      payment_status: 'completed',
+      purchased_at: new Date().toISOString()
     },
     status: 'confirmed',
-    registeredAt: new Date(Date.now() - 172800000).toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    registered_at: new Date(Date.now() - 172800000).toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '3',
-    eventId: 'event-1',
-    firstName: 'Bob',
-    lastName: 'Johnson',
+    event_id: 'event-1',
+    first_name: 'Bob',
+    last_name: 'Johnson',
     email: 'bob@example.com',
     ticket: {
       id: 't3',
-      ticketType: { id: 'tt2', name: 'General', description: '', price: 99, currency: 'USD', quantity: 500, soldCount: 200, maxPerOrder: 5, salesStart: '', salesEnd: '', status: 'available' },
-      ticketNumber: 'TKT-003',
-      qrCode: 'qr-003',
+      ticket_type: { id: 'tt2', name: 'General', description: '', price: 99, currency: 'USD', quantity: 500, sold_count: 200, max_per_order: 5, sales_start: '', sales_end: '', status: 'available' },
+      ticket_number: 'TKT-003',
+      qr_code: 'qr-003',
       price: 99,
       currency: 'USD',
-      paymentStatus: 'completed',
-      purchasedAt: new Date().toISOString()
+      payment_status: 'completed',
+      purchased_at: new Date().toISOString()
     },
     status: 'registered',
-    registeredAt: new Date(Date.now() - 259200000).toISOString(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    registered_at: new Date(Date.now() - 259200000).toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ])
 
@@ -301,7 +301,7 @@ function formatDate(dateString: string): string {
             <td class="px-4 py-4">
               <div>
                 <div class="font-medium text-gray-900 dark:text-white">
-                  {{ participant.ticket.ticketType.name }}
+                  {{ participant.ticket.ticket_type.name }}
                 </div>
                 <div class="text-sm text-gray-600 dark:text-gray-400">
                   {{ participant.ticket.ticketNumber }}

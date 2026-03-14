@@ -118,19 +118,19 @@ onMounted(loadEvents)
 
     <!-- Pagination -->
     <div
-      v-if="eventsStore.pagination.lastPage > 1"
+      v-if="eventsStore.pagination.last_page > 1"
       class="mt-6 flex items-center justify-between"
     >
       <p class="text-sm text-gray-600 dark:text-gray-400">
-        Showing {{ (eventsStore.pagination.page - 1) * eventsStore.pagination.perPage + 1 }} to
-        {{ Math.min(eventsStore.pagination.page * eventsStore.pagination.perPage, eventsStore.pagination.total) }}
+        Showing {{ (eventsStore.pagination.page - 1) * eventsStore.pagination.per_page + 1 }} to
+        {{ Math.min(eventsStore.pagination.page * eventsStore.pagination.per_page, eventsStore.pagination.total) }}
         of {{ eventsStore.pagination.total }} events
       </p>
 
       <UPagination
         :model-value="eventsStore.pagination.page"
         :total="eventsStore.pagination.total"
-        :page-count="eventsStore.pagination.perPage"
+        :page-count="eventsStore.pagination.per_page"
         @update:model-value="(page) => { eventsStore.setPage(page); loadEvents() }"
       />
     </div>

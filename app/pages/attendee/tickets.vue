@@ -15,130 +15,130 @@ const qrModalOpen = ref(false)
 const tickets = ref<Ticket[]>([
   {
     id: '1',
-    ticketNumber: 'TKT-2026-001',
-    eventId: 'event-1',
-    userId: 'user-1',
-    ticketTypeId: 'type-1',
-    ticketTypeName: 'VIP Pass',
-    qrCode: 'data:image/png;base64,QR_CODE_DATA',
+    ticket_number: 'TKT-2026-001',
+    event_id: 'event-1',
+    user_id: 'user-1',
+    ticket_type_id: 'type-1',
+    ticket_type_name: 'VIP Pass',
+    qr_code: 'data:image/png;base64,QR_CODE_DATA',
     status: 'valid',
     price: 199,
     currency: 'USD',
-    purchasedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    validFrom: new Date(Date.now() - 86400000).toISOString(),
-    validUntil: new Date(Date.now() + 86400000 * 30).toISOString(),
+    purchased_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+    valid_from: new Date(Date.now() - 86400000).toISOString(),
+    valid_until: new Date(Date.now() + 86400000 * 30).toISOString(),
     event: {
       id: 'event-1',
       title: 'Global Tech Conference 2024',
       slug: 'global-tech-conference-2024',
       description: 'Annual technology conference',
-      coverImage: 'https://picsum.photos/seed/tech-conf/400/240',
-      startDate: new Date(Date.now() + 86400000 * 10).toISOString(),
-      endDate: new Date(Date.now() + 86400000 * 11).toISOString(),
+      cover_image: 'https://picsum.photos/seed/tech-conf/400/240',
+      start_date: new Date(Date.now() + 86400000 * 10).toISOString(),
+      end_date: new Date(Date.now() + 86400000 * 11).toISOString(),
       timezone: 'America/New_York',
       venue: { type: 'physical', name: 'Moscone Center', city: 'San Francisco', address: 'San Francisco, CA' },
       status: 'published',
       visibility: 'public',
       capacity: 1000,
-      registeredCount: 850,
-      organizerId: 'org-1',
+      registered_count: 850,
+      organizer_id: 'org-1',
       categories: ['Technology'],
       tags: [],
-      ticketTypes: [],
-      settings: { requireApproval: false, allowWaitlist: true, showAttendeeCount: true, enableCheckIn: true, enableNotifications: true },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      ticket_types: [],
+      settings: { require_approval: false, allow_waitlist: true, show_attendee_count: true, enable_check_in: true, enable_notifications: true },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '2',
-    ticketNumber: 'TKT-2026-002',
-    eventId: 'event-2',
-    userId: 'user-1',
-    ticketTypeId: 'type-2',
-    ticketTypeName: 'General Admission',
-    qrCode: 'data:image/png;base64,QR_CODE_DATA',
+    ticket_number: 'TKT-2026-002',
+    event_id: 'event-2',
+    user_id: 'user-1',
+    ticket_type_id: 'type-2',
+    ticket_type_name: 'General Admission',
+    qr_code: 'data:image/png;base64,QR_CODE_DATA',
     status: 'valid',
     price: 49,
     currency: 'USD',
-    purchasedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-    validFrom: new Date(Date.now() - 86400000).toISOString(),
-    validUntil: new Date(Date.now() + 86400000 * 15).toISOString(),
+    purchased_at: new Date(Date.now() - 86400000 * 10).toISOString(),
+    valid_from: new Date(Date.now() - 86400000).toISOString(),
+    valid_until: new Date(Date.now() + 86400000 * 15).toISOString(),
     event: {
       id: 'event-2',
       title: 'Midnight Jazz Festival',
       slug: 'midnight-jazz-festival',
       description: 'Live jazz performances',
-      coverImage: 'https://picsum.photos/seed/jazz-fest/400/240',
-      startDate: new Date(Date.now() + 86400000 * 20).toISOString(),
-      endDate: new Date(Date.now() + 86400000 * 20).toISOString(),
+      cover_image: 'https://picsum.photos/seed/jazz-fest/400/240',
+      start_date: new Date(Date.now() + 86400000 * 20).toISOString(),
+      end_date: new Date(Date.now() + 86400000 * 20).toISOString(),
       timezone: 'America/Los_Angeles',
       venue: { type: 'physical', name: 'Blue Note Lounge', city: 'Seattle', address: 'Seattle, WA' },
       status: 'published',
       visibility: 'public',
       capacity: 200,
-      registeredCount: 180,
-      organizerId: 'org-1',
+      registered_count: 180,
+      organizer_id: 'org-1',
       categories: ['Music'],
       tags: [],
-      ticketTypes: [],
-      settings: { requireApproval: false, allowWaitlist: false, showAttendeeCount: true, enableCheckIn: true, enableNotifications: true },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      ticket_types: [],
+      settings: { require_approval: false, allow_waitlist: false, show_attendee_count: true, enable_check_in: true, enable_notifications: true },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   },
   {
     id: '3',
-    ticketNumber: 'TKT-2026-003',
-    eventId: 'event-3',
-    userId: 'user-1',
-    ticketTypeId: 'type-1',
-    ticketTypeName: 'Standard',
-    qrCode: 'data:image/png;base64,QR_CODE_DATA',
+    ticket_number: 'TKT-2026-003',
+    event_id: 'event-3',
+    user_id: 'user-1',
+    ticket_type_id: 'type-1',
+    ticket_type_name: 'Standard',
+    qr_code: 'data:image/png;base64,QR_CODE_DATA',
     status: 'used',
     price: 75,
     currency: 'USD',
-    purchasedAt: new Date(Date.now() - 86400000 * 30).toISOString(),
-    validFrom: new Date(Date.now() - 86400000 * 20).toISOString(),
-    validUntil: new Date(Date.now() - 86400000 * 10).toISOString(),
-    checkedInAt: new Date(Date.now() - 86400000 * 15).toISOString(),
+    purchased_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+    valid_from: new Date(Date.now() - 86400000 * 20).toISOString(),
+    valid_until: new Date(Date.now() - 86400000 * 10).toISOString(),
+    checked_in_at: new Date(Date.now() - 86400000 * 15).toISOString(),
     event: {
       id: 'event-3',
       title: 'AI Summit 2026',
       slug: 'ai-summit-2026',
       description: 'AI and Machine Learning conference',
-      coverImage: 'https://picsum.photos/seed/ai-summit/400/240',
-      startDate: new Date(Date.now() - 86400000 * 15).toISOString(),
-      endDate: new Date(Date.now() - 86400000 * 14).toISOString(),
+      cover_image: 'https://picsum.photos/seed/ai-summit/400/240',
+      start_date: new Date(Date.now() - 86400000 * 15).toISOString(),
+      end_date: new Date(Date.now() - 86400000 * 14).toISOString(),
       timezone: 'America/New_York',
       venue: { type: 'physical', name: 'Tech Hub', city: 'New York', address: 'New York, NY' },
       status: 'completed',
       visibility: 'public',
       capacity: 500,
-      registeredCount: 480,
-      organizerId: 'org-2',
+      registered_count: 480,
+      organizer_id: 'org-2',
       categories: ['Technology', 'AI'],
       tags: [],
-      ticketTypes: [],
-      settings: { requireApproval: false, allowWaitlist: true, showAttendeeCount: true, enableCheckIn: true, enableNotifications: true },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      ticket_types: [],
+      settings: { require_approval: false, allow_waitlist: true, show_attendee_count: true, enable_check_in: true, enable_notifications: true },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ])
 
 const filteredTickets = computed(() => {
   let list = tickets.value
   if (activeTab.value === 'active') {
-    list = list.filter(t => t.status === 'valid' && new Date(t.validUntil) >= new Date())
+    list = list.filter(t => t.status === 'valid' && new Date(t.valid_until) >= new Date())
   } else {
-    list = list.filter(t => t.status === 'used' || t.status === 'expired' || new Date(t.validUntil) < new Date())
+    list = list.filter(t => t.status === 'used' || t.status === 'expired' || new Date(t.valid_until) < new Date())
   }
   const q = searchQuery.value.trim().toLowerCase()
   if (q) {
@@ -165,7 +165,7 @@ function formatDateWithTime(dateString: string): string {
 }
 
 function getEventImage(ticket: Ticket): string {
-  return ticket.event?.coverImage || 'https://picsum.photos/seed/event/400/240'
+  return ticket.event?.cover_image || 'https://picsum.photos/seed/event/400/240'
 }
 
 function getVenueLine(ticket: Ticket): string {
@@ -268,7 +268,7 @@ function getVenueLine(ticket: Ticket): string {
           </h3>
           <p class="mt-1 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
             <span class="material-symbols-outlined text-lg">calendar_today</span>
-            {{ formatDateWithTime(ticket.event?.startDate || '') }}
+            {{ formatDateWithTime(ticket.event?.start_date || '') }}
           </p>
           <p class="mt-1 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
             <span class="material-symbols-outlined text-lg">location_on</span>
@@ -290,7 +290,7 @@ function getVenueLine(ticket: Ticket): string {
             >
               View Ticket
             </UButton>
-            <NuxtLink v-else :to="`/attendee/events/${ticket.eventId}`">
+            <NuxtLink v-else :to="`/attendee/events/${ticket.event_id}`">
               <UButton variant="soft">
                 View Event
               </UButton>
@@ -325,13 +325,13 @@ function getVenueLine(ticket: Ticket): string {
             {{ selectedTicket.event?.title }}
           </h3>
           <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            {{ selectedTicket.ticketTypeName }}
+            {{ selectedTicket.ticket_type_name }}
           </p>
           <div class="mx-auto mt-6 flex h-48 w-48 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
             <UIcon name="i-lucide-qr-code" class="h-32 w-32 text-slate-400" />
           </div>
           <p class="mt-4 font-mono text-sm text-slate-600 dark:text-slate-400">
-            {{ selectedTicket.ticketNumber }}
+            {{ selectedTicket.ticket_number }}
           </p>
           <p class="mt-2 text-xs text-slate-500">Present this QR code at the event entrance</p>
           <UButton class="mt-6" block @click="qrModalOpen = false">

@@ -134,8 +134,8 @@ function isSelected(event: Event): boolean {
             <div class="flex items-center gap-3">
               <div class="h-10 w-16 shrink-0 overflow-hidden rounded bg-gray-100 dark:bg-gray-800">
                 <img
-                  v-if="event.coverImage"
-                  :src="event.coverImage"
+                  v-if="event.cover_image"
+                  :src="event.cover_image"
                   :alt="event.title"
                   class="h-full w-full object-cover"
                 >
@@ -157,7 +157,7 @@ function isSelected(event: Event): boolean {
                   {{ event.title }}
                 </button>
                 <p class="text-sm text-gray-600 dark:text-gray-400 truncate">
-                  {{ event.shortDescription || 'No description' }}
+                  {{ event.short_description || 'No description' }}
                 </p>
               </div>
             </div>
@@ -165,7 +165,7 @@ function isSelected(event: Event): boolean {
 
           <!-- Date -->
           <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-            {{ formatDate(event.startDate) }}
+            {{ formatDate(event.start_date) }}
           </td>
 
           <!-- Venue -->

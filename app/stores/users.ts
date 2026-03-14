@@ -17,8 +17,8 @@ interface UsersState {
   pagination: {
     total: number
     page: number
-    perPage: number
-    lastPage: number
+    per_page: number
+    last_page: number
   }
   filters: {
     role?: UserRole
@@ -35,8 +35,8 @@ export const useUsersStore = defineStore('users', () => {
   const pagination = ref<UsersState['pagination']>({
     total: 0,
     page: 1,
-    perPage: 10,
-    lastPage: 1
+    per_page: 10,
+    last_page: 1
   })
   const filters = ref<UsersState['filters']>({})
   const api = useApi()
@@ -59,7 +59,7 @@ export const useUsersStore = defineStore('users', () => {
   })
 
   const hasMorePages = computed<boolean>(() => {
-    return pagination.value.page < pagination.value.lastPage
+    return pagination.value.page < pagination.value.last_page
   })
 
   // Actions
@@ -71,7 +71,7 @@ export const useUsersStore = defineStore('users', () => {
       const params = new URLSearchParams()
 
       params.append('page', String(pagination.value.page))
-      params.append('perPage', String(pagination.value.perPage))
+      params.append('per_page', String(pagination.value.per_page))
 
       if (userFilters?.role) params.append('role', userFilters.role)
       if (userFilters?.status) params.append('status', userFilters.status)
@@ -170,8 +170,8 @@ export const useUsersStore = defineStore('users', () => {
     pagination.value.page = page
   }
 
-  const setPerPage = (perPage: number): void => {
-    pagination.value.perPage = perPage
+  const setPerPage = (per_page: number): void => {
+    pagination.value.per_page = per_page
     pagination.value.page = 1
   }
 

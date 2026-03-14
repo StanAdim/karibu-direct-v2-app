@@ -45,7 +45,7 @@ function formatDate(dateString: string): string {
   <div>
     <PageHeader
       title="Organizer Dashboard"
-      :description="`Welcome back, ${user?.firstName || 'Organizer'}. Manage your events and participants.`"
+      :description="`Welcome back, ${user?.first_name || 'Organizer'}. Manage your events and participants.`"
     />
 
     <!-- Stats -->

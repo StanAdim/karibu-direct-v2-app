@@ -3,96 +3,96 @@ import type { TicketType } from './event'
 
 export interface Participant {
   id: string
-  eventId: string
-  userId?: string
+  event_id: string
+  user_id?: string
   user?: User
-  firstName: string
-  lastName: string
+  first_name: string
+  last_name: string
   email: string
   phone?: string
   ticket: ParticipantTicket
   status: ParticipantStatus
-  registeredAt: string
-  checkedInAt?: string
-  checkedOutAt?: string
-  customFields?: Record<string, unknown>
+  registered_at: string
+  checked_in_at?: string
+  checked_out_at?: string
+  custom_fields?: Record<string, unknown>
   notes?: string
   tags?: string[]
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export type ParticipantStatus = 'registered' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled' | 'no_show'
 
 export interface ParticipantTicket {
   id: string
-  ticketType: TicketType
-  ticketNumber: string
-  qrCode: string
+  ticket_type: TicketType
+  ticket_number: string
+  qr_code: string
   price: number
   currency: string
-  paymentStatus: PaymentStatus
-  purchasedAt: string
+  payment_status: PaymentStatus
+  purchased_at: string
 }
 
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'free'
 
 export interface Registration {
   id: string
-  eventId: string
-  userId?: string
-  ticketTypeId: string
+  event_id: string
+  user_id?: string
+  ticket_type_id: string
   quantity: number
-  totalAmount: number
+  total_amount: number
   currency: string
-  paymentMethod?: string
-  paymentStatus: PaymentStatus
+  payment_method?: string
+  payment_status: PaymentStatus
   participants: Participant[]
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export interface ParticipantCreateInput {
-  eventId: string
-  ticketTypeId: string
-  firstName: string
-  lastName: string
+  event_id: string
+  ticket_type_id: string
+  first_name: string
+  last_name: string
   email: string
   phone?: string
-  customFields?: Record<string, unknown>
+  custom_fields?: Record<string, unknown>
 }
 
 export interface ParticipantUpdateInput {
-  firstName?: string
-  lastName?: string
+  first_name?: string
+  last_name?: string
   phone?: string
   status?: ParticipantStatus
-  customFields?: Record<string, unknown>
+  custom_fields?: Record<string, unknown>
   notes?: string
   tags?: string[]
 }
 
 export interface ParticipantFilters {
-  eventId?: string
+  event_id?: string
   status?: ParticipantStatus
-  ticketTypeId?: string
+  ticket_type_id?: string
   search?: string
-  checkedIn?: boolean
-  dateFrom?: string
-  dateTo?: string
+  checked_in?: boolean
+  date_from?: string
+  date_to?: string
 }
 
 export interface ParticipantStats {
   total: number
   confirmed: number
-  checkedIn: number
+  checked_in: number
   cancelled: number
-  noShow: number
+  no_show: number
   revenue: number
 }
 
-export function getParticipantFullName(participant: Pick<Participant, 'firstName' | 'lastName'>): string {
-  return `${participant.firstName} ${participant.lastName}`.trim()
+export function getParticipantFullName(participant: Pick<Participant, 'first_name' | 'last_name'>): string {
+  return `${participant.first_name} ${participant.last_name}`.trim()
 }
 
 export function getStatusColor(status: ParticipantStatus): string {

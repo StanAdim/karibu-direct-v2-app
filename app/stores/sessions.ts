@@ -16,8 +16,8 @@ interface SessionsState {
   pagination: {
     total: number
     page: number
-    perPage: number
-    lastPage: number
+    per_page: number
+    last_page: number
   }
   filters: SessionFilters
 }
@@ -30,8 +30,8 @@ export const useSessionsStore = defineStore('sessions', () => {
   const pagination = ref<SessionsState['pagination']>({
     total: 0,
     page: 1,
-    perPage: 20,
-    lastPage: 1
+    per_page: 20,
+    last_page: 1
   })
   const filters = ref<SessionFilters>({} as SessionFilters)
   const api = useApi()
@@ -41,7 +41,7 @@ export const useSessionsStore = defineStore('sessions', () => {
     const grouped: Record<string, Session[]> = {}
 
     sessions.value.forEach(session => {
-      const date = new Date(session.startTime).toDateString()
+      const date = new Date(session.start_time).toDateString()
       if (!grouped[date]) {
         grouped[date] = []
       }
@@ -50,7 +50,7 @@ export const useSessionsStore = defineStore('sessions', () => {
 
     Object.keys(grouped).forEach(date => {
       grouped[date].sort((a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
       )
     })
 
@@ -74,15 +74,15 @@ export const useSessionsStore = defineStore('sessions', () => {
   const upcomingSessions = computed<Session[]>(() => {
     const now = new Date()
     return sessions.value.filter(session =>
-      new Date(session.startTime) > now && session.status === 'scheduled'
+      new Date(session.start_time) > now && session.status === 'scheduled'
     )
   })
 
   const liveSessions = computed<Session[]>(() => {
     const now = new Date()
     return sessions.value.filter(session => {
-      const start = new Date(session.startTime)
-      const end = new Date(session.endTime)
+      const start = new Date(session.start_time)
+      const end = new Date(session.end_time)
       return now >= start && now <= end && session.status === 'scheduled'
     })
   })
@@ -96,13 +96,13 @@ export const useSessionsStore = defineStore('sessions', () => {
       const params = new URLSearchParams()
 
       params.append('page', String(pagination.value.page))
-      params.append('perPage', String(pagination.value.perPage))
+      params.append('per_page', String(pagination.value.per_page))
 
-      if (sessionFilters?.eventId) params.append('eventId', sessionFilters.eventId)
+      if (sessionFilters?.event_id) params.append('event_id', sessionFilters.event_id)
       if (sessionFilters?.type) params.append('type', sessionFilters.type)
       if (sessionFilters?.track) params.append('track', sessionFilters.track)
       if (sessionFilters?.level) params.append('level', sessionFilters.level)
-      if (sessionFilters?.speakerId) params.append('speakerId', sessionFilters.speakerId)
+      if (sessionFilters?.speaker_id) params.append('speaker_id', sessionFilters.speaker_id)
       if (sessionFilters?.date) params.append('date', sessionFilters.date)
       if (sessionFilters?.search) params.append('search', sessionFilters.search)
 

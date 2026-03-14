@@ -29,8 +29,8 @@ watch(user, (newUser) => {
 }, { immediate: true })
 
 const memberSince = computed(() => {
-  if (!user.value?.createdAt) return '—'
-  return new Date(user.value.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  if (!user.value?.created_at) return '—'
+  return new Date(user.value.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 })
 
 async function saveProfile() {

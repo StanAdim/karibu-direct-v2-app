@@ -6,7 +6,7 @@ definePageMeta({
 
 const { user } = useAuth()
 
-const firstName = computed(() => user.value?.firstName || 'there')
+const firstName = computed(() => user.value?.first_name || 'there')
 
 const stats = ref([
   {

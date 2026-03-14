@@ -5,7 +5,7 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface ApiError {
-  statusCode: number
+  status_code: number
   message: string
   data?: unknown
 }
@@ -15,8 +15,8 @@ export interface PaginatedResponse<T> {
   meta: {
     total: number
     page: number
-    perPage: number
-    lastPage: number
+    per_page: number
+    last_page: number
   }
 }
 
