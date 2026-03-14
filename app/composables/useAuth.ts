@@ -31,10 +31,9 @@ export function useAuth(): UseAuthReturn {
 
   async function login(credentials: LoginCredentials): Promise<void> {
     try {
-      await authStore.login(credentials)
-      const redirectPath = authStore.getDefaultRoute()
-      await nextTick()
-      await navigateTo(redirectPath, { replace: false })
+      const result = await authStore.login(credentials)
+      const router = useRouter()
+      await router.replace(result.redirectPath)
     }
     catch (error: unknown) {
       const fetchError = error as { message?: string; data?: { message?: string } }

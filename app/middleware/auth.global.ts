@@ -1,4 +1,4 @@
-import { getAuthCookie, isTokenExpired } from '~/utils/jwt'
+import { getEffectiveToken, isTokenExpired } from '~/utils/jwt'
 
 const PUBLIC_ROUTES = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/events']
 
@@ -6,13 +6,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (import.meta.server) return
 
   const authStore = useAuthStore()
-  const token = getAuthCookie()
+  const token = getEffectiveToken()
 
   const isPublicRoute = PUBLIC_ROUTES.some(route =>
     to.path === route || (route !== '/' && to.path.startsWith(`${route}/`))
   )
-
-  const isLandingPage = to.path === '/'
 
   if (isPublicRoute) {
     if (token && !isTokenExpired(token) && !authStore.user) {

@@ -34,17 +34,33 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Actions
-  const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+  const login = async (credentials: LoginCredentials): Promise<LoginResponse & { redirectPath: string }> => {
     loading.value = true
 
     try {
-      const response = await api.post<LoginResponse>('/auth/login', credentials)
+      const response = await api.post<LoginResponse | { data: LoginResponse }>('/auth/login', credentials)
+      const data = (response as { data?: LoginResponse })?.data ?? (response as LoginResponse)
 
-      token.value = response.data.token
-      user.value = response.data.user
-      setAuthCookie(response.data.access_token)
-      // console.log(`+++ user log.res:`, response.data)
-      return response
+      const accessToken = data.access_token ?? data.token
+      if (!accessToken) {
+        throw new Error('No token in login response')
+      }
+
+      setAuthCookie(accessToken)
+      token.value = accessToken
+
+      if (data.user) {
+        user.value = data.user
+      }
+
+      if (!user.value?.roles?.length && token.value) {
+        const fetchedUser = await api.get<User>('/auth/me')
+        const userData = (fetchedUser as { data?: User })?.data ?? (fetchedUser as User)
+        user.value = userData
+      }
+
+      const redirectPath = getDefaultRoute()
+      return { ...data, redirectPath }
     }
     finally {
       loading.value = false
@@ -63,7 +79,6 @@ export const useAuthStore = defineStore('auth', () => {
         phone: credentials.phone,
         role: credentials.role || 'Attendee'
       })
-        console.log(`+++ user reg.res:`, response)
       return response
     }
     finally {
@@ -88,10 +103,10 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = existingToken
 
     try {
-      const fetchedUser = await api.get<User>('/auth/me')
-        // console.log(`+++ user current.res:`, fetchedUser)
-      user.value = fetchedUser.data
-      return fetchedUser.data
+      const fetchedUser = await api.get<User | { data: User }>('/auth/me')
+      const userData = (fetchedUser as { data?: User })?.data ?? (fetchedUser as User)
+      user.value = userData
+      return userData
     }
     catch {
       clearAuth()
@@ -129,9 +144,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const getDefaultRoute = (): string => {
-    const primaryRole = user.value?.roles?.[0]
-      console.log(`+++ xsPrimary Role: ${primaryRole}`)
-    switch (primaryRole) {
+    const role = user.value?.roles?.[0]
+    if (!role) return '/'
+    switch (role) {
       case 'Admin':
         return '/admin'
       case 'Organizer':

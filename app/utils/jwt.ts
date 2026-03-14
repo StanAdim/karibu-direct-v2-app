@@ -59,3 +59,17 @@ export function removeAuthCookie(): void {
 export function getTokenCookieName(): string {
   return TOKEN_COOKIE_NAME
 }
+
+/**
+ * Token to use for auth checks: cookie first, then store (so post-login redirect
+ * works before cookie is visible in the same tick).
+ */
+export function getEffectiveToken(): string | null {
+  const authStore = useAuthStore()
+  let token = getAuthCookie()
+  if (!token && authStore.token && !isTokenExpired(authStore.token)) {
+    setAuthCookie(authStore.token)
+    token = authStore.token
+  }
+  return token
+}
