@@ -1,3 +1,6 @@
+const appName = process.env.NUXT_PUBLIC_APP_NAME || 'KaribuDirect'
+const appDescription = 'Enterprise Event Management Platform'
+
 export default defineAppConfig({
   ui: {
     colors: {
@@ -31,8 +34,8 @@ export default defineAppConfig({
     }
   },
   app: {
-    name: 'EventHub',
-    description: 'Enterprise Event Management Platform'
+    name: appName,
+    description: appDescription
   },
   theme: {
     brand: {

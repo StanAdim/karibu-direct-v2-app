@@ -1,4 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+const appName = process.env.NUXT_PUBLIC_APP_NAME || 'EventHub'
+const appDescription = 'Enterprise Event Management Platform'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
@@ -24,8 +28,8 @@ export default defineNuxtConfig({
     jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api/v1',
-      appName: process.env.NUXT_PUBLIC_APP_NAME || 'EventHub',
-      appDescription: 'Enterprise Event Management Platform'
+      appName: process.env.NUXT_APP_NAME || 'KaribuDirect',
+      appDescription
     }
   },
 
@@ -57,7 +61,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'EventHub - Event Management Platform',
+      title: `${appName} - ${appDescription}`,
       meta: [
         { name: 'description', content: 'Enterprise-grade event management platform for organizers and attendees' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

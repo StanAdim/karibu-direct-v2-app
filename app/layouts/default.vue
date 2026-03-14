@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
 
+const config = useRuntimeConfig()
 const { user, logout } = useAuth()
 
 const navItems = [
@@ -18,7 +19,7 @@ const navItems = [
             to="/dashboard"
             class="text-xl font-bold text-gray-900 dark:text-white"
           >
-            KaribuDirect
+            {{ config.public.appName }}
           </NuxtLink>
 
           <nav class="hidden items-center gap-1 md:flex">
@@ -67,7 +68,7 @@ const navItems = [
     <footer class="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
       <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-          &copy; {{ new Date().getFullYear() }} KaribuDirect. All rights reserved.
+          &copy; {{ new Date().getFullYear() }} {{ config.public.appName }}. All rights reserved.
         </p>
       </div>
     </footer>

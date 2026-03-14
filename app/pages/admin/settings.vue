@@ -4,11 +4,13 @@ definePageMeta({
   middleware: 'admin'
 })
 
+const config = useRuntimeConfig()
+
 const notifications = useNotifications()
 
 const settings = reactive({
   general: {
-    siteName: 'EventHub',
+    siteName: config.public.appName,
     siteDescription: 'Enterprise Event Management Platform',
     supportEmail: 'support@eventhub.com',
     timezone: 'America/New_York'
@@ -86,7 +88,7 @@ const timezones = [
           <AppInput
             v-model="settings.general.siteName"
             label="Site Name"
-            placeholder="EventHub"
+            :placeholder="config.public.appName"
           />
 
           <AppInput
