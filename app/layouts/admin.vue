@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getFullName } from '~/types'
+import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
 
 const { user, logout } = useAuth()
 const route = useRoute()
@@ -181,24 +182,13 @@ function closeMobileSidebar() {
               icon="i-lucide-bell"
             />
 
-            <UDropdownMenu :items="userMenuItems">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                class="gap-2"
-              >
-                <UAvatar
-                  :alt="user ? getFullName(user) : 'Admin'"
-                  :src="user?.avatar"
-                  size="xs"
-                />
-                <span class="hidden sm:inline">{{ user ? getFullName(user) : 'Admin' }}</span>
-                <UIcon
-                  name="i-lucide-chevron-down"
-                  class="h-4 w-4"
-                />
-              </UButton>
-            </UDropdownMenu>
+            <UserAccountMenu
+              :items="userMenuItems"
+              :avatar-alt="user ? getFullName(user) : 'Admin'"
+              :avatar-src="user?.avatar"
+              :user-email="user?.email"
+              subtitle="Admin"
+            />
           </div>
         </div>
       </header>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
+
 const { user, logout } = useAuth()
 
 const navItems = [
@@ -37,10 +39,10 @@ const navItems = [
         </div>
 
         <div class="flex items-center gap-4">
-          <UDropdownMenu
+          <UserAccountMenu
             :items="[
               [
-                { label: user?.name || 'User', type: 'label' as const }
+                { label: user?.name || 'User', type: 'label' }
               ],
               [
                 { label: 'Profile', icon: 'i-lucide-user', to: '/profile' },
@@ -50,19 +52,10 @@ const navItems = [
                 { label: 'Logout', icon: 'i-lucide-log-out', click: logout }
               ]
             ]"
-          >
-            <UButton
-              color="neutral"
-              variant="ghost"
-              class="rounded-full"
-            >
-              <UAvatar
-                :alt="user?.name || 'User'"
-                :src="user?.avatar"
-                size="sm"
-              />
-            </UButton>
-          </UDropdownMenu>
+            :avatar-alt="user?.name || 'User'"
+            :avatar-src="user?.avatar"
+            :user-email="user?.email"
+          />
         </div>
       </div>
     </header>

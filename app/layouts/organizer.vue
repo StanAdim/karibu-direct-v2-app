@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getFullName } from '~/types'
+import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
 
 const config = useRuntimeConfig()
 const { user, logout } = useAuth()
@@ -190,23 +191,13 @@ const pageTitle = computed(() => {
           </NuxtLink>
 
           <!-- User Menu -->
-          <UDropdownMenu :items="userMenuItems">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              class="gap-2"
-            >
-              <UAvatar
-                :alt="user ? getFullName(user) : 'Organizer'"
-                :src="user?.avatar"
-                size="xs"
-              />
-              <UIcon
-                name="i-lucide-chevron-down"
-                class="h-4 w-4"
-              />
-            </UButton>
-          </UDropdownMenu>
+          <UserAccountMenu
+            :items="userMenuItems"
+            :avatar-alt="user ? getFullName(user) : 'Organizer'"
+            :avatar-src="user?.avatar"
+            :user-email="user?.email"
+            subtitle="Organizer"
+          />
         </div>
       </header>
 

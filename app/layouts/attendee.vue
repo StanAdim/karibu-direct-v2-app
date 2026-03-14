@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getFullName } from '~/types'
+import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
 
 const config = useRuntimeConfig()
 const { user, logout } = useAuth()
@@ -222,20 +223,13 @@ function closeMobileSidebar() {
           >
             Find Events
           </NuxtLink>
-          <UDropdownMenu :items="userMenuItems" class="hidden sm:block">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              class="gap-2 rounded-xl"
-            >
-              <UAvatar
-                :alt="user ? getFullName(user) : 'Attendee'"
-                :src="user?.avatar"
-                size="xs"
-              />
-              <UIcon name="i-lucide-chevron-down" class="h-4 w-4" />
-            </UButton>
-          </UDropdownMenu>
+          <UserAccountMenu
+            :items="userMenuItems"
+            :avatar-alt="user ? getFullName(user) : 'Attendee'"
+            :avatar-src="user?.avatar"
+            :user-email="user?.email"
+            subtitle="Attendee"
+          />
         </div>
       </header>
 
