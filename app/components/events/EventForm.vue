@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Event, EventCreateInput, EventUpdateInput, EventVisibility } from '~/types'
+import AppButton from '~/components/ui/AppButton.vue'
 
 interface Props {
   event?: Event
@@ -286,19 +287,21 @@ function handleSubmit() {
 
     <!-- Actions -->
     <div class="flex items-center justify-end gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">
-      <UButton
+      <AppButton
         color="neutral"
-        variant="outline"
+        size="sm"
+        type="button"
         @click="$emit('cancel')"
       >
         Cancel
-      </UButton>
-      <UButton
+      </AppButton>
+      <AppButton
+        size="sm"
         type="submit"
-        :loading="loading"
+        :disabled="loading"
       >
-        {{ isEditing ? 'Update Event' : 'Create Event' }}
-      </UButton>
+        {{ loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Event' : 'Create Event') }}
+      </AppButton>
     </div>
   </form>
 </template>

@@ -189,12 +189,12 @@ const recentActivity = ref([
         >
           <span class="material-symbols-outlined text-4xl text-slate-400">event_available</span>
           <p class="mt-2 text-slate-600 dark:text-slate-400">No upcoming events</p>
-          <NuxtLink
+          <AppButton
             to="/attendee/events"
-            class="mt-4 inline-flex items-center rounded-xl bg-primary-500 text-white px-4 py-2 text-sm font-semibold hover:bg-primary-600"
+            class="mt-4"
           >
             Find Events
-          </NuxtLink>
+          </AppButton>
         </div>
       </section>
 

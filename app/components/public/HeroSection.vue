@@ -83,13 +83,14 @@ function handleSearch() {
               </div>
             </template>
 
-            <button
+            <AppButton
               type="button"
-              class="rounded-xl bg-primary-500 px-8 py-3.5 text-base font-bold text-white shrink-0 hover:bg-primary-600 transition-colors"
+              icon="search"
+              class="shrink-0"
               @click="handleSearch"
             >
               Search
-            </button>
+            </AppButton>
           </div>
         </div>
       </div>

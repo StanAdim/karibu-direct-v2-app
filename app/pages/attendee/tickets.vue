@@ -235,12 +235,12 @@ function getVenueLine(ticket: Ticket): string {
       <span class="material-symbols-outlined text-5xl text-slate-400 mb-4">confirmation_number</span>
       <h3 class="text-lg font-semibold text-slate-900 dark:text-white">No tickets found</h3>
       <p class="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-sm">Browse events to get your first ticket.</p>
-      <NuxtLink
+      <AppButton
         to="/attendee/events"
-        class="mt-6 inline-flex items-center rounded-xl bg-primary-500 text-white px-5 py-2.5 text-sm font-semibold hover:bg-primary-600"
+        class="mt-6"
       >
         Browse Events
-      </NuxtLink>
+      </AppButton>
     </div>
 
     <!-- Ticket cards: image left, details right, View Ticket button -->

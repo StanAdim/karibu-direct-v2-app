@@ -1,7 +1,7 @@
 <script setup lang="ts">
 interface Props {
   modelValue: boolean
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
   align?: 'center' | 'top'
 }
 
@@ -35,6 +35,8 @@ const maxWidthClass = computed(() => {
       return 'max-w-2xl'
     case '2xl':
       return 'max-w-3xl'
+    case '3xl':
+      return 'max-w-4xl'
     case 'xl':
     default:
       return 'max-w-xl md:max-w-2xl lg:max-w-3xl'

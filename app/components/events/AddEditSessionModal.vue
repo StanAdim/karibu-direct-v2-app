@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import AppModal from '~/components/common/AppModal.vue'
 import SessionForm from '~/components/sessions/SessionForm.vue'
+import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
 import type { Session, SessionCreateInput, SessionUpdateInput } from '~/types'
 
 const props = defineProps<{
@@ -9,6 +10,8 @@ const props = defineProps<{
   data?: Session
   eventId: string
   loading?: boolean
+  /** Prefill start/end from Schedule Session modal. */
+  initialSchedule?: Pick<ScheduleSessionPayload, 'date' | 'startTime' | 'endTime'>
 }>()
 
 const emit = defineEmits<{
@@ -66,6 +69,7 @@ function handleCancel() {
       <SessionForm
         :session="data"
         :event-id="eventId"
+        :initial-schedule="initialSchedule"
         :loading="loading"
         @submit="handleSubmit"
         @cancel="handleCancel"

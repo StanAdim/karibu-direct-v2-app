@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import AppModal from '~/components/common/AppModal.vue'
+import AppButton from '~/components/ui/AppButton.vue'
 import type { SessionSpeaker } from '~/types'
 
 interface SpeakerFormData {
@@ -160,20 +161,21 @@ function cancel() {
         </UFormField>
 
         <div class="flex justify-end gap-3 border-t border-gray-200 pt-6 dark:border-gray-700">
-          <UButton
+          <AppButton
             color="neutral"
-            variant="outline"
+            size="sm"
             type="button"
             @click="cancel"
           >
             Cancel
-          </UButton>
-          <UButton
+          </AppButton>
+          <AppButton
+            size="sm"
             type="submit"
-            :loading="loading"
+            :disabled="loading"
           >
-            Save
-          </UButton>
+            {{ loading ? 'Saving...' : 'Save' }}
+          </AppButton>
         </div>
       </form>
     </div>

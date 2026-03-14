@@ -181,12 +181,12 @@ function formatPrice(price: number | null): string {
       <p class="mt-1 text-sm text-slate-500">
         Browse events and tap the heart to save ones you like.
       </p>
-      <NuxtLink
+      <AppButton
         to="/attendee/events"
-        class="mt-6 inline-flex items-center rounded-xl bg-primary-500 text-white px-5 py-2.5 text-sm font-semibold hover:bg-primary-600 transition-colors"
+        class="mt-6"
       >
         Find Events
-      </NuxtLink>
+      </AppButton>
     </div>
 
     <!-- Event grid -->

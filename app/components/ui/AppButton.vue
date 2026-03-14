@@ -1,18 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
   color?: 'primary' | 'neutral' | 'danger' | 'success'
+  size?: 'sm' | 'md'
   icon?: string
   iconPosition?: 'left' | 'right'
   type?: 'button' | 'submit' | 'reset'
   block?: boolean
+  /** When set, renders as NuxtLink instead of button (for navigation CTAs). */
+  to?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   color: 'primary',
+  size: 'md',
   iconPosition: 'left',
   type: 'button',
   block: false
 })
+
+const isLink = computed(() => Boolean(props.to))
+const tag = computed(() => (isLink.value ? 'NuxtLink' : 'button'))
 
 const colorClasses: Record<Props['color'], string> = {
   primary: 'bg-primary-500 text-white shadow-lg shadow-primary-500/30 hover:bg-primary-600 hover:-translate-y-0.5 active:translate-y-0',
@@ -20,13 +29,22 @@ const colorClasses: Record<Props['color'], string> = {
   danger: 'bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 hover:-translate-y-0.5 active:translate-y-0',
   success: 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 hover:-translate-y-0.5 active:translate-y-0'
 }
+
+const sizeClasses: Record<Props['size'], string> = {
+  sm: 'px-4 py-2 text-xs gap-1.5',
+  md: 'px-5 py-2.5 text-sm gap-2'
+}
+
 </script>
 
 <template>
-  <button
-    :type="props.type"
+  <component
+    :is="tag"
+    :type="isLink ? undefined : props.type"
+    :to="isLink ? props.to : undefined"
     :class="[
-      'inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400 disabled:opacity-60 disabled:cursor-not-allowed',
+      'inline-flex items-center rounded-xl font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-400 disabled:opacity-60 disabled:cursor-not-allowed no-underline',
+      sizeClasses[props.size],
       colorClasses[props.color],
       props.block ? 'w-full justify-center' : ''
     ]"
@@ -34,7 +52,8 @@ const colorClasses: Record<Props['color'], string> = {
   >
     <span
       v-if="props.icon && props.iconPosition === 'left'"
-      class="material-symbols-outlined text-base"
+      class="material-symbols-outlined shrink-0"
+      :class="props.size === 'sm' ? 'text-sm' : 'text-base'"
     >
       {{ props.icon }}
     </span>
@@ -45,10 +64,11 @@ const colorClasses: Record<Props['color'], string> = {
 
     <span
       v-if="props.icon && props.iconPosition === 'right'"
-      class="material-symbols-outlined text-base"
+      class="material-symbols-outlined shrink-0"
+      :class="props.size === 'sm' ? 'text-sm' : 'text-base'"
     >
       {{ props.icon }}
     </span>
-  </button>
+  </component>
 </template>
 

@@ -217,12 +217,11 @@ function closeMobileSidebar() {
           >
             <span class="material-symbols-outlined">help_outline</span>
           </button>
-          <NuxtLink
+          <AppButton
             to="/attendee/events"
-            class="flex items-center justify-center bg-primary-500 hover:bg-primary-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
           >
             Find Events
-          </NuxtLink>
+          </AppButton>
           <UserAccountMenu
             :items="userMenuItems"
             :avatar-alt="user ? getFullName(user) : 'Attendee'"

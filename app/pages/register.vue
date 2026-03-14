@@ -218,18 +218,15 @@ async function handleSocialSignup(provider: string) {
       </div>
 
       <!-- Submit Button -->
-      <button
+      <AppButton
         type="submit"
+        block
         :disabled="loading"
-        class="w-full bg-primary-500 text-white py-4 rounded-xl font-bold text-base shadow-lg shadow-primary-500/20 hover:bg-primary-500/90 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        icon="arrow_forward"
+        icon-position="right"
       >
-        <span>
-          {{ loading ? 'Creating Account...' : 'Create Account' }}
-        </span>
-        <span class="material-symbols-outlined text-base">
-          arrow_forward
-        </span>
-      </button>
+        {{ loading ? 'Creating Account...' : 'Create Account' }}
+      </AppButton>
     </form>
 
     <!-- Organizer CTA & Login Link -->

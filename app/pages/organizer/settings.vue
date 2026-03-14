@@ -86,12 +86,9 @@ const salesNotifications = ref(true)
               </div>
 
               <div class="pt-2">
-                <button
-                  type="button"
-                  class="inline-flex items-center rounded-xl bg-primary-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-600"
-                >
+                <AppButton type="button">
                   Save Profile Changes
-                </button>
+                </AppButton>
               </div>
             </form>
           </div>

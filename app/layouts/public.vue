@@ -119,12 +119,11 @@ const footerSections = [
             >
               Log in
             </NuxtLink>
-            <NuxtLink
+            <AppButton
               to="/register"
-              class="rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-600 transition-colors shadow-sm"
             >
               Sign Up
-            </NuxtLink>
+            </AppButton>
           </template>
 
           <!-- User Avatar (when logged in) -->

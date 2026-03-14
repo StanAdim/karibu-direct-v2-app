@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { Checkpoint, Participant, Event } from '~/types'
+import type { Checkpoint, Participant, Event, SessionCreateInput } from '~/types'
+import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
 import CreateEditEventModal from '~/components/events/CreateEditEventModal.vue'
+import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
+import AddEditSessionModal from '~/components/events/AddEditSessionModal.vue'
 import { getEventCapacityPercentage, isEventLive, isEventPast, isEventUpcoming } from '~/types'
 
 definePageMeta({
@@ -16,6 +19,10 @@ const router = useRouter()
 
 const eventId = computed(() => route.params.id as string)
 const showEventModal = ref(false)
+const showScheduleModal = ref(false)
+const showSessionModal = ref(false)
+const scheduledSlot = ref<Pick<ScheduleSessionPayload, 'date' | 'startTime' | 'endTime'> | null>(null)
+const sessionSaveLoading = ref(false)
 const loading = ref(true)
 const activeTab = ref<'overview' | 'sessions' | 'checkpoints' | 'attendees'>('overview')
 
@@ -172,6 +179,49 @@ function openEditEventModal() {
   showEventModal.value = true
 }
 
+function openScheduleModal() {
+  showScheduleModal.value = true
+}
+
+function onScheduleConfirm(payload: ScheduleSessionPayload) {
+  scheduledSlot.value = {
+    date: payload.date,
+    startTime: payload.startTime,
+    endTime: payload.endTime
+  }
+  showScheduleModal.value = false
+  showSessionModal.value = true
+}
+
+async function onSessionSaved(payload: SessionCreateInput & { id?: string; event_id?: string }) {
+  const id = payload.event_id ?? eventId.value
+  if (!id) return
+  sessionSaveLoading.value = true
+  try {
+    await sessionsStore.createSession({
+      event_id: id,
+      title: payload.title,
+      type: payload.type,
+      start_time: payload.start_time,
+      end_time: payload.end_time,
+      description: payload.description,
+      room: payload.room,
+      track: payload.track,
+      capacity: payload.capacity,
+      level: payload.level,
+      is_break: payload.is_break ?? false
+    })
+    notifications.success('Session created')
+    await loadData()
+    showSessionModal.value = false
+    scheduledSlot.value = null
+  } catch {
+    notifications.error('Failed to create session')
+  } finally {
+    sessionSaveLoading.value = false
+  }
+}
+
 async function handleSaveEvent(payload: Partial<Event>) {
   if (!event.value) return
 
@@ -301,7 +351,7 @@ onUnmounted(() => {
             :class="activeTab === tab.id
               ? 'border-primary-500 text-primary-600 dark:text-primary-400'
               : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
-            @click="activeTab = tab.id as typeof activeTab"
+            @click="activeTab = tab.id"
           >
             {{ tab.label }}
           </button>
@@ -318,6 +368,7 @@ onUnmounted(() => {
               v-else-if="activeTab === 'sessions'"
               :event-id="event.id"
               :sessions="sessions"
+              :on-schedule-session="openScheduleModal"
             />
             <EventCheckpointsTab
               v-else-if="activeTab === 'checkpoints'"
@@ -391,6 +442,23 @@ onUnmounted(() => {
       v-model="showEventModal"
       :data="event"
       @saved="handleSaveEvent"
+    />
+
+    <!-- Schedule Session Modal -->
+    <ScheduleSessionModal
+      v-model="showScheduleModal"
+      :event-id="event?.id"
+      @confirm="onScheduleConfirm"
+    />
+
+    <!-- Add Session Modal (e.g. after scheduling) -->
+    <AddEditSessionModal
+      v-if="event"
+      v-model="showSessionModal"
+      :event-id="event.id"
+      :initial-schedule="scheduledSlot ?? undefined"
+      :loading="sessionSaveLoading"
+      @saved="onSessionSaved"
     />
   </div>
 </template>

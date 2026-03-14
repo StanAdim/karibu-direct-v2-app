@@ -99,20 +99,19 @@ const transactions = ref<PaymentTransaction[]>([
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
-        <button
-          type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        <AppButton
+          color="neutral"
+          size="sm"
+          icon="account_balance"
         >
-          <span class="material-symbols-outlined text-sm">account_balance</span>
           Manage Accounts
-        </button>
-        <button
-          type="button"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-primary-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-primary-600"
+        </AppButton>
+        <AppButton
+          size="sm"
+          icon="payments"
         >
-          <span class="material-symbols-outlined text-sm">payments</span>
           Request Payout
-        </button>
+        </AppButton>
       </div>
     </div>
 
@@ -220,20 +219,20 @@ const transactions = ref<PaymentTransaction[]>([
         </div>
 
         <div class="flex items-center gap-2 text-xs">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+          <AppButton
+            color="neutral"
+            size="sm"
+            icon="filter_list"
           >
-            <span class="material-symbols-outlined text-sm">filter_list</span>
             Filter
-          </button>
-          <button
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+          </AppButton>
+          <AppButton
+            color="neutral"
+            size="sm"
+            icon="file_download"
           >
-            <span class="material-symbols-outlined text-sm">file_download</span>
             Export
-          </button>
+          </AppButton>
         </div>
       </div>
 

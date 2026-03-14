@@ -209,15 +209,12 @@ onMounted(loadEvents)
       </div>
 
       <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+        <AppButton
+          color="neutral"
+          icon="filter_list"
         >
-          <span class="material-symbols-outlined text-base">
-            filter_list
-          </span>
           Filter
-        </button>
+        </AppButton>
         <AppButton
           icon="add"
           @click="handleCreateEvent"
@@ -403,20 +400,18 @@ onMounted(loadEvents)
             </div>
 
             <div class="grid grid-cols-2 gap-3 pt-1">
-              <button
-                type="button"
-                class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+              <AppButton
+                color="neutral"
                 @click="handleEditEvent(event)"
               >
                 Manage
-              </button>
-              <button
-                type="button"
-                class="rounded-xl bg-primary-500 px-3 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-500/25 hover:bg-primary-600"
+              </AppButton>
+              <AppButton
+                color="primary"
                 @click="handleViewEvent(event)"
               >
                 Details
-              </button>
+              </AppButton>
             </div>
 
             <button

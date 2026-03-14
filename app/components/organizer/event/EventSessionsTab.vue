@@ -4,12 +4,14 @@ import type { Session } from '~/types'
 const props = defineProps<{
   eventId: string
   sessions: Session[]
+  /** When set, shows "Schedule Session" button that opens the schedule modal. */
+  onScheduleSession?: () => void
 }>()
 </script>
 
 <template>
   <div class="space-y-4">
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
         <h3 class="text-base font-semibold text-gray-900 dark:text-white">
           Sessions
@@ -19,12 +21,23 @@ const props = defineProps<{
         </p>
       </div>
 
-      <UButton
-        icon="i-lucide-plus"
-        :to="`/organizer/sessions/create?event_id=${props.eventId}`"
-      >
-        Add Session
-      </UButton>
+      <div class="flex flex-wrap items-center gap-2">
+        <UButton
+          v-if="onScheduleSession"
+          icon="i-lucide-calendar-clock"
+          color="neutral"
+          variant="outline"
+          @click="onScheduleSession"
+        >
+          Schedule Session
+        </UButton>
+        <UButton
+          icon="i-lucide-plus"
+          :to="`/organizer/sessions/create?event_id=${props.eventId}`"
+        >
+          Add Session
+        </UButton>
+      </div>
     </div>
 
     <div

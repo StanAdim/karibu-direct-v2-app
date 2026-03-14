@@ -218,13 +218,13 @@ async function handleSocialLogin(provider: string) {
       </UFormField>
 
       <!-- Submit Button -->
-      <button
+      <AppButton
         type="submit"
+        block
         :disabled="loading"
-        class="w-full bg-primary-500 text-white py-4 rounded-xl font-bold text-base shadow-lg shadow-primary-500/20 hover:bg-primary-500/90 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
       >
         {{ loading ? 'Signing In...' : 'Sign In' }}
-      </button>
+      </AppButton>
     </form>
 
     <!-- Sign Up Link -->
@@ -284,13 +284,14 @@ async function handleSocialLogin(provider: string) {
             required
           />
 
-          <button
+          <AppButton
             type="submit"
+            block
             :disabled="resetLoading"
-            class="mt-2 w-full rounded-xl bg-primary-500 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary-500/30 transition-all hover:bg-primary-500/90 hover:shadow-primary-500/40 disabled:cursor-not-allowed disabled:opacity-70"
+            class="mt-2"
           >
             {{ resetLoading ? 'Sending link...' : 'Send Reset Link' }}
-          </button>
+          </AppButton>
 
           <button
             type="button"
@@ -339,13 +340,14 @@ async function handleSocialLogin(provider: string) {
         </div>
 
         <div class="mx-auto flex max-w-md flex-col gap-3">
-          <button
+          <AppButton
             type="button"
-            class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            block
+            color="neutral"
             @click="closeForgotPassword"
           >
             Open Mail App
-          </button>
+          </AppButton>
 
           <button
             type="button"
