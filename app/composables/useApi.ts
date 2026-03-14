@@ -1,6 +1,5 @@
 import type { ApiRequestOptions, HttpMethod } from '~/types'
 import { getAuthCookie } from '~/utils/jwt'
-import { useUiStore } from '~/stores/ui'
 
 interface UseApiReturn {
   get: <T>(endpoint: string, options?: ApiRequestOptions) => Promise<T>
@@ -14,7 +13,6 @@ interface UseApiReturn {
 export function useApi(): UseApiReturn {
   const config = useRuntimeConfig()
   const notifications = useNotifications()
-  const uiStore = useUiStore()
 
   async function request<T>(
     method: HttpMethod,
@@ -22,8 +20,6 @@ export function useApi(): UseApiReturn {
     options: ApiRequestOptions = {}
   ): Promise<T> {
     const token = getAuthCookie()
-
-    uiStore.startRequest()
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -62,9 +58,6 @@ export function useApi(): UseApiReturn {
       })
 
       throw error
-    }
-    finally {
-      uiStore.endRequest()
     }
   }
 
