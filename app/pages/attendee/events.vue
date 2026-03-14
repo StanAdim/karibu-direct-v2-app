@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Event } from '~/types'
+import AppButton from '~/components/ui/AppButton.vue'
 
 definePageMeta({
   layout: 'attendee',
@@ -392,14 +393,15 @@ onMounted(loadEvents)
           <p class="text-sm text-slate-600 dark:text-slate-400">
             Showing {{ showingCount }} of {{ totalCount }} upcoming events
           </p>
-          <button
-            type="button"
-            class="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-500 text-white font-semibold px-5 py-2.5 text-sm hover:bg-primary-600 transition-colors"
+        <div class="mt-4 flex justify-center">
+          <AppButton
+            icon="arrow_forward"
+            icon-position="right"
             @click="loadEvents"
           >
             Explore More Events
-            <span class="material-symbols-outlined text-lg">arrow_forward</span>
-          </button>
+          </AppButton>
+        </div>
         </div>
       </main>
     </div>

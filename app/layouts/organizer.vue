@@ -11,10 +11,9 @@ const searchQuery = ref('')
 
 const navigationItems = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', to: '/organizer' },
-  { id: 'events', label: 'Events', icon: 'calendar_today', to: '/organizer/events' },
-  { id: 'sessions', label: 'Sessions', icon: 'schedule', to: '/organizer/sessions' },
-  { id: 'checkpoints', label: 'Checkpoints', icon: 'qr_code_scanner', to: '/organizer/checkpoints' },
-  { id: 'participants', label: 'Participants', icon: 'group', to: '/organizer/participants' },
+  { id: 'events', label: 'My Events', icon: 'calendar_today', to: '/organizer/events' },
+  { id: 'ticket-sales', label: 'Ticket Sales', icon: 'point_of_sale', to: '/organizer/ticket-sales' },
+  { id: 'participants', label: 'Attendees', icon: 'group', to: '/organizer/participants' },
   { id: 'payments', label: 'Payments', icon: 'payments', to: '/organizer/payments' },
   { id: 'settings', label: 'Settings', icon: 'settings', to: '/organizer/settings' }
 ]
@@ -180,16 +179,6 @@ const pageTitle = computed(() => {
             <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
             <span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800" />
           </button>
-
-          <!-- Create Event Button -->
-          <NuxtLink
-            to="/organizer/events/create"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-500 text-white font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            <span class="material-symbols-outlined text-sm">add</span>
-            <span class="hidden sm:inline">Create Event</span>
-          </NuxtLink>
-
           <!-- User Menu -->
           <UserAccountMenu
             :items="userMenuItems"

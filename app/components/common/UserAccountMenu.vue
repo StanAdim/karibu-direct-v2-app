@@ -54,7 +54,7 @@ function handleItemClick(item: MenuItem) {
 </script>
 
 <template>
-  <div class="flex items-center">
+  <div class="flex items-center mt-2">
     <!-- Desktop: avatar trigger with custom popover panel matching design -->
     <UPopover
       class="hidden sm:block"

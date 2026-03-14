@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { Checkpoint, Participant, Event } from '~/types'
+import CreateEditEventModal from '~/components/events/CreateEditEventModal.vue'
 import { getEventCapacityPercentage, isEventLive, isEventPast, isEventUpcoming } from '~/types'
 
 definePageMeta({
@@ -13,10 +15,89 @@ const notifications = useNotifications()
 const router = useRouter()
 
 const eventId = computed(() => route.params.id as string)
+const showEventModal = ref(false)
 const loading = ref(true)
+const activeTab = ref<'overview' | 'sessions' | 'checkpoints' | 'attendees'>('overview')
 
 const event = computed(() => eventsStore.currentEvent)
 const sessions = computed(() => sessionsStore.sessions)
+
+const eventCheckpoints = ref<Checkpoint[]>([
+  {
+    id: '1',
+    event_id: eventId.value,
+    name: 'Main Entrance',
+    description: 'Primary entry point for attendees',
+    type: 'entry',
+    location: 'Building A, Ground Floor',
+    is_active: true,
+    scan_count: 12482,
+    settings: { allow_multiple_scans: false, require_ticket: true },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    event_id: eventId.value,
+    name: 'VIP Entrance',
+    description: 'Lounge & red carpet access',
+    type: 'entry',
+    location: 'Hall B, Side Gate',
+    is_active: true,
+    scan_count: 842,
+    settings: { allow_multiple_scans: false, require_ticket: true },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+])
+
+const eventParticipants = ref<Participant[]>([
+  {
+    id: '1',
+    event_id: eventId.value,
+    first_name: 'Jessica',
+    last_name: 'Chen',
+    email: 'jessica.chen@example.com',
+    phone: '+1234567890',
+    ticket: {
+      id: 't1',
+      ticket_type: { id: 'tt1', name: 'VIP', description: '', price: 250, currency: 'USD', quantity: 500, sold_count: 320, max_per_order: 4, sales_start: '', sales_end: '', status: 'available' },
+      ticket_number: 'VIP-001',
+      qr_code: 'qr-001',
+      price: 250,
+      currency: 'USD',
+      payment_status: 'completed',
+      purchased_at: new Date().toISOString()
+    },
+    status: 'checked_in',
+    registered_at: new Date(Date.now() - 86400000).toISOString(),
+    checked_in_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    event_id: eventId.value,
+    first_name: 'Marco',
+    last_name: 'Rossi',
+    email: 'marco.rossi@example.com',
+    phone: '+1234567891',
+    ticket: {
+      id: 't2',
+      ticket_type: { id: 'tt2', name: 'General Admission', description: '', price: 85, currency: 'USD', quantity: 2000, sold_count: 1440, max_per_order: 6, sales_start: '', sales_end: '', status: 'available' },
+      ticket_number: 'GA-442',
+      qr_code: 'qr-002',
+      price: 85,
+      currency: 'USD',
+      payment_status: 'completed',
+      purchased_at: new Date().toISOString()
+    },
+    status: 'confirmed',
+    registered_at: new Date(Date.now() - 172800000).toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+])
 
 const isLive = computed(() => event.value ? isEventLive(event.value) : false)
 const isUpcoming = computed(() => event.value ? isEventUpcoming(event.value) : false)
@@ -87,20 +168,21 @@ async function cancelEvent() {
   }
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  })
+function openEditEventModal() {
+  showEventModal.value = true
 }
 
-function formatTime(dateString: string): string {
-  return new Date(dateString).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+async function handleSaveEvent(payload: Partial<Event>) {
+  if (!event.value) return
+
+  try {
+    await eventsStore.updateEvent(event.value.id, payload)
+    notifications.success('Event updated successfully')
+    await loadData()
+  }
+  catch {
+    notifications.error('Failed to update event')
+  }
 }
 
 onMounted(loadData)
@@ -133,272 +215,182 @@ onUnmounted(() => {
       </template>
     </EmptyState>
 
-    <!-- Event Details -->
+    <!-- Event Management Hub -->
     <template v-else>
-      <PageHeader
-        :title="event.title"
-        :description="event.short_description"
-      >
-        <template #actions>
-          <UButton
-            v-if="event.status === 'draft'"
-            color="success"
-            icon="i-lucide-rocket"
-            @click="publishEvent"
-          >
-            Publish
-          </UButton>
+      <div class="space-y-6">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary-500">
+              Event Management Hub
+            </p>
+            <h1 class="mt-1 text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+              {{ event.title }}
+            </h1>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ event.short_description }}
+            </p>
+          </div>
 
-          <UButton
-            v-if="event.status === 'published'"
-            color="error"
-            variant="outline"
-            icon="i-lucide-x"
-            @click="cancelEvent"
-          >
-            Cancel
-          </UButton>
-
-          <UButton
-            variant="outline"
-            icon="i-lucide-pencil"
-            :to="`/organizer/events/${event.id}/edit`"
-          >
-            Edit
-          </UButton>
-        </template>
-      </PageHeader>
-
-      <!-- Status Banner -->
-      <UAlert
-        v-if="isLive"
-        color="success"
-        icon="i-lucide-radio"
-        title="Event is Live"
-        description="This event is currently in progress"
-        class="mb-6"
-      />
-
-      <UAlert
-        v-else-if="isPast"
-        color="neutral"
-        icon="i-lucide-check-circle"
-        title="Event Completed"
-        description="This event has ended"
-        class="mb-6"
-      />
-
-      <!-- Stats -->
-      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          v-for="stat in stats"
-          :key="stat.title"
-          v-bind="stat"
-        />
-      </div>
-
-      <!-- Content -->
-      <div class="mt-8 grid gap-6 lg:grid-cols-3">
-        <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-6">
-          <!-- Details Card -->
-          <UCard>
-            <template #header>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Event Details
-              </h3>
-            </template>
-
-            <div class="prose prose-sm max-w-none dark:prose-invert">
-              <p>{{ event.description }}</p>
-            </div>
-
-            <div class="mt-6 grid gap-4 sm:grid-cols-2">
-              <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                  <UIcon
-                    name="i-lucide-calendar"
-                    class="h-5 w-5 text-gray-600"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Date
-                  </p>
-                  <p class="font-medium text-gray-900 dark:text-white">
-                    {{ formatDate(event.start_date) }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                  <UIcon
-                    name="i-lucide-clock"
-                    class="h-5 w-5 text-gray-600"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Time
-                  </p>
-                  <p class="font-medium text-gray-900 dark:text-white">
-                    {{ formatTime(event.start_date) }} - {{ formatTime(event.end_date) }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                  <UIcon
-                    :name="event.venue.type === 'virtual' ? 'i-lucide-video' : 'i-lucide-map-pin'"
-                    class="h-5 w-5 text-gray-600"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Venue
-                  </p>
-                  <p class="font-medium text-gray-900 dark:text-white">
-                    {{ event.venue.type === 'virtual' ? 'Online Event' : event.venue.name || event.venue.city }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                  <UIcon
-                    name="i-lucide-users"
-                    class="h-5 w-5 text-gray-600"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Capacity
-                  </p>
-                  <p class="font-medium text-gray-900 dark:text-white">
-                    {{ event.registered_count }} / {{ event.capacity }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </UCard>
-
-          <!-- Sessions -->
-          <UCard>
-            <template #header>
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                  Sessions ({{ sessions.length }})
-                </h3>
-                <UButton
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :to="`/organizer/sessions/create?event_id=${event.id}`"
-                >
-                  Add Session
-                </UButton>
-              </div>
-            </template>
-
-            <div
-              v-if="sessions.length === 0"
-              class="py-8 text-center"
+          <div class="flex flex-wrap items-center gap-2 md:justify-end">
+            <UButton
+              v-if="event.status === 'draft'"
+              color="success"
+              icon="i-lucide-rocket"
+              @click="publishEvent"
             >
-              <UIcon
-                name="i-lucide-presentation"
-                class="mx-auto h-12 w-12 text-gray-400"
-              />
-              <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                No sessions scheduled yet
-              </p>
-            </div>
-
-            <div
-              v-else
-              class="space-y-4"
+              Publish Event
+            </UButton>
+            <UButton
+              v-if="event.status === 'published'"
+              color="error"
+              variant="outline"
+              icon="i-lucide-x"
+              @click="cancelEvent"
             >
-              <SessionCard
-                v-for="session in sessions.slice(0, 5)"
-                :key="session.id"
-                :session="session"
-                show-actions
-              />
-
-              <UButton
-                v-if="sessions.length > 5"
-                variant="ghost"
-                block
-                to="/organizer/sessions"
-              >
-                View all {{ sessions.length }} sessions
-              </UButton>
-            </div>
-          </UCard>
+              Cancel Event
+            </UButton>
+            <UButton
+              variant="outline"
+              icon="i-lucide-pencil"
+              @click="openEditEventModal"
+            >
+              Edit Details
+            </UButton>
+            <UButton
+              variant="ghost"
+              icon="i-lucide-external-link"
+            >
+              View Public Page
+            </UButton>
+          </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="space-y-6">
-          <!-- Quick Actions -->
-          <UCard>
-            <template #header>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Quick Actions
-              </h3>
-            </template>
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-1 text-sm dark:border-gray-800">
+          <div class="flex gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <NuxtLink
+              to="/organizer/events"
+              class="hover:text-primary-500"
+            >
+              My Events
+            </NuxtLink>
+            <span>/</span>
+            <span class="font-medium text-gray-600 dark:text-gray-300">
+              {{ event.title }}
+            </span>
+          </div>
 
-            <div class="space-y-2">
-              <UButton
-                block
-                variant="soft"
-                icon="i-lucide-users"
-                :to="`/organizer/participants?event_id=${event.id}`"
-              >
-                View Participants
-              </UButton>
-              <UButton
-                block
-                variant="soft"
-                icon="i-lucide-qr-code"
-                :to="`/organizer/checkpoints?event_id=${event.id}`"
-              >
-                Manage Checkpoints
-              </UButton>
-              <UButton
-                block
-                variant="soft"
-                icon="i-lucide-bar-chart-3"
-                :to="`/organizer/analytics?event_id=${event.id}`"
-              >
-                View Analytics
-              </UButton>
-            </div>
-          </UCard>
+          <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              {{ isLive ? 'Live Now' : isUpcoming ? 'Upcoming' : isPast ? 'Completed' : 'Draft' }}
+            </span>
+          </div>
+        </div>
 
-          <!-- Capacity -->
-          <UCard>
-            <template #header>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Registration Progress
-              </h3>
-            </template>
+        <div class="flex flex-wrap items-center gap-4 border-b border-gray-200 text-sm dark:border-gray-800">
+          <button
+            v-for="tab in [
+              { id: 'overview', label: 'Overview' },
+              { id: 'sessions', label: 'Sessions' },
+              { id: 'checkpoints', label: 'Checkpoints' },
+              { id: 'attendees', label: 'Attendee List' }
+            ]"
+            :key="tab.id"
+            type="button"
+            class="relative -mb-px border-b-2 px-3 pb-3 text-sm font-medium transition-colors"
+            :class="activeTab === tab.id
+              ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+            @click="activeTab = tab.id as typeof activeTab"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
 
-            <div class="text-center">
-              <div class="text-4xl font-bold text-gray-900 dark:text-white">
-                {{ capacityPercentage }}%
+        <div class="grid gap-6 lg:grid-cols-[2.2fr,1fr]">
+          <div>
+            <EventOverviewTab
+              v-if="activeTab === 'overview'"
+              :event="event"
+              :capacity-percentage="capacityPercentage"
+            />
+            <EventSessionsTab
+              v-else-if="activeTab === 'sessions'"
+              :event-id="event.id"
+              :sessions="sessions"
+            />
+            <EventCheckpointsTab
+              v-else-if="activeTab === 'checkpoints'"
+              :event-id="event.id"
+              :checkpoints="eventCheckpoints"
+              @create="router.push(`/organizer/checkpoints?event_id=${event.id}`)"
+            />
+            <EventAttendeesTab
+              v-else-if="activeTab === 'attendees'"
+              :participants="eventParticipants"
+            />
+          </div>
+
+          <div class="space-y-4">
+            <UCard>
+              <template #header>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                  At a Glance
+                </h3>
+              </template>
+              <div class="grid gap-3 text-sm">
+                <div
+                  v-for="stat in stats"
+                  :key="stat.title"
+                  class="flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-2">
+                    <UIcon
+                      :name="stat.icon"
+                      class="h-4 w-4 text-gray-400"
+                    />
+                    <span class="text-gray-500 dark:text-gray-400">
+                      {{ stat.title }}
+                    </span>
+                  </div>
+                  <span class="font-semibold text-gray-900 dark:text-white">
+                    {{ stat.value }}
+                  </span>
+                </div>
               </div>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ event.registered_count }} of {{ event.capacity }} spots filled
-              </p>
-              <UProgress
-                :value="capacityPercentage"
-                class="mt-4"
-                :color="capacityPercentage >= 90 ? 'error' : capacityPercentage >= 70 ? 'warning' : 'primary'"
-              />
-            </div>
-          </UCard>
+            </UCard>
+
+            <UCard>
+              <template #header>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                  Registration Progress
+                </h3>
+              </template>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-gray-900 dark:text-white">
+                  {{ capacityPercentage }}%
+                </div>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {{ event.registered_count }} of {{ event.capacity }} spots filled
+                </p>
+                <UProgress
+                  :value="capacityPercentage"
+                  class="mt-4"
+                  :color="capacityPercentage >= 90 ? 'error' : capacityPercentage >= 70 ? 'warning' : 'primary'"
+                />
+              </div>
+            </UCard>
+          </div>
         </div>
       </div>
     </template>
+
+    <!-- Edit Event Modal -->
+    <CreateEditEventModal
+      v-if="event"
+      v-model="showEventModal"
+      :data="event"
+      @saved="handleSaveEvent"
+    />
   </div>
 </template>

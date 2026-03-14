@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Event, EventStatus } from '~/types'
+import CreateEditEventModal from '~/components/events/CreateEditEventModal.vue'
+import AppButton from '~/components/ui/AppButton.vue'
 
 definePageMeta({
   layout: 'organizer',
@@ -18,10 +20,13 @@ const viewMode = ref<'grid' | 'table'>('grid')
 const deleteLoading = ref(false)
 const eventToDelete = ref<Event | null>(null)
 
+const showEventModal = ref(false)
+const selectedEvent = ref<Event | null>(null)
+
 const statusOptions = [
-  { value: '', label: 'All Status' },
+  { value: '', label: 'All Statuses' },
   { value: 'draft', label: 'Draft' },
-  { value: 'published', label: 'Published' },
+  { value: 'published', label: 'Published (Live)' },
   { value: 'cancelled', label: 'Cancelled' },
   { value: 'completed', label: 'Completed' }
 ]
@@ -39,7 +44,30 @@ function handleViewEvent(event: Event) {
 }
 
 function handleEditEvent(event: Event) {
-  router.push(`/organizer/events/${event.id}/edit`)
+  selectedEvent.value = event
+  showEventModal.value = true
+}
+
+function handleCreateEvent() {
+  selectedEvent.value = null
+  showEventModal.value = true
+}
+
+async function handleSaveEvent(payload: Partial<Event>) {
+  try {
+    if (payload.id) {
+      await eventsStore.updateEvent(payload.id, payload)
+      notifications.success('Event updated successfully')
+    }
+    else {
+      await eventsStore.createEvent(payload)
+      notifications.success('Event created successfully')
+    }
+    await loadEvents()
+  }
+  catch {
+    notifications.error('Failed to save event')
+  }
 }
 
 async function handleDeleteEvent(event: Event) {
@@ -67,67 +95,186 @@ async function handleDeleteEvent(event: Event) {
   }
 }
 
+const filteredEvents = computed(() => {
+  return eventsStore.events.filter((event) => {
+    const matchesSearch = !searchQuery.value ||
+      event.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+
+    const matchesStatus = !selectedStatus.value || event.status === selectedStatus.value
+
+    return matchesSearch && matchesStatus
+  })
+})
+
+function getEventImage(event: Event): string {
+  const anyEvent = event as any
+  return anyEvent.banner_image || anyEvent.cover_image || anyEvent.image || anyEvent.hero_image || ''
+}
+
+function getEventDateLabel(event: Event): string {
+  const anyEvent = event as any
+  if (anyEvent.start_date_formatted) {
+    return anyEvent.start_date_formatted
+  }
+  if (anyEvent.start_at) {
+    return new Date(anyEvent.start_at).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+  return 'Date TBA'
+}
+
+function getEventLocationLabel(event: Event): string {
+  const anyEvent = event as any
+  if (anyEvent.venue_name && anyEvent.city) {
+    return `${anyEvent.venue_name}, ${anyEvent.city}`
+  }
+  return anyEvent.venue_name || anyEvent.location || 'Venue TBA'
+}
+
+function getCapacityInfo(event: Event) {
+  const anyEvent = event as any
+  const sold = Number(anyEvent.tickets_sold ?? anyEvent.sold ?? 0)
+  const capacity = Number(anyEvent.capacity ?? anyEvent.ticket_capacity ?? 0)
+
+  if (!capacity) {
+    return {
+      sold,
+      capacity: 0,
+      percent: 0,
+      label: sold ? `${sold} tickets sold` : 'No tickets sold yet'
+    }
+  }
+
+  const percent = Math.min(100, Math.round((sold / capacity) * 100))
+
+  return {
+    sold,
+    capacity,
+    percent,
+    label: `${percent}% capacity`
+  }
+}
+
+function getStatusPill(event: Event) {
+  const status = event.status as EventStatus
+
+  if (status === 'draft') {
+    return {
+      label: 'Draft',
+      classes: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100'
+    }
+  }
+
+  if (status === 'completed') {
+    return {
+      label: 'Completed',
+      classes: 'bg-slate-900 text-white'
+    }
+  }
+
+  if (status === 'cancelled') {
+    return {
+      label: 'Cancelled',
+      classes: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'
+    }
+  }
+
+  return {
+    label: 'Live',
+    classes: 'bg-primary-500 text-white'
+  }
+}
+
 watch([searchQuery, selectedStatus], loadEvents)
 
 onMounted(loadEvents)
 </script>
 
 <template>
-  <div>
-    <PageHeader
-      title="My Events"
-      description="Manage your events and track registrations"
-    >
-      <template #actions>
-        <UButton
-          icon="i-lucide-plus"
-          to="/organizer/events/create"
-        >
-          Create Event
-        </UButton>
-      </template>
-    </PageHeader>
+  <div class="space-y-10">
+    <!-- Page header -->
+    <section class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <div>
+        <h1 class="font-black tracking-tight text-slate-900 dark:text-white text-3xl sm:text-4xl">
+          My Events
+        </h1>
+        <p class="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+          Manage and monitor your upcoming and past experiences.
+        </p>
+      </div>
 
-    <!-- Filters -->
-    <UCard class="mb-6">
-      <div class="flex flex-wrap items-center gap-4">
-        <div class="flex-1 min-w-64">
-          <UInput
-            v-model="searchQuery"
-            placeholder="Search events..."
-            icon="i-lucide-search"
-          />
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+        >
+          <span class="material-symbols-outlined text-base">
+            filter_list
+          </span>
+          Filter
+        </button>
+        <AppButton
+          icon="add"
+          @click="handleCreateEvent"
+        >
+          New Event
+        </AppButton>
+      </div>
+    </section>
+
+    <!-- Filters row -->
+    <section class="rounded-2xl bg-white/60 p-4 shadow-sm ring-1 ring-slate-100 backdrop-blur-sm dark:bg-slate-900/60 dark:ring-slate-800">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-1 flex-wrap items-center gap-3">
+          <div class="relative flex-1 min-w-[220px] max-w-md">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              search
+            </span>
+            <input
+              v-model="searchQuery"
+              type="search"
+              placeholder="Search your events..."
+              class="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-inner focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-primary-400 dark:focus:ring-primary-900/40"
+            >
+          </div>
+
+          <div class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">
+            <span class="material-symbols-outlined text-sm text-slate-400">
+              tune
+            </span>
+            <select
+              v-model="selectedStatus"
+              class="border-0 bg-transparent p-0 text-xs font-semibold text-slate-700 focus:ring-0 dark:text-slate-100"
+            >
+              <option
+                v-for="option in statusOptions"
+                :key="option.value || 'all'"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
         </div>
 
-        <USelect
-          v-model="selectedStatus"
-          :items="statusOptions"
-          value-key="value"
-          label-key="label"
-          placeholder="Filter by status"
-          class="w-40"
-        />
-
-        <div class="flex items-center gap-1 rounded-lg border border-gray-200 p-1 dark:border-gray-800">
-          <UButton
-            :color="viewMode === 'grid' ? 'primary' : 'neutral'"
-            :variant="viewMode === 'grid' ? 'solid' : 'ghost'"
-            icon="i-lucide-grid-3x3"
-            size="sm"
-            @click="viewMode = 'grid'"
-          />
-          <UButton
-            :color="viewMode === 'table' ? 'primary' : 'neutral'"
-            :variant="viewMode === 'table' ? 'solid' : 'ghost'"
-            icon="i-lucide-list"
-            size="sm"
-            @click="viewMode = 'table'"
-          />
+        <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <span class="hidden sm:inline">
+            {{ filteredEvents.length }} events
+          </span>
+          <span class="h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+          <span>
+            {{ eventsStore.loading ? 'Syncing with server…' : 'All systems operational' }}
+          </span>
         </div>
       </div>
-    </UCard>
+    </section>
 
-    <!-- Loading State -->
+    <!-- Loading state -->
     <div
       v-if="eventsStore.loading"
       class="py-12"
@@ -135,57 +282,168 @@ onMounted(loadEvents)
       <LoadingState text="Loading events..." />
     </div>
 
-    <!-- Empty State -->
+    <!-- Empty state -->
     <EmptyState
-      v-else-if="eventsStore.events.length === 0"
+      v-else-if="filteredEvents.length === 0"
       icon="i-lucide-calendar"
       title="No events found"
-      description="Create your first event to get started"
+      description="Create your first event to get started."
     >
       <template #actions>
-        <UButton
-          icon="i-lucide-plus"
-          to="/organizer/events/create"
+        <AppButton
+          icon="add"
+          @click="handleCreateEvent"
         >
           Create Event
-        </UButton>
+        </AppButton>
       </template>
     </EmptyState>
 
-    <!-- Grid View -->
-    <div
-      v-else-if="viewMode === 'grid'"
-      class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-    >
-      <EventCard
-        v-for="event in eventsStore.events"
-        :key="event.id"
-        :event="event"
-        show-actions
-        @click="handleViewEvent"
-        @edit="handleEditEvent"
-        @delete="handleDeleteEvent"
-      />
-    </div>
-
-    <!-- Table View -->
-    <EventTable
+    <!-- Events grid -->
+    <section
       v-else
-      :events="eventsStore.events"
-      @view="handleViewEvent"
-      @edit="handleEditEvent"
-      @delete="handleDeleteEvent"
-    />
+      class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4"
+    >
+      <article
+        v-for="event in filteredEvents"
+        :key="event.id"
+        class="group flex flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-xl shadow-slate-900/5 ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-2xl dark:bg-slate-900 dark:ring-slate-800"
+      >
+        <!-- Cover -->
+        <div class="relative h-56 overflow-hidden">
+          <img
+            :src="getEventImage(event) || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'"
+            :alt="event.title"
+            class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          >
+          <div class="absolute left-4 top-4 flex items-center gap-2">
+            <span
+              v-bind="{}"
+              :class="[
+                'px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] flex items-center gap-1.5 backdrop-blur-sm',
+                getStatusPill(event).classes
+              ]"
+            >
+              <span
+                v-if="getStatusPill(event).label === 'Live'"
+                class="h-1.5 w-1.5 animate-pulse rounded-full bg-white"
+              />
+              {{ getStatusPill(event).label }}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-white hover:text-slate-900 transition-colors"
+            @click.stop="handleEditEvent(event)"
+          >
+            <span class="material-symbols-outlined text-[20px]">
+              more_vert
+            </span>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="flex flex-1 flex-col p-6">
+          <div class="mb-4 flex items-start justify-between gap-4">
+            <h2 class="font-semibold leading-tight text-slate-900 dark:text-white line-clamp-2">
+              {{ event.title }}
+            </h2>
+            <div class="rounded-lg bg-primary-50 p-2 text-primary-500 dark:bg-primary-500/10 dark:text-primary-300">
+              <span class="material-symbols-outlined text-[20px]">
+                confirmation_number
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-6 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[18px] text-slate-400">
+                calendar_today
+              </span>
+              <span class="font-medium">
+                {{ getEventDateLabel(event) }}
+              </span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[18px] text-slate-400">
+                location_on
+              </span>
+              <span class="font-medium">
+                {{ getEventLocationLabel(event) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-auto space-y-4">
+            <div class="flex items-end justify-between gap-4">
+              <div class="space-y-1">
+                <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                  Tickets Sold
+                </p>
+                <p class="font-semibold text-slate-900 dark:text-white">
+                  {{ getCapacityInfo(event).sold }}
+                  <span
+                    v-if="getCapacityInfo(event).capacity"
+                    class="text-xs font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    / {{ getCapacityInfo(event).capacity }}
+                  </span>
+                </p>
+              </div>
+              <p class="text-xs font-semibold text-primary-500">
+                {{ getCapacityInfo(event).label }}
+              </p>
+            </div>
+
+            <div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div
+                class="h-full rounded-full bg-primary-500 transition-all"
+                :style="{ width: `${getCapacityInfo(event).percent}%` }"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                class="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+                @click="handleEditEvent(event)"
+              >
+                Manage
+              </button>
+              <button
+                type="button"
+                class="rounded-xl bg-primary-500 px-3 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-500/25 hover:bg-primary-600"
+                @click="handleViewEvent(event)"
+              >
+                Details
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="mt-2 w-full text-xs text-slate-400 hover:text-red-500"
+              @click="handleDeleteEvent(event)"
+            >
+              Delete event
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
 
     <!-- Pagination -->
-    <div
+    <section
       v-if="eventsStore.pagination.last_page > 1"
-      class="mt-6 flex items-center justify-between"
+      class="mt-4 flex flex-col items-center justify-between gap-3 text-xs text-slate-500 sm:flex-row"
     >
-      <p class="text-sm text-gray-600 dark:text-gray-400">
-        Showing {{ (eventsStore.pagination.page - 1) * eventsStore.pagination.per_page + 1 }} to
+      <p>
+        Showing
+        {{ (eventsStore.pagination.page - 1) * eventsStore.pagination.per_page + 1 }}
+        –
         {{ Math.min(eventsStore.pagination.page * eventsStore.pagination.per_page, eventsStore.pagination.total) }}
-        of {{ eventsStore.pagination.total }} events
+        of
+        {{ eventsStore.pagination.total }}
+        events
       </p>
 
       <UPagination
@@ -194,9 +452,9 @@ onMounted(loadEvents)
         :page-count="eventsStore.pagination.per_page"
         @update:model-value="(page) => { eventsStore.setPage(page); loadEvents() }"
       />
-    </div>
+    </section>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete confirmation -->
     <ConfirmModal
       :open="isOpen"
       :title="options?.title || ''"
@@ -207,6 +465,13 @@ onMounted(loadEvents)
       @update:open="handleCancel"
       @confirm="handleConfirm"
       @cancel="handleCancel"
+    />
+
+    <!-- Create / Edit Event Modal -->
+    <CreateEditEventModal
+      v-model="showEventModal"
+      :data="selectedEvent || undefined"
+      @saved="handleSaveEvent"
     />
   </div>
 </template>
