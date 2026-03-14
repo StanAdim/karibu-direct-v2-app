@@ -189,7 +189,7 @@ function closeMobileSidebar() {
     <!-- Main content -->
     <main class="flex-1 min-h-screen flex flex-col min-w-0">
       <!-- Header: search + actions -->
-      <header class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <header class="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div class="relative flex-1 min-w-0 order-2 sm:order-1 pl-12 sm:pl-0 max-w-full sm:max-w-md">
           <span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none hidden sm:inline ml-1">search</span>
           <input

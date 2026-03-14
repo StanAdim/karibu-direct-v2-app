@@ -50,10 +50,18 @@ export interface UserUpdateInput {
   status?: UserStatus
 }
 
-export function getFullName(user: Pick<User, 'firstName' | 'lastName'>): string {
-  return `${user.firstName} ${user.lastName}`.trim()
+export function getFullName(user: Pick<User, 'firstName' | 'lastName'> | null | undefined): string {
+  if (!user) return 'Attendee'
+  const first = user.firstName ?? ''
+  const last = user.lastName ?? ''
+  const name = `${first} ${last}`.trim()
+  return name || 'Attendee'
 }
 
-export function getUserInitials(user: Pick<User, 'firstName' | 'lastName'>): string {
-  return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase()
+export function getUserInitials(user: Pick<User, 'firstName' | 'lastName'> | null | undefined): string {
+  if (!user) return 'A'
+  const first = (user.firstName ?? '').charAt(0)
+  const last = (user.lastName ?? '').charAt(0)
+  const initials = `${first}${last}`.toUpperCase()
+  return initials || 'A'
 }
