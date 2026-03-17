@@ -3,6 +3,7 @@ const config = useRuntimeConfig()
 const { user } = useAuth()
 const route = useRoute()
 const isMobileMenuOpen = ref(false)
+import ToastContainer from '~/components/common/ToastContainer.vue'
 
 interface NavLink {
   label: string
@@ -66,7 +67,7 @@ const footerSections = [
     ]
   }
 ]
-</script>
+}</script>
 
 <template>
   <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-white dark:bg-slate-950">
@@ -238,5 +239,6 @@ const footerSections = [
         </div>
       </div>
     </footer>
+    <ToastContainer />
   </div>
 </template>

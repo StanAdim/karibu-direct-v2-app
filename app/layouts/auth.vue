@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ToastContainer from '~/components/common/ToastContainer.vue'
+
 const config = useRuntimeConfig()
 
 interface Props {
@@ -100,5 +102,6 @@ withDefaults(defineProps<Props>(), {
         </p>
       </div>
     </div>
+    <ToastContainer />
   </div>
 </template>

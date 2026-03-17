@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LoginCredentials } from '~/types'
+import { useNotifications } from '~/composables/useNotifications'
 
 definePageMeta({
   layout: 'auth',
@@ -10,6 +11,7 @@ import AppModal from '~/components/common/AppModal.vue'
 
 const { login, loading } = useAuth()
 const router = useRouter()
+const { success } = useNotifications()
 
 const form = reactive({
   email: '',
@@ -106,7 +108,11 @@ async function handleSubmit() {
       email: form.email,
       password: form.password
     }
-    await login(credentials)
+    const { redirectPath } = await login(credentials)
+    success('Logged in successfully')
+    if (redirectPath) {
+      router.push(redirectPath)
+    }
   }
   catch {
     form.password = ''

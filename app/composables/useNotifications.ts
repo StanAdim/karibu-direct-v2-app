@@ -1,10 +1,11 @@
+import { useToast } from '~/composables/useToast'
+
 type NotificationType = 'success' | 'error' | 'warning' | 'info'
 
 interface NotificationOptions {
   title: string
   description?: string
   duration?: number
-  type?: 'foreground' | 'background'
 }
 
 interface UseNotificationsReturn {
@@ -26,29 +27,13 @@ export function useNotifications(): UseNotificationsReturn {
   }
 
   function notify(type: NotificationType, options: NotificationOptions | string): void {
-    const { title, description, duration = 5000, type: toastType = 'foreground' } = normalizeOptions(options)
-
-    const colorMap: Record<NotificationType, string> = {
-      success: 'success',
-      error: 'error',
-      warning: 'warning',
-      info: 'info'
-    }
-
-    const iconMap: Record<NotificationType, string> = {
-      success: 'i-lucide-check-circle',
-      error: 'i-lucide-x-circle',
-      warning: 'i-lucide-alert-triangle',
-      info: 'i-lucide-info'
-    }
-
+    const { title, description, duration = 5000 } = normalizeOptions(options)
+    console.log(`[${type}] ${title}${description ? ` - ${description}` : ''}`)
     toast.add({
       title,
       description,
-      color: colorMap[type],
-      icon: iconMap[type],
       duration,
-      type: toastType
+      type
     })
   }
 

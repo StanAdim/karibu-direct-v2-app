@@ -38,10 +38,19 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
 
     try {
-      const response = await api.post<LoginResponse | { data: LoginResponse }>('/auth/login', credentials)
-      const data = (response as { data?: LoginResponse })?.data ?? (response as LoginResponse)
+      const response = await api.post<LoginResponse | { data: LoginResponse } | { success: boolean; error?: { message?: string } }>('/auth/login', credentials, {
+        suppressErrorToast: true
+      })
+      const data = (response as { data?: LoginResponse })?.data ?? (response as LoginResponse | { success: boolean; error?: { message?: string } })
 
-      const accessToken = data.access_token ?? data.token
+      if ((data as any).success === false) {
+        const message = (data as any).error?.message || 'Invalid email or password'
+        throw new Error(message)
+      }
+
+      const loginData = data as LoginResponse
+
+      const accessToken = loginData.access_token ?? loginData.token
       if (!accessToken) {
         throw new Error('No token in login response')
       }
@@ -49,8 +58,8 @@ export const useAuthStore = defineStore('auth', () => {
       setAuthCookie(accessToken)
       token.value = accessToken
 
-      if (data.user) {
-        user.value = data.user
+      if (loginData.user) {
+        user.value = loginData.user
       }
 
       if (!user.value?.roles?.length && token.value) {
@@ -60,7 +69,20 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const redirectPath = getDefaultRoute()
-      return { ...data, redirectPath }
+      return { ...(loginData as LoginResponse), redirectPath }
+    }
+    catch (error: unknown) {
+      const fetchError = error as { statusCode?: number; message?: string }
+      // Normalize common login-related HTTP errors into cleaner messages
+      if (fetchError.statusCode === 429) {
+        throw new Error('Too many login attempts. Please wait a moment before trying again.')
+      }
+
+      if (fetchError.statusCode === 401) {
+        throw new Error('Invalid email or password')
+      }
+
+      throw error
     }
     finally {
       loading.value = false

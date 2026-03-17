@@ -52,10 +52,12 @@ export function useApi(): UseApiReturn {
         authStore.logout()
       }
 
-      notifications.error({
-        title: 'Error',
-        description: message
-      })
+      if (!options.suppressErrorToast) {
+        notifications.error({
+          title: 'Error',
+          description: message
+        })
+      }
 
       throw error
     }

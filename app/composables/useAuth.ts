@@ -34,6 +34,10 @@ export function useAuth(): UseAuthReturn {
       const result = await authStore.login(credentials)
       const router = useRouter()
       await router.replace(result.redirectPath)
+      notifications.success({
+        title: 'Login successful',
+        description: 'You have been signed in successfully.'
+      })
     }
     catch (error: unknown) {
       const fetchError = error as { message?: string; data?: { message?: string } }

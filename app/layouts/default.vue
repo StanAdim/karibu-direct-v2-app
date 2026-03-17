@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
+import ToastContainer from '~/components/common/ToastContainer.vue'
 
 const config = useRuntimeConfig()
 const { user, logout } = useAuth()
@@ -72,5 +73,7 @@ const navItems = [
         </p>
       </div>
     </footer>
+
+    <ToastContainer />
   </div>
 </template>

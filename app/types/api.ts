@@ -24,6 +24,7 @@ export interface ApiRequestOptions {
   headers?: Record<string, string>
   params?: Record<string, string | number | boolean>
   body?: unknown
+  suppressErrorToast?: boolean
 }
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
