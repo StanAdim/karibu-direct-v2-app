@@ -67,7 +67,7 @@ const footerSections = [
     ]
   }
 ]
-}</script>
+</script>
 
 <template>
   <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-white dark:bg-slate-950">

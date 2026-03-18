@@ -140,18 +140,18 @@ async function handleSocialLogin(provider: string) {
     </div>
 
     <!-- Social Login Buttons -->
-    <div class="grid grid-cols-2 gap-4 mb-8">
-      <SocialLoginButton
-        provider="google"
-        :loading="socialLoading === 'google'"
-        @click="handleSocialLogin('google')"
-      />
-      <SocialLoginButton
-        provider="facebook"
-        :loading="socialLoading === 'facebook'"
-        @click="handleSocialLogin('facebook')"
-      />
-    </div>
+<!--    <div class="grid grid-cols-2 gap-4 mb-8">-->
+<!--      <SocialLoginButton-->
+<!--        provider="google"-->
+<!--        :loading="socialLoading === 'google'"-->
+<!--        @click="handleSocialLogin('google')"-->
+<!--      />-->
+<!--      <SocialLoginButton-->
+<!--        provider="facebook"-->
+<!--        :loading="socialLoading === 'facebook'"-->
+<!--        @click="handleSocialLogin('facebook')"-->
+<!--      />-->
+<!--    </div>-->
 
     <!-- Divider -->
     <div class="relative mb-8">
@@ -159,7 +159,8 @@ async function handleSocialLogin(provider: string) {
         <div class="w-full border-t border-slate-200 dark:border-slate-800" />
       </div>
       <div class="relative flex justify-center text-sm">
-        <span class="px-4 bg-white dark:bg-[var(--color-background-dark)] text-slate-500">Or sign in with email</span>
+<!--        <span class="px-4 bg-white dark:bg-[var(&#45;&#45;color-background-dark)] text-slate-500">Or sign in with email</span>-->
+        <span class="px-4 bg-white dark:bg-[var(--color-background-dark)] text-slate-500">Sign in now</span>
       </div>
     </div>
 
@@ -243,15 +244,6 @@ async function handleSocialLogin(provider: string) {
         Sign up for free
       </NuxtLink>
     </p>
-
-    <!-- Demo Credentials -->
-    <div class="mt-6 rounded-xl border border-primary-500/20 bg-primary-500/5 p-4">
-      <p class="text-sm text-slate-600 dark:text-slate-400">
-        <strong class="text-primary-500">Demo credentials:</strong><br>
-        Email: demo@example.com<br>
-        Password: password123
-      </p>
-    </div>
 
     <AppModal
       v-model="forgotPasswordOpen"

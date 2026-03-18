@@ -230,58 +230,58 @@ async function handleSocialSignup(provider: string) {
     </form>
 
     <!-- Organizer CTA & Login Link -->
-    <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
-      <div class="flex flex-col gap-4">
-        <button
-          type="button"
-          class="flex items-center justify-center gap-2 p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 group hover:bg-primary-500/20 transition-all text-left"
-          @click="credentials.role = 'Organizer'"
-        >
-          <span class="material-symbols-outlined text-primary-500">campaign</span>
-          <div class="flex flex-col items-start">
-            <span class="text-sm font-bold text-slate-900 dark:text-slate-100">
-              Want to host events?
-            </span>
-            <span class="text-xs text-primary-500 font-semibold uppercase tracking-wider group-hover:underline">
-              Sign up as an organizer
-            </span>
-          </div>
-        </button>
+<!--    <div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">-->
+<!--      <div class="flex flex-col gap-4">-->
+<!--        <button-->
+<!--          type="button"-->
+<!--          class="flex items-center justify-center gap-2 p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 group hover:bg-primary-500/20 transition-all text-left"-->
+<!--          @click="credentials.role = 'Organizer'"-->
+<!--        >-->
+<!--          <span class="material-symbols-outlined text-primary-500">campaign</span>-->
+<!--          <div class="flex flex-col items-start">-->
+<!--            <span class="text-sm font-bold text-slate-900 dark:text-slate-100">-->
+<!--              Want to host events?-->
+<!--            </span>-->
+<!--            <span class="text-xs text-primary-500 font-semibold uppercase tracking-wider group-hover:underline">-->
+<!--              Sign up as an organizer-->
+<!--            </span>-->
+<!--          </div>-->
+<!--        </button>-->
 
-        <p class="text-center text-sm text-slate-600 dark:text-slate-400">
-          Already have an account?
-          <NuxtLink
-            to="/login"
-            class="text-primary-500 font-bold hover:underline"
-          >
-            Log in
-          </NuxtLink>
-        </p>
-      </div>
-    </div>
+<!--        <p class="text-center text-sm text-slate-600 dark:text-slate-400">-->
+<!--          Already have an account?-->
+<!--          <NuxtLink-->
+<!--            to="/login"-->
+<!--            class="text-primary-500 font-bold hover:underline"-->
+<!--          >-->
+<!--            Log in-->
+<!--          </NuxtLink>-->
+<!--        </p>-->
+<!--      </div>-->
+<!--    </div>-->
 
     <!-- Social Signup alternative -->
-    <div class="mt-8">
-      <div class="flex items-center gap-4 mb-6">
-        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-        <span class="text-xs font-bold text-slate-400 uppercase">
-          Or continue with
-        </span>
-        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
-      </div>
+<!--    <div class="mt-8">-->
+<!--      <div class="flex items-center gap-4 mb-6">-->
+<!--        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />-->
+<!--        <span class="text-xs font-bold text-slate-400 uppercase">-->
+<!--          Or continue with-->
+<!--        </span>-->
+<!--        <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />-->
+<!--      </div>-->
 
-      <div class="grid grid-cols-2 gap-4">
-        <SocialLoginButton
-          provider="google"
-          :loading="socialLoading === 'google'"
-          @click="handleSocialSignup('google')"
-        />
-        <SocialLoginButton
-          provider="facebook"
-          :loading="socialLoading === 'facebook'"
-          @click="handleSocialSignup('facebook')"
-        />
-      </div>
-    </div>
+<!--      <div class="grid grid-cols-2 gap-4">-->
+<!--        <SocialLoginButton-->
+<!--          provider="google"-->
+<!--          :loading="socialLoading === 'google'"-->
+<!--          @click="handleSocialSignup('google')"-->
+<!--        />-->
+<!--        <SocialLoginButton-->
+<!--          provider="facebook"-->
+<!--          :loading="socialLoading === 'facebook'"-->
+<!--          @click="handleSocialSignup('facebook')"-->
+<!--        />-->
+<!--      </div>-->
+<!--    </div>-->
   </div>
 </template>
