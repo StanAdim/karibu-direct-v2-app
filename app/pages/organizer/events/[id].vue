@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Checkpoint, Participant, Event, SessionCreateInput } from '~/types'
+import type { Checkpoint, Participant, Event, EventUpdateInput, SessionCreateInput } from '~/types'
 import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
-import CreateEditEventModal from '~/components/events/CreateEditEventModal.vue'
+import EventEditModal from '~/components/events/EventEditModal.vue'
 import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
 import AddEditSessionModal from '~/components/events/AddEditSessionModal.vue'
 import { getEventCapacityPercentage, isEventLive, isEventPast, isEventUpcoming } from '~/types'
@@ -222,13 +222,14 @@ async function onSessionSaved(payload: SessionCreateInput & { id?: string; event
   }
 }
 
-async function handleSaveEvent(payload: Partial<Event>) {
+async function handleSaveEvent(payload: EventUpdateInput) {
   if (!event.value) return
 
   try {
     await eventsStore.updateEvent(event.value.id, payload)
     notifications.success('Event updated successfully')
     await loadData()
+    showEventModal.value = false
   }
   catch {
     notifications.error('Failed to update event')
@@ -437,11 +438,11 @@ onUnmounted(() => {
     </template>
 
     <!-- Edit Event Modal -->
-    <CreateEditEventModal
+    <EventEditModal
       v-if="event"
       v-model="showEventModal"
       :data="event"
-      @saved="handleSaveEvent"
+      @updated="handleSaveEvent"
     />
 
     <!-- Schedule Session Modal -->

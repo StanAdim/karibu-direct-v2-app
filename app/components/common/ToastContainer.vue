@@ -6,7 +6,7 @@ const { toasts, remove } = useToast()
 </script>
 
 <template>
-  <div class="pointer-events-none fixed top-5 right-5 z-50 flex flex-col items-end gap-3">
+  <div class="pointer-events-none fixed top-5 right-5 z-[9999] flex flex-col items-end gap-3">
     <TransitionGroup
       name="toast-slide"
       tag="div"

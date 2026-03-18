@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import AppModal from '~/components/common/AppModal.vue'
 import AppButton from '~/components/ui/AppButton.vue'
-import type { Event, EventCreateInput, EventUpdateInput, EventVisibility } from '~/types'
+import type { EventCreateInput, EventVisibility } from '~/types'
+import { useNotifications } from '~/composables/useNotifications'
 
 const props = defineProps<{
   modelValue: boolean
-  data?: Event
   loading?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  saved: [payload: (EventCreateInput | EventUpdateInput) & { id?: string }]
+  created: [payload: EventCreateInput]
 }>()
+
+const notifications = useNotifications()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -22,27 +24,25 @@ const isOpen = computed({
   }
 })
 
-const isEditing = computed(() => !!props.data)
-
 const form = reactive<EventCreateInput>({
-  title: props.data?.title || '',
-  description: props.data?.description || '',
-  short_description: props.data?.short_description || '',
-  cover_image: props.data?.cover_image || '',
-  start_date: props.data?.start_date || '',
-  end_date: props.data?.end_date || '',
-  timezone: props.data?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-  venue: props.data?.venue || {
+  title: '',
+  description: '',
+  short_description: '',
+  cover_image: '',
+  start_date: '',
+  end_date: '',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  venue: {
     type: 'physical',
     name: '',
     address: '',
     city: '',
     country: ''
   },
-  visibility: props.data?.visibility || 'public',
-  capacity: props.data?.capacity || 100,
-  categories: props.data?.categories || [],
-  tags: props.data?.tags || []
+  visibility: 'public',
+  capacity: 100,
+  categories: [],
+  tags: []
 })
 
 const errors = reactive<Record<string, string>>({})
@@ -59,6 +59,47 @@ const venueTypes = [
   { value: 'hybrid', label: 'Hybrid', icon: 'i-lucide-monitor-smartphone' }
 ]
 
+function resetForm() {
+  form.title = ''
+  form.description = 'Event in details description'
+  form.short_description = ''
+  form.cover_image = ''
+  form.start_date = ''
+  form.end_date = ''
+  form.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  form.venue = {
+    type: 'physical',
+    name: '',
+    address: '',
+    city: '',
+    country: ''
+  }
+  form.visibility = 'public'
+  form.capacity = 100
+  form.categories = []
+  form.tags = []
+  Object.keys(errors).forEach(key => delete errors[key])
+}
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      resetForm()
+    }
+  }
+)
+
+// Live-validate description so error disappears while typing
+watch(
+  () => form.description,
+  (value) => {
+    if (value && value.toString().trim()) {
+      delete errors.description
+    }
+  }
+)
+
 function validateForm(): boolean {
   const newErrors: Record<string, string> = {}
 
@@ -66,7 +107,7 @@ function validateForm(): boolean {
     newErrors.title = 'Title is required'
   }
 
-  if (!form.description.trim()) {
+  if (!form.description || !form.description.toString().trim()) {
     newErrors.description = 'Description is required'
   }
 
@@ -92,20 +133,25 @@ function validateForm(): boolean {
     }
   })
 
-  return Object.keys(newErrors).length === 0
+  const hasErrors = Object.keys(newErrors).length > 0
+
+  if (hasErrors) {
+    const firstErrorKey = Object.keys(newErrors)[0]
+    const firstMessage = newErrors[firstErrorKey]
+    notifications.error({
+      title: 'Please fix the highlighted fields',
+      description: firstMessage
+    })
+  }
+
+  return !hasErrors
 }
 
 function handleSubmit() {
   if (!validateForm()) return
 
-  const payload = (props.data
-    ? { ...props.data, ...form }
-    : form) as (EventCreateInput | EventUpdateInput) & { id?: string }
-
-  console.log('--- CreateEditEventModal.handleSubmit payload', payload)
-
-  emit('saved', payload)
-  emit('update:modelValue', false)
+  const payload: EventCreateInput = { ...form }
+  emit('created', payload)
 }
 
 function handleCancel() {
@@ -122,10 +168,10 @@ function handleCancel() {
     <div class="flex max-h-[80vh] flex-col gap-6 overflow-y-auto">
       <header class="space-y-2">
         <p class="text-sm font-medium uppercase tracking-wide text-primary-600">
-          {{ isEditing ? 'Edit Event' : 'Create Event' }}
+          Create Event
         </p>
         <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
-          {{ isEditing ? 'Update event details' : 'Create a new event' }}
+          Create a new event
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-400">
           Configure the core information, schedule, venue and settings for your event.
@@ -168,7 +214,7 @@ function handleCancel() {
               :rows="6"
               class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100
           focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all outline-none p-3"
-            /><Textarea/>
+            />
             <p
               v-if="errors.description"
               class="text-xs text-red-500 ml-1"
@@ -269,12 +315,12 @@ function handleCancel() {
             class="grid gap-6 sm:grid-cols-2"
           >
             <AppInput
-              v-model="form.venue.virtualUrl"
+              v-model="form.venue.virtual_url"
               label="Virtual Event URL"
               placeholder="https://zoom.us/j/123456789"
             />
             <AppInput
-              v-model="form.venue.virtualPlatform"
+              v-model="form.venue.virtual_platform"
               label="Platform"
               placeholder="Zoom, Google Meet, etc."
             />
@@ -339,7 +385,7 @@ function handleCancel() {
             type="submit"
             :disabled="loading"
           >
-            {{ loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Event' : 'Create Event') }}
+            {{ loading ? 'Creating...' : 'Create Event' }}
           </AppButton>
         </div>
       </form>

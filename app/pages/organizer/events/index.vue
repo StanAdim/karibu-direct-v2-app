@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Event, EventStatus } from '~/types'
-import CreateEditEventModal from '~/components/events/CreateEditEventModal.vue'
+import type { Event, EventStatus, EventCreateInput, EventUpdateInput } from '~/types'
+import EventCreateModal from '~/components/events/EventCreateModal.vue'
+import EventEditModal from '~/components/events/EventEditModal.vue'
 import AppButton from '~/components/ui/AppButton.vue'
 
 definePageMeta({
@@ -20,8 +21,11 @@ const viewMode = ref<'grid' | 'table'>('grid')
 const deleteLoading = ref(false)
 const eventToDelete = ref<Event | null>(null)
 
-const showEventModal = ref(false)
+const showCreateModal = ref(false)
+const showEditModal = ref(false)
 const selectedEvent = ref<Event | null>(null)
+const savingCreate = ref(false)
+const savingUpdate = ref(false)
 
 const statusOptions = [
   { value: '', label: 'All Statuses' },
@@ -45,28 +49,46 @@ function handleViewEvent(event: Event) {
 
 function handleEditEvent(event: Event) {
   selectedEvent.value = event
-  showEventModal.value = true
+  showEditModal.value = true
 }
 
 function handleCreateEvent() {
   selectedEvent.value = null
-  showEventModal.value = true
+  showCreateModal.value = true
 }
 
-async function handleSaveEvent(payload: Partial<Event>) {
+async function handleCreateEventSubmit(payload: EventCreateInput) {
   try {
-    if (payload.id) {
-      await eventsStore.updateEvent(payload.id, payload)
-      notifications.success('Event updated successfully')
-    }
-    else {
-      await eventsStore.createEvent(payload)
-      notifications.success('Event created successfully')
-    }
+    savingCreate.value = true
+    await eventsStore.createEvent(payload)
+    notifications.success('Event created successfully')
+    showCreateModal.value = false
     await loadEvents()
   }
   catch {
-    notifications.error('Failed to save event')
+    notifications.error('Failed to create event')
+  }
+  finally {
+    savingCreate.value = false
+  }
+}
+
+async function handleEditEventSubmit(payload: EventUpdateInput) {
+  if (!selectedEvent.value) return
+
+  try {
+    savingUpdate.value = true
+    await eventsStore.updateEvent(selectedEvent.value.id, payload)
+    notifications.success('Event updated successfully')
+    showEditModal.value = false
+    selectedEvent.value = null
+    await loadEvents()
+  }
+  catch {
+    notifications.error('Failed to update event')
+  }
+  finally {
+    savingUpdate.value = false
   }
 }
 
@@ -462,11 +484,20 @@ onMounted(loadEvents)
       @cancel="handleCancel"
     />
 
-    <!-- Create / Edit Event Modal -->
-    <CreateEditEventModal
-      v-model="showEventModal"
-      :data="selectedEvent || undefined"
-      @saved="handleSaveEvent"
+    <!-- Create Event Modal -->
+    <EventCreateModal
+      v-model="showCreateModal"
+      :loading="savingCreate"
+      @created="handleCreateEventSubmit"
+    />
+
+    <!-- Edit Event Modal -->
+    <EventEditModal
+      v-if="selectedEvent"
+      v-model="showEditModal"
+      :data="selectedEvent"
+      :loading="savingUpdate"
+      @updated="handleEditEventSubmit"
     />
   </div>
 </template>

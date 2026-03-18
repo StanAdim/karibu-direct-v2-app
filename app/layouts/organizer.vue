@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getFullName } from '~/types'
 import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
+import ToastContainer from '~/components/common/ToastContainer.vue'
 
 const config = useRuntimeConfig()
 const { user, logout } = useAuth()
@@ -203,5 +204,7 @@ const pageTitle = computed(() => {
         </p>
       </footer>
     </main>
+
+    <ToastContainer />
   </div>
 </template>
