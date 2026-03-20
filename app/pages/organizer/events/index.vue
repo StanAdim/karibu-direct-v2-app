@@ -39,7 +39,7 @@ async function loadEvents() {
   await eventsStore.fetchEvents({
     status: selectedStatus.value || undefined,
     search: searchQuery.value || undefined,
-    organizerId: user.value?.id
+    organizer_id: user.value?.id
   })
 }
 

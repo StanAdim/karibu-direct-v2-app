@@ -74,10 +74,20 @@ export const useEventsStore = defineStore('events', () => {
     filters.value = eventFilters || ({} as EventFilters)
 
     try {
+      const toFiniteNumber = (value: unknown, fallback: number): number => {
+        const num = typeof value === 'number' ? value : Number(value)
+        return Number.isFinite(num) ? num : fallback
+      }
+
+      // Protect the API call from sending `page=undefined` / `per_page=undefined`.
+      // This can happen if `pagination` was overwritten with an unexpected `response.meta` shape.
+      const safePage = toFiniteNumber(pagination.value.page, 1)
+      const safePerPage = toFiniteNumber(pagination.value.per_page, 10)
+
       const params = new URLSearchParams()
 
-      params.append('page', String(pagination.value.page))
-      params.append('per_page', String(pagination.value.per_page))
+      params.append('page', String(safePage))
+      params.append('per_page', String(safePerPage))
 
       if (eventFilters?.status) params.append('status', eventFilters.status)
       if (eventFilters?.visibility) params.append('visibility', eventFilters.visibility)
@@ -90,7 +100,15 @@ export const useEventsStore = defineStore('events', () => {
       const response = await api.get<PaginatedResponse<Event>>(`/events?${params.toString()}`)
 
       events.value = response.data
-      pagination.value = response.meta
+      // Normalize meta to match our local pagination key names.
+      // (Backends sometimes return `current_page` / `perPage` instead of `page` / `per_page`.)
+      const meta = response.meta as any
+      pagination.value = {
+        total: toFiniteNumber(meta?.total, pagination.value.total),
+        page: toFiniteNumber(meta?.page ?? meta?.current_page, safePage),
+        per_page: toFiniteNumber(meta?.per_page ?? meta?.perPage, safePerPage),
+        last_page: toFiniteNumber(meta?.last_page ?? meta?.lastPage, 1)
+      }
     }
     finally {
       loading.value = false

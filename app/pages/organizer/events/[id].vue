@@ -4,6 +4,10 @@ import type { ScheduleSessionPayload } from '~/components/events/ScheduleSession
 import EventEditModal from '~/components/events/EventEditModal.vue'
 import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
 import AddEditSessionModal from '~/components/events/AddEditSessionModal.vue'
+import EventOverviewTab from '~/components/organizer/event/EventOverviewTab.vue'
+import EventSessionsTab from '~/components/organizer/event/EventSessionsTab.vue'
+import EventCheckpointsTab from '~/components/organizer/event/EventCheckpointsTab.vue'
+import EventAttendeesTab from '~/components/organizer/event/EventAttendeesTab.vue'
 import { getEventCapacityPercentage, isEventLive, isEventPast, isEventUpcoming } from '~/types'
 
 definePageMeta({
@@ -143,7 +147,7 @@ async function loadData() {
   try {
     await Promise.all([
       eventsStore.fetchEvent(eventId.value),
-      sessionsStore.fetchEventSessions(eventId.value)
+      // sessionsStore.fetchEventSessions(eventId.value)
     ])
   }
   finally {
