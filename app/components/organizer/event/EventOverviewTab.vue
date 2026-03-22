@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import AppButton from '~/components/ui/AppButton.vue'
 import type { Event } from '~/types'
+import { getEventCoverImageUrl } from '~/utils/eventImage'
 
 const props = defineProps<{
   event: Event
@@ -37,8 +38,7 @@ const venueLabel = computed(() => {
 const config = useRuntimeConfig()
 
 function getEventImage(event: Event): string {
-  const ImagePath = config.public.apiBase + '/' + event?.cover_image
-  return ImagePath || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'
+  return getEventCoverImageUrl(event.cover_image, String(config.public.apiBase))
 }
 </script>
 

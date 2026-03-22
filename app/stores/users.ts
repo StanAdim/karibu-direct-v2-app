@@ -68,19 +68,33 @@ export const useUsersStore = defineStore('users', () => {
     filters.value = userFilters || {}
 
     try {
+      const toFiniteNumber = (value: unknown, fallback: number): number => {
+        const num = typeof value === 'number' ? value : Number(value)
+        return Number.isFinite(num) ? num : fallback
+      }
+
+      const safePage = toFiniteNumber(pagination.value.page, 1)
+      const safePerPage = toFiniteNumber(pagination.value.per_page, 10)
+
       const params = new URLSearchParams()
 
-      params.append('page', String(pagination.value.page))
-      params.append('per_page', String(pagination.value.per_page))
+      params.append('page', String(safePage))
+      params.append('per_page', String(safePerPage))
 
       if (userFilters?.role) params.append('role', userFilters.role)
       if (userFilters?.status) params.append('status', userFilters.status)
       if (userFilters?.search) params.append('search', userFilters.search)
 
-      const response = await api.get<PaginatedResponse<User>>(`/users?${params.toString()}`)
+      const response = await api.get<PaginatedResponse<User>>(`/users/?${params.toString()}`)
 
       users.value = response.data
-      pagination.value = response.meta
+      const meta = response.meta as Record<string, unknown>
+      pagination.value = {
+        total: toFiniteNumber(meta?.total, pagination.value.total),
+        page: toFiniteNumber(meta?.page ?? meta?.current_page, safePage),
+        per_page: toFiniteNumber(meta?.per_page ?? meta?.perPage, safePerPage),
+        last_page: toFiniteNumber(meta?.last_page ?? meta?.lastPage, 1)
+      }
     }
     finally {
       loading.value = false

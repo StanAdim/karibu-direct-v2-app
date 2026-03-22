@@ -18,9 +18,10 @@ defineSlots<{
 <template>
   <div class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50/50 px-6 py-16 text-center dark:border-gray-800 dark:bg-gray-900/50">
     <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-      <UIcon
+      <AppLucideIcon
         :name="icon"
-        class="h-8 w-8 text-gray-400 dark:text-gray-500"
+        :size="32"
+        class="text-gray-400 dark:text-gray-500"
       />
     </div>
 

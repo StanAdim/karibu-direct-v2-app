@@ -18,9 +18,10 @@ const sizeClasses = {
 
 <template>
   <div :class="['flex flex-col items-center justify-center', sizeClasses[size]]">
-    <UIcon
+    <AppLucideIcon
       name="i-lucide-loader-2"
-      class="h-8 w-8 animate-spin text-primary-500"
+      :size="32"
+      class="animate-spin text-primary-500"
     />
     <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
       {{ text }}

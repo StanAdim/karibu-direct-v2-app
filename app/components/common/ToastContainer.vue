@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useToast } from '~/composables/useToast'
+import { useAppToast } from '~/composables/useAppToast'
 import ToastItem from '~/components/common/ToastItem.vue'
 
-const { toasts, remove } = useToast()
+const { toasts, remove } = useAppToast()
 </script>
 
 <template>

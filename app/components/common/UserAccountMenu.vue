@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { onClickOutside } from '@vueuse/core'
+import { computed, ref } from 'vue'
 
 type MenuItem = {
   label: string
@@ -28,6 +29,12 @@ interface Props {
 const props = defineProps<Props>()
 
 const isMobileModalOpen = ref(false)
+const desktopOpen = ref(false)
+const desktopWrap = ref<HTMLElement | null>(null)
+
+onClickOutside(desktopWrap, () => {
+  desktopOpen.value = false
+})
 
 /** Flatten to only actionable items (no account/label row) for the modal list */
 const modalMenuItems = computed(() => {
@@ -50,38 +57,51 @@ function handleItemClick(item: MenuItem) {
   if (item.disabled) return
   if (item.click) item.click()
   isMobileModalOpen.value = false
+  desktopOpen.value = false
 }
 </script>
 
 <template>
-  <div class="flex items-center mt-2">
-    <!-- Desktop: avatar trigger with custom popover panel matching design -->
-    <UPopover
-      class="hidden sm:block"
-      :content="{ side: 'bottom', align: 'end', sideOffset: 8 }"
-      :ui="{ content: 'p-0 rounded-2xl shadow-xl ring-1 ring-slate-100 dark:ring-slate-800 overflow-hidden min-w-[250px]' }"
+  <div class="mt-2 flex items-center">
+    <!-- Desktop: avatar trigger + dropdown -->
+    <div
+      ref="desktopWrap"
+      class="relative hidden sm:block"
     >
-      <UButton
-        color="neutral"
-        variant="ghost"
-        class="gap-2 rounded-full px-1.5 py-1.5"
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-full border border-transparent px-1.5 py-1.5 text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+        aria-haspopup="true"
+        :aria-expanded="desktopOpen"
+        @click.stop="desktopOpen = !desktopOpen"
       >
-        <UAvatar
+        <AppAvatar
+          :src="avatarSrc"
           :alt="avatarAlt"
-          :src="avatarSrc || undefined"
           size="xs"
           class="border border-slate-200 dark:border-slate-700"
         />
-        <UIcon
+        <AppLucideIcon
           name="i-lucide-chevron-down"
-          class="h-4 w-4 text-slate-500 dark:text-slate-400"
+          :size="16"
+          class="text-slate-500 dark:text-slate-400"
         />
-      </UButton>
+      </button>
 
-      <template #content="{ close }">
-        <div class="w-72 bg-white dark:bg-slate-900">
-          <!-- Header: ACCOUNT + email -->
-          <div class="px-5 pt-5 pb-4">
+      <Transition
+        enter-active-class="transition duration-150 ease-out"
+        enter-from-class="opacity-0 translate-y-1"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-100 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-1"
+      >
+        <div
+          v-show="desktopOpen"
+          class="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800"
+          role="menu"
+        >
+          <div class="px-5 pb-4 pt-5">
             <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
               Account
             </p>
@@ -96,35 +116,29 @@ function handleItemClick(item: MenuItem) {
             </p>
           </div>
 
-          <!-- Separator -->
           <div class="h-px bg-slate-100 dark:bg-slate-800" />
 
-          <!-- Menu items: icon + label; Sign Out in red -->
           <nav class="py-2">
             <component
+              :is="item.to ? 'NuxtLink' : 'button'"
               v-for="(item, index) in modalMenuItems"
               :key="index"
-              :is="item.to ? 'NuxtLink' : 'button'"
               :to="item.to"
-              type="button"
+              v-bind="item.to ? {} : { type: 'button' }"
               class="flex w-full items-center gap-3 px-5 py-2.5 text-left text-[15px] transition-colors"
               :class="[
                 isSignOutItem(item)
                   ? 'mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50 dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-950/40'
                   : 'text-slate-900 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800/80'
               ]"
-              @click="
-                () => {
-                  handleItemClick(item)
-                  close()
-                }
-              "
+              @click="handleItemClick(item)"
             >
-              <UIcon
+              <AppLucideIcon
                 v-if="item.icon"
                 :name="item.icon"
+                :size="20"
                 :class="[
-                  'h-5 w-5 shrink-0',
+                  'shrink-0',
                   isSignOutItem(item)
                     ? 'text-red-600 dark:text-red-400'
                     : 'text-slate-500 dark:text-slate-400'
@@ -136,31 +150,29 @@ function handleItemClick(item: MenuItem) {
             </component>
           </nav>
         </div>
-      </template>
-    </UPopover>
+      </Transition>
+    </div>
 
     <!-- Mobile: open modal -->
     <button
       type="button"
-      class="sm:hidden inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+      class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:hidden"
       @click="isMobileModalOpen = true"
     >
-      <UAvatar
+      <AppAvatar
+        :src="avatarSrc"
         :alt="avatarAlt"
-        :src="avatarSrc || undefined"
         size="xs"
         class="border border-slate-200 dark:border-slate-700"
       />
     </button>
 
-    <!-- Mobile Modal: matches account dropdown design (ACCOUNT + email, icon list, red Sign Out) -->
     <AppModal
       v-model="isMobileModalOpen"
       max-width="sm"
       align="top"
     >
       <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800">
-        <!-- Header: ACCOUNT + email -->
         <div class="px-1 pb-4">
           <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
             Account
@@ -176,17 +188,15 @@ function handleItemClick(item: MenuItem) {
           </p>
         </div>
 
-        <!-- Separator -->
         <div class="h-px bg-slate-100 dark:bg-slate-800" />
 
-        <!-- Menu items: icon + label; Sign Out in red -->
         <nav class="flex flex-col py-2">
           <component
+            :is="item.to ? 'NuxtLink' : 'button'"
             v-for="(item, index) in modalMenuItems"
             :key="index"
-            :is="item.to ? 'NuxtLink' : 'button'"
             :to="item.to"
-            type="button"
+            v-bind="item.to ? {} : { type: 'button' }"
             class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-base transition-colors"
             :class="[
               isSignOutItem(item)
@@ -195,10 +205,11 @@ function handleItemClick(item: MenuItem) {
             ]"
             @click="handleItemClick(item)"
           >
-            <UIcon
+            <AppLucideIcon
               v-if="item.icon"
               :name="item.icon"
-              :class="isSignOutItem(item) ? 'h-5 w-5 text-red-600 dark:text-red-400' : 'h-5 w-5 text-slate-600 dark:text-slate-400'"
+              :size="20"
+              :class="isSignOutItem(item) ? 'shrink-0 text-red-600 dark:text-red-400' : 'shrink-0 text-slate-600 dark:text-slate-400'"
             />
             <span class="truncate font-medium">{{ item.label }}</span>
           </component>
@@ -207,4 +218,3 @@ function handleItemClick(item: MenuItem) {
     </AppModal>
   </div>
 </template>
-

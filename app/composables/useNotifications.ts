@@ -1,4 +1,4 @@
-import { useToast } from '~/composables/useToast'
+import { useAppToast } from '~/composables/useAppToast'
 
 type NotificationType = 'success' | 'error' | 'warning' | 'info'
 
@@ -17,7 +17,7 @@ interface UseNotificationsReturn {
 }
 
 export function useNotifications(): UseNotificationsReturn {
-  const toast = useToast()
+  const toast = useAppToast()
 
   function normalizeOptions(options: NotificationOptions | string): NotificationOptions {
     if (typeof options === 'string') {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Event, EventStatus, EventCreateInput, EventUpdateInput } from '~/types'
+import { getEventCoverImageUrl } from '~/utils/eventImage'
 import EventCreateModal from '~/components/events/EventCreateModal.vue'
 import EventEditModal from '~/components/events/EventEditModal.vue'
 import AppButton from '~/components/ui/AppButton.vue'
@@ -134,8 +135,7 @@ const filteredEvents = computed(() => {
 })
 
 function getEventImage(event: Event): string {
-  const ImagePath = config.public.apiBase + '/' + event?.cover_image
-  return ImagePath || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'
+  return getEventCoverImageUrl(event.cover_image, String(config.public.apiBase))
 }
 
 function openCoverPicker(event: Event) {
@@ -411,7 +411,7 @@ onMounted(loadEvents)
             @click="openCoverPicker(event)"
           >
             <img
-              :src="getEventImage(event) || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'"
+              :src="getEventImage(event)"
               :alt="event.title"
               class="pointer-events-none h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
             >

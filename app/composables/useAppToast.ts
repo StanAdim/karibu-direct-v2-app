@@ -23,7 +23,7 @@ function getToastState() {
   }))
 }
 
-export function useToast() {
+export function useAppToast() {
   const state = getToastState()
 
   const toasts = computed(() => state.value.toasts)
@@ -62,4 +62,3 @@ export function useToast() {
     remove
   }
 }
-

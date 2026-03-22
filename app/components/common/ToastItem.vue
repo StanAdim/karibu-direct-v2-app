@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Toast } from '~/composables/useToast'
+import type { Toast } from '~/composables/useAppToast'
 
 const props = defineProps<{
   toast: Toast
