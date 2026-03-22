@@ -52,6 +52,17 @@ export interface Registration {
   updated_at: string
 }
 
+/** Flatten API event registration list into rows for attendee UIs. */
+export function flattenParticipantsFromRegistrations(registrations: Registration[]): Participant[] {
+  const list: Participant[] = []
+  for (const r of registrations) {
+    if (r.participants?.length) {
+      list.push(...r.participants)
+    }
+  }
+  return list
+}
+
 export interface ParticipantCreateInput {
   event_id: string
   ticket_type_id: string

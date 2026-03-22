@@ -1,6 +1,10 @@
 import type { ApiRequestOptions, HttpMethod } from '~/types'
 import { getAuthCookie } from '~/utils/jwt'
 
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 interface UseApiReturn {
   get: <T>(endpoint: string, options?: ApiRequestOptions) => Promise<T>
   post: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) => Promise<T>
@@ -10,9 +14,21 @@ interface UseApiReturn {
   request: <T>(method: HttpMethod, endpoint: string, options?: ApiRequestOptions) => Promise<T>
 }
 
+type BareFetch = (
+  url: string,
+  init?: {
+    baseURL?: string
+    method?: string
+    headers?: Record<string, string>
+    body?: unknown
+    params?: Record<string, string | number | boolean>
+  }
+) => Promise<unknown>
+
 export function useApi(): UseApiReturn {
   const config = useRuntimeConfig()
   const notifications = useNotifications()
+  const bareFetch = $fetch as BareFetch
 
   async function request<T>(
     method: HttpMethod,
@@ -31,37 +47,52 @@ export function useApi(): UseApiReturn {
       headers.Authorization = `Bearer ${token}`
     }
 
-    try {
-      const response = await $fetch<T>(endpoint, {
-        baseURL: config.public.apiBase,
-        method,
-        headers,
-        body: options.body,
-        params: options.params
-      })
+    const attempts = Math.max(1, options.retry?.attempts ?? 1)
+    const retryDelay = options.retry?.delayMs ?? 400
+    let lastError: unknown
 
-      return response
-    }
-    catch (error: unknown) {
-      const fetchError = error as { statusCode?: number; message?: string; data?: unknown }
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const response = (await bareFetch(endpoint, {
+          baseURL: config.public.apiBase,
+          method,
+          headers,
+          body: options.body,
+          params: options.params
+        })) as T
 
-      const statusCode = fetchError.statusCode || 500
-      const message = fetchError.message || 'An unexpected error occurred'
-
-      if (statusCode === 401) {
-        const authStore = useAuthStore()
-        authStore.logout()
+        return response
       }
+      catch (error: unknown) {
+        lastError = error
+        const fetchError = error as { statusCode?: number; message?: string; data?: unknown }
 
-      if (!options.suppressErrorToast) {
-        notifications.error({
-          title: 'Error',
-          description: message
-        })
+        const statusCode = fetchError.statusCode || 500
+        const message = fetchError.message || 'An unexpected error occurred'
+
+        const retryable = statusCode >= 500 || statusCode === 408 || statusCode === 429
+        if (retryable && attempt < attempts) {
+          await delay(retryDelay * attempt)
+          continue
+        }
+
+        if (statusCode === 401) {
+          const authStore = useAuthStore()
+          authStore.logout()
+        }
+
+        if (!options.suppressErrorToast) {
+          notifications.error({
+            title: 'Error',
+            description: message
+          })
+        }
+
+        throw error
       }
-
-      throw error
     }
+
+    throw lastError
   }
 
   return {

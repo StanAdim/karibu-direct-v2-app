@@ -22,6 +22,14 @@ export interface CheckpointSettings {
   auto_close?: string
 }
 
+/** POST /checkpoints/scan */
+export interface CheckpointScanPayload {
+  checkpoint_id: string
+  qr_code?: string
+  ticket_code?: string
+  registration_id?: string
+}
+
 export interface CheckpointScan {
   id: string
   checkpoint_id: string

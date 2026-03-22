@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import type { Checkpoint, Participant, Event, EventUpdateInput, SessionCreateInput, SessionUpdateInput } from '~/types'
+import {
+  flattenParticipantsFromRegistrations,
+  getEventCapacityPercentage,
+  isEventLive,
+  isEventPast,
+  isEventUpcoming,
+  type Checkpoint,
+  type Event,
+  type EventUpdateInput,
+  type Participant,
+  type SessionCreateInput,
+  type SessionUpdateInput
+} from '~/types'
 import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
 import EventEditModal from '~/components/events/EventEditModal.vue'
 import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
@@ -8,7 +20,6 @@ import EventOverviewTab from '~/components/organizer/event/EventOverviewTab.vue'
 import EventSessionsTab from '~/components/organizer/event/EventSessionsTab.vue'
 import EventCheckpointsTab from '~/components/organizer/event/EventCheckpointsTab.vue'
 import EventAttendeesTab from '~/components/organizer/event/EventAttendeesTab.vue'
-import { getEventCapacityPercentage, isEventLive, isEventPast, isEventUpcoming } from '~/types'
 
 definePageMeta({
   layout: 'organizer',
@@ -18,6 +29,8 @@ definePageMeta({
 const route = useRoute()
 const eventsStore = useEventsStore()
 const sessionsStore = useSessionsStore()
+const checkpointStore = useCheckpointStore()
+const registrationStore = useRegistrationStore()
 const notifications = useNotifications()
 const router = useRouter()
 
@@ -48,82 +61,13 @@ const event = computed<Event | null>(() => {
 
 const sessions = computed(() => sessionsStore.sessions)
 
-const eventCheckpoints = computed<Checkpoint[]>(() => [
-  {
-    id: '1',
-    event_id: eventId.value,
-    name: 'Main Entrance',
-    description: 'Primary entry point for attendees',
-    type: 'entry',
-    location: 'Building A, Ground Floor',
-    is_active: true,
-    scan_count: 12482,
-    settings: { allow_multiple_scans: false, require_ticket: true },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    event_id: eventId.value,
-    name: 'VIP Entrance',
-    description: 'Lounge & red carpet access',
-    type: 'entry',
-    location: 'Hall B, Side Gate',
-    is_active: true,
-    scan_count: 842,
-    settings: { allow_multiple_scans: false, require_ticket: true },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-])
+const eventCheckpoints = computed<Checkpoint[]>(() =>
+  checkpointStore.eventCheckpoints(eventId.value)
+)
 
-const eventParticipants = computed<Participant[]>(() => [
-  {
-    id: '1',
-    event_id: eventId.value,
-    first_name: 'Jessica',
-    last_name: 'Chen',
-    email: 'jessica.chen@example.com',
-    phone: '+1234567890',
-    ticket: {
-      id: 't1',
-      ticket_type: { id: 'tt1', name: 'VIP', description: '', price: 250, currency: 'USD', quantity: 500, sold_count: 320, max_per_order: 4, sales_start: '', sales_end: '', status: 'available' },
-      ticket_number: 'VIP-001',
-      qr_code: 'qr-001',
-      price: 250,
-      currency: 'USD',
-      payment_status: 'completed',
-      purchased_at: new Date().toISOString()
-    },
-    status: 'checked_in',
-    registered_at: new Date(Date.now() - 86400000).toISOString(),
-    checked_in_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    event_id: eventId.value,
-    first_name: 'Marco',
-    last_name: 'Rossi',
-    email: 'marco.rossi@example.com',
-    phone: '+1234567891',
-    ticket: {
-      id: 't2',
-      ticket_type: { id: 'tt2', name: 'General Admission', description: '', price: 85, currency: 'USD', quantity: 2000, sold_count: 1440, max_per_order: 6, sales_start: '', sales_end: '', status: 'available' },
-      ticket_number: 'GA-442',
-      qr_code: 'qr-002',
-      price: 85,
-      currency: 'USD',
-      payment_status: 'completed',
-      purchased_at: new Date().toISOString()
-    },
-    status: 'confirmed',
-    registered_at: new Date(Date.now() - 172800000).toISOString(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-])
+const eventParticipants = computed<Participant[]>(() =>
+  flattenParticipantsFromRegistrations(registrationStore.eventRegistrations)
+)
 
 const isLive = computed(() => event.value ? isEventLive(event.value) : false)
 const isUpcoming = computed(() => event.value ? isEventUpcoming(event.value) : false)
@@ -168,7 +112,9 @@ async function loadData() {
   try {
     await Promise.all([
       eventsStore.fetchEvent(id),
-      sessionsStore.fetchEventSessions(id)
+      sessionsStore.fetchEventSessions(id),
+      checkpointStore.fetchEventCheckpoints(id),
+      registrationStore.fetchEventRegistrations(id)
     ])
   }
   finally {
@@ -273,6 +219,7 @@ watch(
     if (prevId !== undefined && id !== prevId) {
       eventsStore.clearCurrentEvent()
       sessionsStore.sessions = []
+      checkpointStore.invalidateEvent(prevId)
     }
     void loadData()
   },

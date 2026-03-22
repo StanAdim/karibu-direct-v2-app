@@ -5,6 +5,7 @@ import { getCheckpointTypeIcon, getCheckpointTypeLabel } from '~/types'
 const props = defineProps<{
   eventId: string
   checkpoints: Checkpoint[]
+  loading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -40,7 +41,17 @@ const checkpointTypes: { value: CheckpointType; label: string }[] = [
       </UButton>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-[2fr,1fr]">
+    <div
+      v-if="props.loading"
+      class="py-10"
+    >
+      <LoadingState text="Loading checkpoints..." />
+    </div>
+
+    <div
+      v-else
+      class="grid gap-4 lg:grid-cols-[2fr,1fr]"
+    >
       <div class="grid gap-4 sm:grid-cols-2">
         <UCard
           v-for="checkpoint in props.checkpoints"
@@ -89,7 +100,7 @@ const checkpointTypes: { value: CheckpointType; label: string }[] = [
           <div class="mt-4 flex items-center justify-between">
             <div>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ checkpoint.scan_count.toLocaleString() }}
+                {{ (checkpoint.scan_count ?? 0).toLocaleString() }}
               </p>
               <p class="text-xs text-gray-500 dark:text-gray-400">
                 Total scans

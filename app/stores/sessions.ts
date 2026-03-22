@@ -8,11 +8,9 @@ import type {
   SessionUpdateInput
 } from '~/types'
 import { useApi } from '~/composables/useApi'
+import { unwrapList, unwrapResource } from '~/utils/unwrapApiResource'
 
 interface SessionsState {
-  sessions: Session[]
-  currentSession: Session | null
-  loading: boolean
   pagination: {
     total: number
     page: number
@@ -22,11 +20,24 @@ interface SessionsState {
   filters: SessionFilters
 }
 
+function toFiniteNumber(value: unknown, fallback: number): number {
+  const num = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(num) ? num : fallback
+}
+
 export const useSessionsStore = defineStore('sessions', () => {
-  // States
   const sessions = ref<Session[]>([])
+  const sessionById = ref<Record<string, Session>>({})
+  /** Server order per event (ids), for cache separation without losing order */
+  const eventSessionIds = ref<Record<string, string[]>>({})
   const currentSession = ref<Session | null>(null)
-  const loading = ref(false)
+
+  const loadingList = ref(false)
+  const loadingDetail = ref(false)
+  const loadingWrite = ref(false)
+
+  const loading = computed(() => loadingList.value || loadingDetail.value || loadingWrite.value)
+
   const pagination = ref<SessionsState['pagination']>({
     total: 0,
     page: 1,
@@ -37,7 +48,25 @@ export const useSessionsStore = defineStore('sessions', () => {
   const api = useApi()
   let fetchEventSessionsSeq = 0
 
-  // Getters
+  function mergeSessions(list: Session[]): void {
+    const next = { ...sessionById.value }
+    for (const s of list) {
+      next[s.id] = s
+    }
+    sessionById.value = next
+  }
+
+  function setEventSessions(eventId: string, list: Session[]): void {
+    const ids = list.map(s => s.id)
+    eventSessionIds.value = { ...eventSessionIds.value, [eventId]: ids }
+    mergeSessions(list)
+  }
+
+  function getEventSessionsFromCache(eventId: string): Session[] {
+    const ids = eventSessionIds.value[eventId] ?? []
+    return ids.map(id => sessionById.value[id]).filter(Boolean) as Session[]
+  }
+
   const sessionsByDate = computed<Record<string, Session[]>>(() => {
     const grouped: Record<string, Session[]> = {}
 
@@ -50,7 +79,9 @@ export const useSessionsStore = defineStore('sessions', () => {
     })
 
     Object.keys(grouped).forEach(date => {
-      grouped[date].sort((a, b) =>
+      const bucket = grouped[date]
+      if (!bucket) return
+      bucket.sort((a, b) =>
         new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
       )
     })
@@ -88,18 +119,24 @@ export const useSessionsStore = defineStore('sessions', () => {
     })
   })
 
-  // Actions
   const fetchSessions = async (sessionFilters?: SessionFilters): Promise<void> => {
-    loading.value = true
     filters.value = sessionFilters || ({} as SessionFilters)
 
+    if (sessionFilters?.event_id) {
+      await fetchEventSessions(sessionFilters.event_id, sessionFilters)
+      return
+    }
+
+    loadingList.value = true
+
     try {
+      const safePage = toFiniteNumber(pagination.value.page, 1)
+      const safePerPage = toFiniteNumber(pagination.value.per_page, 20)
+
       const params = new URLSearchParams()
+      params.append('page', String(safePage))
+      params.append('per_page', String(safePerPage))
 
-      params.append('page', String(pagination.value.page))
-      params.append('per_page', String(pagination.value.per_page))
-
-      if (sessionFilters?.event_id) params.append('event_id', sessionFilters.event_id)
       if (sessionFilters?.type) params.append('type', sessionFilters.type)
       if (sessionFilters?.track) params.append('track', sessionFilters.track)
       if (sessionFilters?.level) params.append('level', sessionFilters.level)
@@ -107,22 +144,46 @@ export const useSessionsStore = defineStore('sessions', () => {
       if (sessionFilters?.date) params.append('date', sessionFilters.date)
       if (sessionFilters?.search) params.append('search', sessionFilters.search)
 
-      const response = await api.get<PaginatedResponse<Session>>(`/sessions?${params.toString()}`)
+      const raw = await api.get<unknown>(`/sessions?${params.toString()}`)
+      const { data, meta } = unwrapList<Session>(raw)
 
-      sessions.value = response.data
-      pagination.value = response.meta
+      sessions.value = data
+      mergeSessions(data)
+
+      if (meta) {
+        const m = meta as PaginatedResponse<Session>['meta'] & {
+          current_page?: number
+          perPage?: number
+          lastPage?: number
+        }
+        pagination.value = {
+          total: toFiniteNumber(m.total, pagination.value.total),
+          page: toFiniteNumber(m.page ?? m.current_page, safePage),
+          per_page: toFiniteNumber(m.per_page ?? m.perPage, safePerPage),
+          last_page: toFiniteNumber(m.last_page ?? m.lastPage, 1)
+        }
+      }
+      else {
+        pagination.value = {
+          total: data.length,
+          page: 1,
+          per_page: data.length || safePerPage,
+          last_page: 1
+        }
+      }
     }
     finally {
-      loading.value = false
+      loadingList.value = false
     }
   }
 
   const fetchSession = async (id: string): Promise<Session | null> => {
-    loading.value = true
+    loadingDetail.value = true
 
     try {
-      const session = await api.get<Session>(`/sessions/${id}`)
-
+      const raw = await api.get<unknown>(`/sessions/${id}`)
+      const session = unwrapResource<Session>(raw)
+      sessionById.value = { ...sessionById.value, [session.id]: session }
       currentSession.value = session
       return session
     }
@@ -131,69 +192,112 @@ export const useSessionsStore = defineStore('sessions', () => {
       return null
     }
     finally {
-      loading.value = false
+      loadingDetail.value = false
     }
   }
 
-  const fetchEventSessions = async (eventId: string): Promise<Session[]> => {
+  const fetchEventSessions = async (
+    eventId: string,
+    listFilters?: SessionFilters
+  ): Promise<Session[]> => {
     const seq = ++fetchEventSessionsSeq
-    loading.value = true
+    loadingList.value = true
 
     try {
-      const response = await api.get<PaginatedResponse<Session>>(`/events/${eventId}/sessions`)
-
-      const toFiniteNumber = (value: unknown, fallback: number): number => {
-        const num = typeof value === 'number' ? value : Number(value)
-        return Number.isFinite(num) ? num : fallback
-      }
-
-      const meta = response.meta as any
       const safePage = toFiniteNumber(pagination.value.page, 1)
       const safePerPage = toFiniteNumber(pagination.value.per_page, 20)
 
+      const params = new URLSearchParams()
+      params.append('page', String(safePage))
+      params.append('per_page', String(safePerPage))
+
+      const f = listFilters
+      if (f?.type) params.append('type', f.type)
+      if (f?.track) params.append('track', f.track)
+      if (f?.level) params.append('level', f.level)
+      if (f?.speaker_id) params.append('speaker_id', f.speaker_id)
+      if (f?.date) params.append('date', f.date)
+      if (f?.search) params.append('search', f.search)
+
+      const raw = await api.get<unknown>(`/sessions/event/${eventId}?${params.toString()}`)
+      const { data, meta } = unwrapList<Session>(raw)
+
       if (seq !== fetchEventSessionsSeq) {
-        return response.data
+        return getEventSessionsFromCache(eventId)
       }
 
-      sessions.value = response.data
-      pagination.value = {
-        total: toFiniteNumber(meta?.total, pagination.value.total),
-        page: toFiniteNumber(meta?.page ?? meta?.current_page, safePage),
-        per_page: toFiniteNumber(meta?.per_page ?? meta?.perPage, safePerPage),
-        last_page: toFiniteNumber(meta?.last_page ?? meta?.lastPage, 1)
+      sessions.value = data
+      setEventSessions(eventId, data)
+
+      if (meta) {
+        const m = meta as PaginatedResponse<Session>['meta'] & {
+          current_page?: number
+          perPage?: number
+          lastPage?: number
+        }
+        pagination.value = {
+          total: toFiniteNumber(m.total, pagination.value.total),
+          page: toFiniteNumber(m.page ?? m.current_page, safePage),
+          per_page: toFiniteNumber(m.per_page ?? m.perPage, safePerPage),
+          last_page: toFiniteNumber(m.last_page ?? m.lastPage, 1)
+        }
       }
-      return response.data
+      else {
+        pagination.value = {
+          total: data.length,
+          page: 1,
+          per_page: data.length || safePerPage,
+          last_page: 1
+        }
+      }
+
+      return data
     }
     finally {
       if (seq === fetchEventSessionsSeq) {
-        loading.value = false
+        loadingList.value = false
       }
     }
   }
 
   const createSession = async (input: SessionCreateInput): Promise<Session> => {
-    loading.value = true
+    loadingWrite.value = true
 
     try {
-      const session = await api.post<Session>('/sessions', input)
+      const raw = await api.post<unknown>('/sessions/', input)
+      const session = unwrapResource<Session>(raw)
 
-      sessions.value.push(session)
+      sessionById.value = { ...sessionById.value, [session.id]: session }
+
+      const evId = input.event_id
+      const existingIds = eventSessionIds.value[evId] ?? []
+      if (!existingIds.includes(session.id)) {
+        eventSessionIds.value = {
+          ...eventSessionIds.value,
+          [evId]: [...existingIds, session.id]
+        }
+      }
+
+      sessions.value = [...sessions.value, session]
       return session
     }
     finally {
-      loading.value = false
+      loadingWrite.value = false
     }
   }
 
   const updateSession = async (id: string, input: SessionUpdateInput): Promise<Session> => {
-    loading.value = true
+    loadingWrite.value = true
 
     try {
-      const session = await api.patch<Session>(`/sessions/${id}`, input)
+      const raw = await api.put<unknown>(`/sessions/${id}`, input)
+      const session = unwrapResource<Session>(raw)
+
+      sessionById.value = { ...sessionById.value, [session.id]: session }
 
       const index = sessions.value.findIndex(s => s.id === id)
       if (index !== -1) {
-        sessions.value[index] = session
+        sessions.value = sessions.value.map(s => (s.id === id ? session : s))
       }
 
       if (currentSession.value?.id === id) {
@@ -203,24 +307,32 @@ export const useSessionsStore = defineStore('sessions', () => {
       return session
     }
     finally {
-      loading.value = false
+      loadingWrite.value = false
     }
   }
 
   const deleteSession = async (id: string): Promise<void> => {
-    loading.value = true
+    loadingWrite.value = true
 
     try {
       await api.delete(`/sessions/${id}`)
 
+      const { [id]: _removed, ...rest } = sessionById.value
+      sessionById.value = rest
+
       sessions.value = sessions.value.filter(s => s.id !== id)
+
+      for (const evId of Object.keys(eventSessionIds.value)) {
+        const ids = (eventSessionIds.value[evId] ?? []).filter(x => x !== id)
+        eventSessionIds.value = { ...eventSessionIds.value, [evId]: ids }
+      }
 
       if (currentSession.value?.id === id) {
         currentSession.value = null
       }
     }
     finally {
-      loading.value = false
+      loadingWrite.value = false
     }
   }
 
@@ -238,20 +350,21 @@ export const useSessionsStore = defineStore('sessions', () => {
   }
 
   return {
-    // State
     sessions,
+    sessionById,
+    eventSessionIds,
     currentSession,
+    loadingList,
+    loadingDetail,
+    loadingWrite,
     loading,
     pagination,
     filters,
-
-    // Getters
     sessionsByDate,
     sessionsByTrack,
     upcomingSessions,
     liveSessions,
-
-    // Actions
+    getEventSessionsFromCache,
     fetchSessions,
     fetchSession,
     fetchEventSessions,
@@ -263,14 +376,3 @@ export const useSessionsStore = defineStore('sessions', () => {
     clearFilters
   }
 })
-
-function getAuthHeaders(): Record<string, string> {
-  const authStore = useAuthStore()
-  const headers: Record<string, string> = {}
-
-  if (authStore.token) {
-    headers.Authorization = `Bearer ${authStore.token}`
-  }
-
-  return headers
-}
