@@ -29,7 +29,6 @@ const form = reactive<EventUpdateInput>({
   title: '',
   description: '',
   short_description: '',
-  cover_image: '',
   start_date: '',
   end_date: '',
   timezone: '',
@@ -64,7 +63,6 @@ function resetFormFromEvent(event: Event) {
   form.title = event.title
   form.description = event.description
   form.short_description = event.short_description
-  form.cover_image = event.cover_image
   form.start_date = event.start_date
   form.end_date = event.end_date
   form.timezone = event.timezone
@@ -227,13 +225,6 @@ function handleCancel() {
               {{ errors.description }}
             </p>
           </div>
-
-          <AppInput
-            v-model="form.cover_image"
-            label="Cover Image URL"
-            placeholder="https://example.com/image.jpg"
-            hint="Recommended size: 1200x630 pixels"
-          />
         </div>
 
         <!-- Date & Time -->

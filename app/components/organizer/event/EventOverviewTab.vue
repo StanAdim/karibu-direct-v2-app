@@ -34,6 +34,12 @@ const venueLabel = computed(() => {
   if (venue.type === 'virtual') return 'Online event'
   return venue.name || venue.city || 'Venue TBA'
 })
+const config = useRuntimeConfig()
+
+function getEventImage(event: Event): string {
+  const ImagePath = config.public.apiBase + '/' + event?.cover_image
+  return ImagePath || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'
+}
 </script>
 
 <template>
@@ -47,7 +53,7 @@ const venueLabel = computed(() => {
           <div class="relative h-56 sm:h-72 md:h-80">
             <img
               v-if="props.event.cover_image"
-              :src="props.event.cover_image"
+              :src="getEventImage(props.event)"
               :alt="props.event.title"
               class="h-full w-full object-cover"
             >

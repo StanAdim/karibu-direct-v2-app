@@ -28,7 +28,6 @@ const form = reactive<EventCreateInput>({
   title: '',
   description: '',
   short_description: '',
-  cover_image: '',
   start_date: '',
   end_date: '',
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -63,7 +62,6 @@ function resetForm() {
   form.title = ''
   form.description = 'Event in details description'
   form.short_description = ''
-  form.cover_image = ''
   form.start_date = ''
   form.end_date = ''
   form.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -222,13 +220,6 @@ function handleCancel() {
               {{ errors.description }}
             </p>
           </div>
-
-          <AppInput
-            v-model="form.cover_image"
-            label="Cover Image URL"
-            placeholder="https://example.com/image.jpg"
-            hint="Recommended size: 1200x630 pixels"
-          />
         </div>
 
         <!-- Date & Time -->

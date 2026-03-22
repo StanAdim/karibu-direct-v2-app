@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Checkpoint, Participant, Event, EventUpdateInput, SessionCreateInput } from '~/types'
+import type { Checkpoint, Participant, Event, EventUpdateInput, SessionCreateInput, SessionUpdateInput } from '~/types'
 import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
 import EventEditModal from '~/components/events/EventEditModal.vue'
 import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
@@ -21,7 +21,7 @@ const sessionsStore = useSessionsStore()
 const notifications = useNotifications()
 const router = useRouter()
 
-const eventId = computed(() => route.params.id as string)
+const eventId = computed(() => String(route.params.id ?? ''))
 const showEventModal = ref(false)
 const showScheduleModal = ref(false)
 const showSessionModal = ref(false)
@@ -30,10 +30,25 @@ const sessionSaveLoading = ref(false)
 const loading = ref(true)
 const activeTab = ref<'overview' | 'sessions' | 'checkpoints' | 'attendees'>('overview')
 
-const event = computed(() => eventsStore.currentEvent)
+const organizerEventTabs = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'sessions', label: 'Sessions' },
+  { id: 'checkpoints', label: 'Checkpoints' },
+  { id: 'attendees', label: 'Attendee List' }
+] as const
+
+/** Only treat as loaded when it matches the current route (avoids stale hub state). */
+const event = computed<Event | null>(() => {
+  const ev = eventsStore.currentEvent
+  if (!ev || String(ev.id) !== eventId.value) {
+    return null
+  }
+  return ev
+})
+
 const sessions = computed(() => sessionsStore.sessions)
 
-const eventCheckpoints = ref<Checkpoint[]>([
+const eventCheckpoints = computed<Checkpoint[]>(() => [
   {
     id: '1',
     event_id: eventId.value,
@@ -62,7 +77,7 @@ const eventCheckpoints = ref<Checkpoint[]>([
   }
 ])
 
-const eventParticipants = ref<Participant[]>([
+const eventParticipants = computed<Participant[]>(() => [
   {
     id: '1',
     event_id: eventId.value,
@@ -143,11 +158,17 @@ const stats = computed(() => [
 ])
 
 async function loadData() {
+  const id = eventId.value
+  if (!id) {
+    loading.value = false
+    return
+  }
+
   loading.value = true
   try {
     await Promise.all([
-      eventsStore.fetchEvent(eventId.value),
-      // sessionsStore.fetchEventSessions(eventId.value)
+      eventsStore.fetchEvent(id),
+      sessionsStore.fetchEventSessions(id)
     ])
   }
   finally {
@@ -197,23 +218,26 @@ function onScheduleConfirm(payload: ScheduleSessionPayload) {
   showSessionModal.value = true
 }
 
-async function onSessionSaved(payload: SessionCreateInput & { id?: string; event_id?: string }) {
+async function onSessionSaved(
+  payload: (SessionCreateInput | SessionUpdateInput) & { id?: string; event_id?: string }
+) {
   const id = payload.event_id ?? eventId.value
   if (!id) return
   sessionSaveLoading.value = true
   try {
+    const createPayload = payload as SessionCreateInput
     await sessionsStore.createSession({
       event_id: id,
-      title: payload.title,
-      type: payload.type,
-      start_time: payload.start_time,
-      end_time: payload.end_time,
-      description: payload.description,
-      room: payload.room,
-      track: payload.track,
-      capacity: payload.capacity,
-      level: payload.level,
-      is_break: payload.is_break ?? false
+      title: createPayload.title,
+      type: createPayload.type,
+      start_time: createPayload.start_time,
+      end_time: createPayload.end_time,
+      description: createPayload.description,
+      room: createPayload.room,
+      track: createPayload.track,
+      capacity: createPayload.capacity,
+      level: createPayload.level,
+      is_break: createPayload.is_break ?? false
     })
     notifications.success('Session created')
     await loadData()
@@ -240,7 +264,21 @@ async function handleSaveEvent(payload: EventUpdateInput) {
   }
 }
 
-onMounted(loadData)
+watch(
+  eventId,
+  (id, prevId) => {
+    if (!id) {
+      return
+    }
+    if (prevId !== undefined && id !== prevId) {
+      eventsStore.clearCurrentEvent()
+      sessionsStore.sessions = []
+    }
+    void loadData()
+  },
+  { immediate: true }
+)
+
 onUnmounted(() => {
   eventsStore.clearCurrentEvent()
 })
@@ -344,12 +382,7 @@ onUnmounted(() => {
 
         <div class="flex flex-wrap items-center gap-4 border-b border-gray-200 text-sm dark:border-gray-800">
           <button
-            v-for="tab in [
-              { id: 'overview', label: 'Overview' },
-              { id: 'sessions', label: 'Sessions' },
-              { id: 'checkpoints', label: 'Checkpoints' },
-              { id: 'attendees', label: 'Attendee List' }
-            ]"
+            v-for="tab in organizerEventTabs"
             :key="tab.id"
             type="button"
             class="relative -mb-px border-b-2 px-3 pb-3 text-sm font-medium transition-colors"

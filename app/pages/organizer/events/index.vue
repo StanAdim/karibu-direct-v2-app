@@ -10,6 +10,7 @@ definePageMeta({
 })
 
 const eventsStore = useEventsStore()
+const config = useRuntimeConfig()
 const { user } = useAuth()
 const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirmDialog()
 const notifications = useNotifications()
@@ -20,6 +21,10 @@ const selectedStatus = ref<EventStatus | ''>('')
 const viewMode = ref<'grid' | 'table'>('grid')
 const deleteLoading = ref(false)
 const eventToDelete = ref<Event | null>(null)
+
+const coverFileInputRef = ref<HTMLInputElement | null>(null)
+const pendingCoverEventId = ref<string | null>(null)
+const coverUploadingEventId = ref<string | null>(null)
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -129,11 +134,51 @@ const filteredEvents = computed(() => {
 })
 
 function getEventImage(event: Event): string {
-  const anyEvent = event as any
-  return anyEvent.banner_image || anyEvent.cover_image || anyEvent.image || anyEvent.hero_image || ''
+  const ImagePath = config.public.apiBase + '/' + event?.cover_image
+  return ImagePath || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'
+}
+
+function openCoverPicker(event: Event) {
+  pendingCoverEventId.value = event.id
+  coverFileInputRef.value?.click()
+}
+
+function onCoverFileSelected(e: InputEvent) {
+  void handleCoverFileSelected(e)
+}
+
+async function handleCoverFileSelected(e: InputEvent) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  const id = pendingCoverEventId.value
+  pendingCoverEventId.value = null
+  input.value = ''
+
+  if (!file || !id) return
+
+  coverUploadingEventId.value = id
+  try {
+    await eventsStore.uploadEventCover(id, file)
+    notifications.success('Cover image updated')
+  }
+  catch {
+    notifications.error('Failed to upload cover image')
+  }
+  finally {
+    coverUploadingEventId.value = null
+  }
 }
 
 function getEventDateLabel(event: Event): string {
+  if (event.start_date) {
+    return new Date(event.start_date).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
   const anyEvent = event as any
   if (anyEvent.start_date_formatted) {
     return anyEvent.start_date_formatted
@@ -151,34 +196,54 @@ function getEventDateLabel(event: Event): string {
 }
 
 function getEventLocationLabel(event: Event): string {
-  const anyEvent = event as any
-  if (anyEvent.venue_name && anyEvent.city) {
-    return `${anyEvent.venue_name}, ${anyEvent.city}`
+  const v = event.venue
+  if (!v) {
+    return 'Venue TBA'
   }
-  return anyEvent.venue_name || anyEvent.location || 'Venue TBA'
+
+  if (v.type === 'virtual' || v.type === 'hybrid') {
+    if (v.type === 'hybrid' && v.name) {
+      const physical = [v.name, v.city].filter(Boolean).join(', ')
+      if (physical) return physical
+    }
+    if (v.virtual_platform) return v.virtual_platform
+    if (v.virtual_url) return 'Online'
+    return 'Online event'
+  }
+
+  const parts = [v.name, v.city].filter(Boolean)
+  if (parts.length) {
+    return parts.join(', ')
+  }
+  if (v.address) {
+    return v.address
+  }
+  if (v.country) {
+    return v.country
+  }
+  return 'Venue TBA'
 }
 
 function getCapacityInfo(event: Event) {
-  const anyEvent = event as any
-  const sold = Number(anyEvent.tickets_sold ?? anyEvent.sold ?? 0)
-  const capacity = Number(anyEvent.capacity ?? anyEvent.ticket_capacity ?? 0)
+  const registered = Number(event.registered_count ?? 0)
+  const capacity = Number(event.capacity ?? 0)
 
   if (!capacity) {
     return {
-      sold,
+      registered,
       capacity: 0,
       percent: 0,
-      label: sold ? `${sold} tickets sold` : 'No tickets sold yet'
+      label: registered ? `${registered} registered` : 'No registrations yet'
     }
   }
 
-  const percent = Math.min(100, Math.round((sold / capacity) * 100))
+  const percent = Math.min(100, Math.round((registered / capacity) * 100))
 
   return {
-    sold,
+    registered,
     capacity,
     percent,
-    label: `${percent}% capacity`
+    label: `${percent}% full`
   }
 }
 
@@ -219,6 +284,14 @@ onMounted(loadEvents)
 
 <template>
   <div class="space-y-10">
+    <input
+      ref="coverFileInputRef"
+      type="file"
+      accept="image/*"
+      class="sr-only"
+      tabindex="-1"
+      @change="onCoverFileSelected"
+    >
     <!-- Page header -->
     <section class="flex flex-col justify-between gap-6 md:flex-row md:items-end">
       <div>
@@ -328,14 +401,30 @@ onMounted(loadEvents)
         :key="event.id"
         class="group flex flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-xl shadow-slate-900/5 ring-1 ring-slate-100 transition-all hover:-translate-y-1 hover:shadow-2xl dark:bg-slate-900 dark:ring-slate-800"
       >
-        <!-- Cover -->
+        <!-- Cover: click image to upload a new cover -->
         <div class="relative h-56 overflow-hidden">
-          <img
-            :src="getEventImage(event) || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'"
-            :alt="event.title"
-            class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          <button
+            type="button"
+            class="absolute inset-0 z-0 block w-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+            :aria-label="`Change cover image for ${event.title}`"
+            :disabled="coverUploadingEventId === event.id"
+            @click="openCoverPicker(event)"
           >
-          <div class="absolute left-4 top-4 flex items-center gap-2">
+            <img
+              :src="getEventImage(event) || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1200&q=80&auto=format&fit=crop'"
+              :alt="event.title"
+              class="pointer-events-none h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+            >
+          </button>
+          <div
+            v-if="coverUploadingEventId === event.id"
+            class="absolute inset-0 z-[5] flex items-center justify-center bg-black/40 backdrop-blur-[1px]"
+          >
+            <span class="material-symbols-outlined animate-spin text-3xl text-white">
+              progress_activity
+            </span>
+          </div>
+          <div class="pointer-events-none absolute left-4 top-4 z-10 flex items-center gap-2">
             <span
               v-bind="{}"
               :class="[
@@ -352,8 +441,8 @@ onMounted(loadEvents)
           </div>
           <button
             type="button"
-            class="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-white hover:text-slate-900 transition-colors"
-            @click.stop="handleEditEvent(event)"
+            class="absolute bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-white hover:text-slate-900 transition-colors"
+            @click="handleEditEvent(event)"
           >
             <span class="material-symbols-outlined text-[20px]">
               more_vert
@@ -397,10 +486,10 @@ onMounted(loadEvents)
             <div class="flex items-end justify-between gap-4">
               <div class="space-y-1">
                 <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                  Tickets Sold
+                  Registered
                 </p>
                 <p class="font-semibold text-slate-900 dark:text-white">
-                  {{ getCapacityInfo(event).sold }}
+                  {{ getCapacityInfo(event).registered }}
                   <span
                     v-if="getCapacityInfo(event).capacity"
                     class="text-xs font-medium text-slate-500 dark:text-slate-400"
@@ -421,18 +510,12 @@ onMounted(loadEvents)
               />
             </div>
 
-            <div class="grid grid-cols-2 gap-3 pt-1">
-              <AppButton
-                color="neutral"
-                @click="handleEditEvent(event)"
-              >
-                Manage
-              </AppButton>
+            <div class="grid grid-cols-1 gap-3 pt-1">
               <AppButton
                 color="primary"
                 @click="handleViewEvent(event)"
               >
-                Details
+                Manage Details
               </AppButton>
             </div>
 

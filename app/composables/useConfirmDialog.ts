@@ -1,4 +1,4 @@
-interface ConfirmOptions {
+export interface ConfirmOptions {
   title: string
   message: string
   confirmText?: string
@@ -6,7 +6,7 @@ interface ConfirmOptions {
   variant?: 'danger' | 'warning' | 'info'
 }
 
-interface UseConfirmDialogReturn {
+export interface UseConfirmDialogReturn {
   isOpen: Ref<boolean>
   options: Ref<ConfirmOptions | null>
   confirm: (opts: ConfirmOptions) => Promise<boolean>

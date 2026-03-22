@@ -35,6 +35,7 @@ export const useSessionsStore = defineStore('sessions', () => {
   })
   const filters = ref<SessionFilters>({} as SessionFilters)
   const api = useApi()
+  let fetchEventSessionsSeq = 0
 
   // Getters
   const sessionsByDate = computed<Record<string, Session[]>>(() => {
@@ -135,17 +136,38 @@ export const useSessionsStore = defineStore('sessions', () => {
   }
 
   const fetchEventSessions = async (eventId: string): Promise<Session[]> => {
+    const seq = ++fetchEventSessionsSeq
     loading.value = true
 
     try {
       const response = await api.get<PaginatedResponse<Session>>(`/events/${eventId}/sessions`)
 
+      const toFiniteNumber = (value: unknown, fallback: number): number => {
+        const num = typeof value === 'number' ? value : Number(value)
+        return Number.isFinite(num) ? num : fallback
+      }
+
+      const meta = response.meta as any
+      const safePage = toFiniteNumber(pagination.value.page, 1)
+      const safePerPage = toFiniteNumber(pagination.value.per_page, 20)
+
+      if (seq !== fetchEventSessionsSeq) {
+        return response.data
+      }
+
       sessions.value = response.data
-      pagination.value = response.meta
+      pagination.value = {
+        total: toFiniteNumber(meta?.total, pagination.value.total),
+        page: toFiniteNumber(meta?.page ?? meta?.current_page, safePage),
+        per_page: toFiniteNumber(meta?.per_page ?? meta?.perPage, safePerPage),
+        last_page: toFiniteNumber(meta?.last_page ?? meta?.lastPage, 1)
+      }
       return response.data
     }
     finally {
-      loading.value = false
+      if (seq === fetchEventSessionsSeq) {
+        loading.value = false
+      }
     }
   }
 

@@ -10,6 +10,11 @@ import type {
 } from '~/types'
 import { useApi } from '~/composables/useApi'
 
+/** Backend may return a bare resource or `{ data: T }` (see auth store). */
+function unwrapResource<T>(raw: unknown): T {
+  return (raw as { data?: T })?.data ?? (raw as T)
+}
+
 interface EventsState {
   events: Event[]
   currentEvent: Event | null
@@ -38,6 +43,7 @@ export const useEventsStore = defineStore('events', () => {
   })
   const filters = ref<EventFilters>({} as EventFilters)
   const api = useApi()
+  let fetchEventSeq = 0
 
   // Getters
   const upcomingEvents = computed<Event[]>(() => {
@@ -97,7 +103,7 @@ export const useEventsStore = defineStore('events', () => {
       if (eventFilters?.end_date) params.append('end_date', eventFilters.end_date)
       if (eventFilters?.organizer_id) params.append('organizer_id', eventFilters.organizer_id)
 
-      const response = await api.get<PaginatedResponse<Event>>(`/events?${params.toString()}`)
+      const response = await api.get<PaginatedResponse<Event>>(`/events/?${params.toString()}`)
 
       events.value = response.data
       // Normalize meta to match our local pagination key names.
@@ -116,26 +122,37 @@ export const useEventsStore = defineStore('events', () => {
   }
 
   const fetchEvent = async (id: string): Promise<Event | null> => {
+    const seq = ++fetchEventSeq
     loading.value = true
 
     try {
-      const event = await api.get<Event>(`/events/${id}`)
+      const raw = await api.get<Event | { data: Event }>(`/events/${id}`)
+      const event = unwrapResource<Event>(raw)
+
+      if (seq !== fetchEventSeq) {
+        return event
+      }
 
       currentEvent.value = event
       return event
     }
     catch {
-      currentEvent.value = null
+      if (seq === fetchEventSeq) {
+        currentEvent.value = null
+      }
       return null
     }
     finally {
-      loading.value = false
+      if (seq === fetchEventSeq) {
+        loading.value = false
+      }
     }
   }
 
   const fetchEventStats = async (eventId: string): Promise<EventStats | null> => {
     try {
-      const stats = await api.get<EventStats>(`/events/${eventId}/stats`)
+      const raw = await api.get<EventStats | { data: EventStats }>(`/events/${eventId}/stats`)
+      const stats = unwrapResource<EventStats>(raw)
 
       eventStats.value = stats
       return stats
@@ -149,7 +166,8 @@ export const useEventsStore = defineStore('events', () => {
     loading.value = true
 
     try {
-      const event = await api.post<Event>('/events', input)
+      const raw = await api.post<Event | { data: Event }>('/events', input)
+      const event = unwrapResource<Event>(raw)
 
       events.value.unshift(event)
       return event
@@ -163,7 +181,8 @@ export const useEventsStore = defineStore('events', () => {
     loading.value = true
 
     try {
-      const event = await api.patch<Event>(`/events/${id}`, input)
+      const raw = await api.put<Event | { data: Event }>(`/events/${id}`, input)
+      const event = unwrapResource<Event>(raw)
 
       const index = events.value.findIndex(e => e.id === id)
       if (index !== -1) {
@@ -196,6 +215,27 @@ export const useEventsStore = defineStore('events', () => {
     finally {
       loading.value = false
     }
+  }
+
+  const uploadEventCover = async (id: string, file: File): Promise<Event> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const raw = await api.post<Event | { data: Event }>(`/events/${id}/cover`, formData, {
+      suppressErrorToast: true
+    })
+    const event = unwrapResource<Event>(raw)
+
+    const index = events.value.findIndex(e => e.id === id)
+    if (index !== -1) {
+      events.value[index] = event
+    }
+
+    if (currentEvent.value?.id === id) {
+      currentEvent.value = event
+    }
+
+    return event
   }
 
   const publishEvent = async (id: string): Promise<Event> => {
@@ -248,6 +288,7 @@ export const useEventsStore = defineStore('events', () => {
     createEvent,
     updateEvent,
     deleteEvent,
+    uploadEventCover,
     publishEvent,
     cancelEvent,
     setPage,
@@ -256,14 +297,3 @@ export const useEventsStore = defineStore('events', () => {
     clearFilters
   }
 })
-
-function getAuthHeaders(): Record<string, string> {
-  const authStore = useAuthStore()
-  const headers: Record<string, string> = {}
-
-  if (authStore.token) {
-    headers.Authorization = `Bearer ${authStore.token}`
-  }
-
-  return headers
-}
