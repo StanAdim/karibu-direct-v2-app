@@ -215,6 +215,23 @@ export const useUsersStore = defineStore('users', () => {
     return user
   }
 
+  /**
+   * Sets a user's primary role via `PUT /api/v1/users/{user_id}/primary-role`.
+   * Refetches the user to update the local list (response shape may vary).
+   */
+  const setUserPrimaryRole = async (userId: string, roleId: string): Promise<User> => {
+    await api.put(`/users/${userId}/primary-role`, { role_id: roleId }, { suppressErrorToast: true })
+    const user = await api.get<User>(`/users/${userId}`, { suppressErrorToast: true })
+    const index = users.value.findIndex(u => u.id === userId)
+    if (index !== -1) {
+      users.value[index] = user
+    }
+    if (currentUser.value?.id === userId) {
+      currentUser.value = user
+    }
+    return user
+  }
+
   return {
     // State
     users,
@@ -242,7 +259,8 @@ export const useUsersStore = defineStore('users', () => {
     setPerPage,
     clearCurrentUser,
     clearFilters,
-    assignUserRole
+    assignUserRole,
+    setUserPrimaryRole
   }
 })
 

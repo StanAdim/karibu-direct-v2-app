@@ -12,7 +12,6 @@ definePageMeta({
 
 const eventsStore = useEventsStore()
 const config = useRuntimeConfig()
-const { user } = useAuth()
 const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirmDialog()
 const notifications = useNotifications()
 const router = useRouter()
@@ -42,11 +41,15 @@ const statusOptions = [
 ]
 
 async function loadEvents() {
-  await eventsStore.fetchEvents({
+  await eventsStore.fetchMyEvents({
     status: selectedStatus.value || undefined,
-    search: searchQuery.value || undefined,
-    organizer_id: user.value?.id
+    search: searchQuery.value || undefined
   })
+}
+
+function handlePaginationUpdate(page: number) {
+  eventsStore.setPage(page)
+  void loadEvents()
 }
 
 function handleViewEvent(event: Event) {
@@ -550,7 +553,7 @@ onMounted(loadEvents)
         :model-value="eventsStore.pagination.page"
         :total="eventsStore.pagination.total"
         :page-count="eventsStore.pagination.per_page"
-        @update:model-value="(page) => { eventsStore.setPage(page); loadEvents() }"
+        @update:model-value="handlePaginationUpdate"
       />
     </section>
 

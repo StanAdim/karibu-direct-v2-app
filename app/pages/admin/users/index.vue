@@ -16,7 +16,6 @@ const adminHeaderSearch = useState<string>('adminHeaderSearch', () => '')
 const searchQuery = ref('')
 const selectedRole = ref<UserRole | ''>('')
 const selectedStatus = ref<UserStatus | ''>('')
-const tab = ref<'all' | 'organizers' | 'attendees'>('all')
 const deleteLoading = ref(false)
 const userToDelete = ref<User | null>(null)
 const chartRange = ref<'30d' | '90d'>('30d')
@@ -83,11 +82,8 @@ async function loadUsers() {
   })
 }
 
-function setTab(t: 'all' | 'organizers' | 'attendees') {
-  tab.value = t
-  if (t === 'all') selectedRole.value = ''
-  else if (t === 'organizers') selectedRole.value = 'Organizer'
-  else selectedRole.value = 'Attendee'
+function onRoleSelect(role: UserRole | '') {
+  selectedRole.value = role
   usersStore.setPage(1)
   loadUsers()
 }
@@ -130,7 +126,6 @@ async function handleDeleteUser(user: User) {
 }
 
 function goToPendingReviews() {
-  tab.value = 'all'
   selectedRole.value = ''
   selectedStatus.value = 'pending'
   usersStore.setPage(1)
@@ -277,9 +272,9 @@ onMounted(() => {
       :users="usersStore.users"
       :loading="usersStore.loading"
       :pagination="usersStore.pagination"
-      :tab="tab"
+      :active-role="selectedRole"
       :selected-status="selectedStatus"
-      @tab-select="setTab"
+      @role-select="onRoleSelect"
       @status-change="onStatusChange"
       @page-change="onPageChange"
       @delete="handleDeleteUser"

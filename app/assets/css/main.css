@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans:  'Roboto', 'Helvetica Neue', Arial, sans-serif;;
+  --font-display:  'Roboto', 'Helvetica Neue', Arial, sans-serif;;
 
   --color-brand-50: #f5f0ff;
   --color-brand-100: #ede5ff;

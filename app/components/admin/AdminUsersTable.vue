@@ -14,12 +14,12 @@ const props = defineProps<{
   users: User[]
   loading: boolean
   pagination: Pagination
-  tab: 'all' | 'organizers' | 'attendees'
+  activeRole: UserRole | ''
   selectedStatus: UserStatus | ''
 }>()
 
 const emit = defineEmits<{
-  'tab-select': [t: 'all' | 'organizers' | 'attendees']
+  'role-select': [role: UserRole | '']
   'status-change': [status: UserStatus | '']
   'page-change': [page: number]
   delete: [user: User]
@@ -38,6 +38,23 @@ const roleToAssign = ref<string>('')
 const assignableRoles = ref<PlatformRole[]>([])
 const rolesLoading = ref(false)
 const assignRoleLoading = ref(false)
+
+function normalizeUserRoleName(name: string): UserRole | null {
+  const n = name.trim().toLowerCase()
+  if (n === 'admin') return 'Admin'
+  if (n === 'organizer') return 'Organizer'
+  if (n === 'attendee') return 'Attendee'
+  return null
+}
+
+const roleButtons = computed<UserRole[]>(() => {
+  const out: UserRole[] = []
+  for (const r of assignableRoles.value) {
+    const normalized = normalizeUserRoleName(r.name)
+    if (normalized && !out.includes(normalized)) out.push(normalized)
+  }
+  return out
+})
 
 function parseRoleRow(row: unknown): PlatformRole | null {
   if (!row || typeof row !== 'object') return null
@@ -105,9 +122,15 @@ function displayUserId(user: User): string {
 
 function primaryRole(user: User): UserRole | null {
   const r = user.primary_role?.name
-  if (r === 'Admin' || r === 'Organizer' || r === 'Attendee') return r
-  return null
+  if (!r) return null
+  return normalizeUserRoleName(r)
 }
+
+const visibleUsers = computed<User[]>(() => {
+  if (!props.activeRole) return props.users
+  // Filter based on the user's primary role.
+  return props.users.filter((u) => primaryRole(u) === props.activeRole)
+})
 
 function statusDisplay(user: User): { label: string; dot: string; pill: string } {
   if (user.status === 'suspended') {
@@ -185,7 +208,7 @@ const pagesToShow = computed(() =>
 
 function exportCsv() {
   const headers = ['Name', 'Email', 'Role', 'Status', 'Joined']
-  const rows = props.users.map((u) => {
+  const rows = visibleUsers.value.map((u) => {
     const role = primaryRole(u) ?? ''
     return [
       getFullName(u),
@@ -235,7 +258,7 @@ async function submitAssignRole() {
   const roleLabel = assignableRoles.value.find(r => r.id === roleToAssign.value)?.name ?? 'updated'
   assignRoleLoading.value = true
   try {
-    await usersStore.assignUserRole(userForRole.value.id, roleToAssign.value)
+    await usersStore.setUserPrimaryRole(userForRole.value.id, roleToAssign.value)
     notifications.success({
       title: 'Role updated',
       description: `${getFullName(userForRole.value)} is now ${roleLabel}.`
@@ -270,37 +293,35 @@ onUnmounted(() => {
           type="button"
           :class="[
             'rounded-full px-4 py-2 text-xs font-bold transition-colors',
-            tab === 'all'
+            activeRole === ''
               ? 'bg-primary-500 text-white shadow-sm'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
           ]"
-          @click="emit('tab-select', 'all')"
+          @click="emit('role-select', '')"
         >
           All users
         </button>
         <button
+          v-if="rolesLoading && roleButtons.length === 0"
           type="button"
-          :class="[
-            'rounded-full px-4 py-2 text-xs font-bold transition-colors',
-            tab === 'organizers'
-              ? 'bg-primary-500 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-          ]"
-          @click="emit('tab-select', 'organizers')"
+          disabled
+          class="rounded-full px-4 py-2 text-xs font-bold text-slate-400 shadow-sm opacity-70 dark:text-slate-400"
         >
-          Organizers
+          Loading roles…
         </button>
         <button
+          v-for="role in roleButtons"
+          :key="role"
           type="button"
           :class="[
             'rounded-full px-4 py-2 text-xs font-bold transition-colors',
-            tab === 'attendees'
+            activeRole === role
               ? 'bg-primary-500 text-white shadow-sm'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
           ]"
-          @click="emit('tab-select', 'attendees')"
+          @click="emit('role-select', role)"
         >
-          Attendees
+          {{ role }}
         </button>
       </div>
       <div class="flex flex-wrap items-center gap-2">
@@ -406,7 +427,7 @@ onUnmounted(() => {
               </div>
             </td>
           </tr>
-          <tr v-else-if="users.length === 0">
+          <tr v-else-if="visibleUsers.length === 0">
             <td
               colspan="5"
               class="px-5 py-16"
@@ -433,13 +454,13 @@ onUnmounted(() => {
                   No users found
                 </p>
                 <p class="mt-1 text-sm text-slate-500">
-                  Try another tab, status filter, or search.
+                  Try another role, status filter, or search.
                 </p>
               </div>
             </td>
           </tr>
           <tr
-            v-for="(u, index) in users"
+            v-for="(u, index) in visibleUsers"
             v-else
             :key="u.id"
             :class="[
@@ -685,37 +706,41 @@ onUnmounted(() => {
         >
           <div>
             <label
-              for="admin-user-role"
               class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400"
             >Role</label>
-            <select
-              id="admin-user-role"
-              v-model="roleToAssign"
-              class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              :disabled="rolesLoading || assignableRoles.length === 0"
+            <div
+              :class="[
+                'flex flex-wrap gap-2',
+                rolesLoading ? 'opacity-70' : ''
+              ]"
             >
-              <option
-                v-if="rolesLoading"
-                value=""
-                disabled
-              >
-                Loading roles…
-              </option>
-              <option
-                v-else-if="assignableRoles.length === 0"
-                value=""
-                disabled
-              >
-                No roles available
-              </option>
-              <option
+              <button
                 v-for="r in assignableRoles"
                 :key="r.id"
-                :value="r.id"
+                type="button"
+                class="flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap"
+                :class="roleToAssign === r.id
+                  ? 'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-400 dark:bg-primary-950/50 dark:text-primary-300'
+                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600'
+                "
+                :disabled="rolesLoading"
+                @click="roleToAssign = r.id"
               >
                 {{ r.name }}
-              </option>
-            </select>
+              </button>
+            </div>
+            <p
+              v-if="rolesLoading"
+              class="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400"
+            >
+              Loading roles…
+            </p>
+            <p
+              v-else-if="assignableRoles.length === 0"
+              class="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400"
+            >
+              No roles available
+            </p>
           </div>
           <div class="flex flex-wrap justify-end gap-2 pt-2">
             <button

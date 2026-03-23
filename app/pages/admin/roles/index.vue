@@ -1,219 +1,200 @@
 <script setup lang="ts">
-import type { User, UserRole, UserStatus, PaginatedResponse } from '~/types'
-import { getFullName } from '~/types'
 
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
 })
 
-const usersStore = useUsersStore()
-const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirmDialog()
-const notifications = useNotifications()
 const api = useApi()
+const notifications = useNotifications()
 const adminHeaderSearch = useState<string>('adminHeaderSearch', () => '')
+const { confirm, isOpen, options, handleConfirm, handleCancel } = useConfirmDialog()
+
+type RoleStatus = 'active' | 'inactive' | 'pending' | string
+
+interface RoleRow {
+  id: string
+  name: string
+  description?: string | null
+  status?: RoleStatus | boolean | null
+  permissions?: string[] | null
+  user_count?: number | null
+  users_count?: number | null
+  members_count?: number | null
+}
+
+type PaginationState = {
+  total: number
+  page: number
+  per_page: number
+  last_page: number
+}
+
+const roles = ref<RoleRow[]>([])
+const rolesLoading = ref(false)
+
+const pagination = ref<PaginationState>({
+  total: 0,
+  page: 1,
+  per_page: 10,
+  last_page: 1
+})
 
 const searchQuery = ref('')
-const selectedRole = ref<UserRole | ''>('')
-const selectedStatus = ref<UserStatus | ''>('')
-const tab = ref<'all' | 'organizers' | 'attendees'>('all')
-const deleteLoading = ref(false)
-const userToDelete = ref<User | null>(null)
+
 const openActionMenuId = ref<string | null>(null)
-const chartRange = ref<'30d' | '90d'>('30d')
-
-const directoryStats = ref({
-  totalUsers: 0,
-  activeNow: 0,
-  pendingVerification: 0,
-  organizerCount: 0,
-  attendeeCount: 0
-})
-const statsLoading = ref(false)
-
-/** Mock heights for registration velocity bars (last 30 slots). */
-const velocityHeights = [40, 52, 38, 65, 48, 72, 55, 44, 68, 50, 58, 42, 75, 60, 48, 55, 70, 45, 62, 50, 58, 66, 44, 78, 52, 60, 48, 55, 50, 82]
-
-async function loadDirectoryStats() {
-  statsLoading.value = true
-  try {
-    const [allRes, activeRes, pendingRes, orgRes, attRes] = await Promise.all([
-      api.get<PaginatedResponse<User>>('/users/?page=1&per_page=1'),
-      api.get<PaginatedResponse<User>>('/users/?page=1&per_page=1&status=active'),
-      api.get<PaginatedResponse<User>>('/users/?page=1&per_page=1&status=pending'),
-      api.get<PaginatedResponse<User>>('/users/?page=1&per_page=1&role=Organizer'),
-      api.get<PaginatedResponse<User>>('/users/?page=1&per_page=1&role=Attendee')
-    ])
-    directoryStats.value = {
-      totalUsers: allRes.meta?.total ?? 0,
-      activeNow: activeRes.meta?.total ?? 0,
-      pendingVerification: pendingRes.meta?.total ?? 0,
-      organizerCount: orgRes.meta?.total ?? 0,
-      attendeeCount: attRes.meta?.total ?? 0
-    }
-  }
-  catch {
-    /* keep zeros */
-  }
-  finally {
-    statsLoading.value = false
-  }
-}
-
-const organizerSharePercent = computed(() => {
-  const o = directoryStats.value.organizerCount
-  const a = directoryStats.value.attendeeCount
-  const sum = o + a
-  if (sum === 0) return 6
-  return Math.round((o / sum) * 1000) / 10
-})
-
-const ratioLabel = computed(() => {
-  const o = directoryStats.value.organizerCount
-  const a = directoryStats.value.attendeeCount
-  if (o <= 0) return '1:15'
-  const r = Math.max(1, Math.round(a / o))
-  return `1:${r}`
-})
-
-async function loadUsers() {
-  await usersStore.fetchUsers({
-    role: selectedRole.value || undefined,
-    status: selectedStatus.value || undefined,
-    search: searchQuery.value || undefined
-  })
-}
-
-function setTab(t: 'all' | 'organizers' | 'attendees') {
-  tab.value = t
-  if (t === 'all') selectedRole.value = ''
-  else if (t === 'organizers') selectedRole.value = 'Organizer'
-  else selectedRole.value = 'Attendee'
-  usersStore.setPage(1)
-  loadUsers()
-}
-
-function formatJoined(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    year: 'numeric'
-  })
-}
-
-function displayUserId(user: User): string {
-  const compact = user.id.replace(/-/g, '').slice(0, 4).toUpperCase()
-  return `EH-${compact}`
-}
-
-function primaryRole(user: User): UserRole | null {
-  const r = user.primary_role?.name
-  if (r === 'Admin' || r === 'Organizer' || r === 'Attendee') return r
-  return null
-}
-
-function statusDisplay(user: User): { label: string; dot: string; pill: string } {
-  if (user.status === 'suspended') {
-    return {
-      label: 'Blocked',
-      dot: 'bg-rose-500',
-      pill: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
-    }
-  }
-  if (user.status === 'active') {
-    return {
-      label: 'Active',
-      dot: 'bg-emerald-500',
-      pill: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-    }
-  }
-  if (user.status === 'pending') {
-    return {
-      label: 'Pending',
-      dot: 'bg-amber-500',
-      pill: 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200'
-    }
-  }
-  return {
-    label: user.status,
-    dot: 'bg-slate-400',
-    pill: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-  }
-}
-
-function rolePillClass(role: UserRole | null): string {
-  if (role === 'Organizer') {
-    return 'bg-primary-50 text-primary-700 ring-1 ring-primary-100 dark:bg-primary-950/40 dark:text-primary-300 dark:ring-primary-900'
-  }
-  if (role === 'Admin') {
-    return 'bg-violet-50 text-violet-700 ring-1 ring-violet-100 dark:bg-violet-950/40 dark:text-violet-300 dark:ring-violet-900'
-  }
-  return 'bg-sky-50 text-sky-800 ring-1 ring-sky-100 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900'
-}
-
-async function handleDeleteUser(user: User) {
+function closeActionMenu() {
   openActionMenuId.value = null
-  userToDelete.value = user
-  const confirmed = await confirm({
-    title: 'Delete User',
-    message: `Are you sure you want to delete ${getFullName(user)}? This action cannot be undone.`,
-    confirmText: 'Delete',
-    variant: 'danger'
-  })
+}
 
-  if (confirmed && userToDelete.value) {
-    deleteLoading.value = true
-    try {
-      await usersStore.deleteUser(userToDelete.value.id)
-      notifications.success({ title: 'User removed', description: `${getFullName(user)} was deleted.` })
-      await Promise.all([loadUsers(), loadDirectoryStats()])
-    }
-    catch {
-      notifications.error({ title: 'Delete failed' })
-    }
-    finally {
-      deleteLoading.value = false
-      userToDelete.value = null
-    }
+function safeString(v: unknown): string {
+  return v == null ? '' : String(v)
+}
+
+function safeNumber(v: unknown): number {
+  const n = typeof v === 'number' ? v : Number(v)
+  return Number.isFinite(n) ? n : 0
+}
+
+function normalizeRole(row: unknown): RoleRow | null {
+  if (!row || typeof row !== 'object') return null
+  const o = row as Record<string, unknown>
+
+  const idRaw = o.id ?? o.role_id ?? o.uuid
+  const nameRaw = o.name ?? o.title ?? o.label
+
+  const id = idRaw != null ? String(idRaw) : ''
+  const name = nameRaw != null ? String(nameRaw) : ''
+  if (!id || !name) return null
+
+  const perms = o.permissions ?? o.permissions_list ?? o.permission_clusters ?? o.permission_tags
+  const permissions = Array.isArray(perms) ? perms.map(String) : null
+
+  const status = (o.status ?? o.is_active ?? o.state ?? null) as RoleRow['status']
+  const descriptionRaw = o.description ?? o.details ?? o.summary
+  const description = descriptionRaw == null ? null : safeString(descriptionRaw) || null
+  const userCountRaw = o.user_count ?? o.users_count
+  const user_count = userCountRaw == null ? null : safeNumber(userCountRaw)
+  const users_count = o.users_count == null ? null : safeNumber(o.users_count)
+  const members_count = o.members_count == null ? null : safeNumber(o.members_count)
+
+  return {
+    id,
+    name,
+    description,
+    status,
+    permissions,
+    user_count,
+    users_count,
+    members_count
   }
 }
 
-function exportCsv() {
-  const headers = ['Name', 'Email', 'Role', 'Status', 'Joined']
-  const rows = usersStore.users.map((u) => {
-    const role = u.primary_role?.name ?? ''
-    return [
-      getFullName(u),
-      u.email,
-      role,
-      u.status,
-      new Date(u.created_at).toISOString()
-    ]
-  })
-  const escape = (cell: string) => `"${String(cell).replace(/"/g, '""')}"`
-  const csv = [headers.join(','), ...rows.map(r => r.map(escape).join(','))].join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `users-export-${new Date().toISOString().slice(0, 10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-  notifications.success({ title: 'Export started', description: 'Your CSV download should begin shortly.' })
-}
-
-function goToPendingReviews() {
-  tab.value = 'all'
-  selectedRole.value = ''
-  selectedStatus.value = 'pending'
-  usersStore.setPage(1)
-  loadUsers()
-}
-
-function visiblePages(current: number, last: number): (number | 'ellipsis')[] {
-  if (last <= 1) return [1]
-  if (last <= 7) {
-    return Array.from({ length: last }, (_, i) => i + 1)
+function normalizeRolesResponse(res: unknown): { items: RoleRow[]; total: number; page: number; last_page: number } {
+  if (Array.isArray(res)) {
+    const items = res.map(normalizeRole).filter((r): r is RoleRow => r != null)
+    return { items, total: items.length, page: 1, last_page: 1 }
   }
+
+  if (res && typeof res === 'object' && 'data' in res && 'meta' in res) {
+    const data = (res as { data: unknown }).data
+    const meta = (res as { meta: any }).meta
+    const items = Array.isArray(data) ? data.map(normalizeRole).filter((r): r is RoleRow => r != null) : []
+    return {
+      items,
+      total: safeNumber(meta?.total),
+      page: safeNumber(meta?.page) || 1,
+      last_page: safeNumber(meta?.last_page) || 1
+    }
+  }
+
+  // Fallback for unexpected API shapes
+  const items: RoleRow[] = []
+  return { items, total: 0, page: 1, last_page: 1 }
+}
+
+function formatCompactCount(n: number): string {
+  const safe = Math.max(0, Math.floor(n))
+  return safe < 10 ? `0${safe}` : String(safe)
+}
+
+function roleInitials(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean)
+  const letters = words.slice(0, 2).map(w => w[0]?.toUpperCase()).filter(Boolean)
+  const out = letters.join('')
+  return out || name.slice(0, 2).toUpperCase()
+}
+
+function getRoleUsersCount(r: RoleRow): number {
+  // Try a few common fields, but never crash if absent.
+  return (
+    safeNumber(r.user_count) ||
+    safeNumber(r.users_count) ||
+    safeNumber(r.members_count)
+  )
+}
+
+function normalizeStatus(status: RoleRow['status']): { kind: 'active' | 'inactive' | 'pending'; label: string } {
+  if (typeof status === 'boolean') {
+    return { kind: status ? 'active' : 'inactive', label: status ? 'Active' : 'Inactive' }
+  }
+  const s = safeString(status).toLowerCase()
+  if (s.includes('pending')) return { kind: 'pending', label: 'Pending' }
+  if (s.includes('inactive') || s.includes('disabled')) return { kind: 'inactive', label: 'Inactive' }
+  if (s.includes('active')) return { kind: 'active', label: 'Active' }
+  // Default: most restrictive state is "inactive"
+  return { kind: 'inactive', label: 'Inactive' }
+}
+
+function statusDotClass(kind: ReturnType<typeof normalizeStatus>['kind']): string {
+  if (kind === 'active') return 'bg-emerald-500'
+  if (kind === 'pending') return 'bg-amber-500'
+  return 'bg-slate-400'
+}
+
+function statusPillClass(kind: ReturnType<typeof normalizeStatus>['kind']): string {
+  if (kind === 'active') return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+  if (kind === 'pending') return 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200'
+  return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+}
+
+function prettifyPermission(p: string): string {
+  const cleaned = p
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .trim()
+  if (!cleaned) return p
+  return cleaned
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function getPermissionTags(r: RoleRow): string[] {
+  const perms = Array.isArray(r.permissions) ? r.permissions.filter(Boolean) : []
+  if (perms.length > 0) {
+    const first = perms.slice(0, 2).map(prettifyPermission)
+    const remaining = perms.length - first.length
+    if (remaining > 0) first.push(`+${remaining} more`)
+    return first
+  }
+
+  const name = r.name.toLowerCase()
+  if (name.includes('admin')) return ['All Access', 'Root']
+  if (name.includes('organizer') || name.includes('moderator')) return ['Approve Events', 'Ban Users', '+2 more']
+  if (name.includes('support')) return ['Read User Data', 'Ticketing']
+  if (name.includes('financial') || name.includes('auditor')) return ['View Revenue', 'Export CSV']
+
+  return ['Read Access', 'Write Access']
+}
+
+const pagesToShow = computed(() => {
+  const current = pagination.value.page
+  const last = pagination.value.last_page
+  if (last <= 1) return [1] as (number | 'ellipsis')[]
+  if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1)
+
   const pages: (number | 'ellipsis')[] = []
   const push = (p: number | 'ellipsis') => {
     if (pages.length && pages[pages.length - 1] === p && p === 'ellipsis') return
@@ -221,665 +202,653 @@ function visiblePages(current: number, last: number): (number | 'ellipsis')[] {
   }
   push(1)
   if (current > 3) push('ellipsis')
-  for (let i = Math.max(2, current - 1); i <= Math.min(last - 1, current + 1); i++) {
-    push(i)
-  }
+  for (let i = Math.max(2, current - 1); i <= Math.min(last - 1, current + 1); i++) push(i)
   if (current < last - 2) push('ellipsis')
   push(last)
   return pages
-}
-
-watch(adminHeaderSearch, useDebounceFn((q) => {
-  if (searchQuery.value === q) return
-  searchQuery.value = q
-  usersStore.setPage(1)
-  loadUsers()
-}, 350))
-
-watch(searchQuery, (q) => {
-  if (adminHeaderSearch.value !== q) {
-    adminHeaderSearch.value = q
-  }
 })
 
-function closeActionMenu() {
+const paginationFrom = computed(() => {
+  const total = pagination.value.total
+  if (total === 0) return 0
+  return (pagination.value.page - 1) * pagination.value.per_page + 1
+})
+
+const paginationTo = computed(() => {
+  const { page, per_page, total } = pagination.value
+  return Math.min(page * per_page, total)
+})
+
+async function loadRoles() {
+  rolesLoading.value = true
+  try {
+    const params = new URLSearchParams()
+    params.append('page', String(pagination.value.page))
+    params.append('per_page', String(pagination.value.per_page))
+    if (searchQuery.value) params.append('search', searchQuery.value)
+
+    const res = await api.get<unknown>(`/roles/?${params.toString()}`, {
+      suppressErrorToast: true
+    })
+
+    const normalized = normalizeRolesResponse(res)
+    roles.value = normalized.items
+    pagination.value.total = normalized.total
+    pagination.value.page = normalized.page
+    pagination.value.last_page = normalized.last_page
+  }
+  catch {
+    roles.value = []
+    pagination.value.total = 0
+    pagination.value.page = 1
+    pagination.value.last_page = 1
+  }
+  finally {
+    rolesLoading.value = false
+  }
+}
+
+function moveToPage(p: number) {
+  pagination.value.page = p
+  loadRoles()
+}
+
+watch(
+  adminHeaderSearch,
+  useDebounceFn((q) => {
+    if (searchQuery.value === q) return
+    searchQuery.value = q
+    pagination.value.page = 1
+    loadRoles()
+  }, 350)
+)
+
+watch(searchQuery, (q) => {
+  if (adminHeaderSearch.value !== q) adminHeaderSearch.value = q
+})
+
+// --- Create/Edit modal ---
+const roleModalOpen = ref(false)
+type RoleModalMode = 'create' | 'edit'
+const roleModalMode = ref<RoleModalMode>('create')
+const roleModalLoading = ref(false)
+
+const roleForm = reactive({
+  name: '',
+  description: '',
+  status: 'active' as RoleStatus
+})
+
+const roleForEdit = ref<RoleRow | null>(null)
+
+function resetRoleForm() {
+  roleForm.name = ''
+  roleForm.description = ''
+  roleForm.status = 'active'
+  roleForEdit.value = null
+}
+
+function openCreateRole() {
+  roleModalMode.value = 'create'
+  resetRoleForm()
+  roleModalOpen.value = true
+}
+
+function openEditRole(r: RoleRow) {
+  roleModalMode.value = 'edit'
+  roleForEdit.value = r
+  roleForm.name = r.name
+  roleForm.description = safeString(r.description)
+  roleForm.status = (typeof r.status === 'string' ? r.status : normalizeStatus(r.status).kind) as RoleStatus
+  roleModalOpen.value = true
+}
+
+async function submitRole() {
+  const name = roleForm.name.trim()
+  if (!name) {
+    notifications.error({ title: 'Role name is required' })
+    return
+  }
+
+  roleModalLoading.value = true
+  try {
+    if (roleModalMode.value === 'create') {
+      await api.post('/roles/', {
+        name,
+        description: roleForm.description.trim() || undefined,
+        status: roleForm.status
+      }, { suppressErrorToast: false })
+      notifications.success({ title: 'Role created' })
+    }
+    else if (roleModalMode.value === 'edit' && roleForEdit.value) {
+      await api.patch(`/roles/${roleForEdit.value.id}`, {
+        name,
+        description: roleForm.description.trim() || undefined,
+        status: roleForm.status
+      }, { suppressErrorToast: false })
+      notifications.success({ title: 'Role updated' })
+    }
+
+    roleModalOpen.value = false
+    resetRoleForm()
+    await loadRoles()
+  }
+  catch {
+    notifications.error({ title: 'Could not save role' })
+  }
+  finally {
+    roleModalLoading.value = false
+  }
+}
+
+// --- Delete ---
+const deleteLoading = ref(false)
+const roleToDelete = ref<RoleRow | null>(null)
+
+async function handleDeleteRole(r: RoleRow) {
   openActionMenuId.value = null
+  roleToDelete.value = r
+
+  const ok = await confirm({
+    title: 'Delete Role',
+    message: `Are you sure you want to delete "${r.name}"? This action cannot be undone.`,
+    confirmText: 'Delete',
+    variant: 'danger'
+  })
+
+  if (!ok || !roleToDelete.value) return
+  deleteLoading.value = true
+  try {
+    await api.delete(`/roles/${roleToDelete.value.id}`, { suppressErrorToast: false })
+    notifications.success({ title: 'Role deleted' })
+    await loadRoles()
+  }
+  catch {
+    notifications.error({ title: 'Delete failed' })
+  }
+  finally {
+    deleteLoading.value = false
+    roleToDelete.value = null
+  }
+}
+
+// --- Stats ---
+const stats = computed(() => {
+  const totalRoles = pagination.value.total || roles.value.length
+  const active = roles.value.filter(r => normalizeStatus(r.status).kind === 'active').length
+  const pending = roles.value.filter(r => normalizeStatus(r.status).kind === 'pending').length
+  return { totalRoles, active, pending }
+})
+
+function dummyFilter() {
+  notifications.info({ title: 'Filter coming soon', description: 'This action is UI-only for now.' })
+}
+
+function helpInfo() {
+  notifications.info({
+    title: 'Role management',
+    description: 'Use the table actions to edit/delete roles. Create new roles with the CTA on the right.'
+  })
 }
 
 onMounted(() => {
-  loadDirectoryStats()
+  window.addEventListener('click', closeActionMenu)
+  loadRoles()
+
   if (adminHeaderSearch.value) {
     searchQuery.value = adminHeaderSearch.value
   }
-  loadUsers()
-  window.addEventListener('click', closeActionMenu)
 })
 
 onUnmounted(() => {
   window.removeEventListener('click', closeActionMenu)
 })
-
-const paginationFrom = computed(() => {
-  const { page, per_page, total } = usersStore.pagination
-  if (total === 0) return 0
-  return (page - 1) * per_page + 1
-})
-
-const paginationTo = computed(() => {
-  const { page, per_page, total } = usersStore.pagination
-  return Math.min(page * per_page, total)
-})
-
-const pagesToShow = computed(() =>
-    visiblePages(usersStore.pagination.page, usersStore.pagination.last_page)
-)
 </script>
 
 <template>
-  <div class="space-y-8 pb-8">
-    <!-- Metric cards -->
-    <div class="grid gap-4 sm:grid-cols-3">
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <p class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Total users
-        </p>
-        <div class="mt-2 flex items-end justify-between gap-3">
-          <p
-              v-if="statsLoading"
-              class="text-3xl font-bold text-slate-200 dark:text-slate-700"
-          >
-            —
-          </p>
-          <p
-              v-else
-              class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
-          >
-            {{ directoryStats.totalUsers.toLocaleString() }}
-          </p>
-          <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-            +12%
-          </span>
-        </div>
-      </div>
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <p class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Active now
-        </p>
-        <div class="mt-2 flex items-end justify-between gap-3">
-          <p
-              v-if="statsLoading"
-              class="text-3xl font-bold text-slate-200 dark:text-slate-700"
-          >
-            —
-          </p>
-          <p
-              v-else
-              class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
-          >
-            {{ directoryStats.activeNow.toLocaleString() }}
-          </p>
-          <span class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-            <span class="h-2 w-2 rounded-full bg-emerald-500" />
-            Live
-          </span>
-        </div>
-      </div>
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <p class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Pending verification
-        </p>
-        <div class="mt-2 flex items-end justify-between gap-3">
-          <p
-              v-if="statsLoading"
-              class="text-3xl font-bold text-slate-200 dark:text-slate-700"
-          >
-            —
-          </p>
-          <p
-              v-else
-              class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
-          >
-            {{ directoryStats.pendingVerification.toLocaleString() }}
-          </p>
-          <button
-              type="button"
-              class="text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400"
-              @click="goToPendingReviews"
-          >
-            Review all
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Title + add -->
+  <div class="space-y-10 pb-10">
+    <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-          User directory
+        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          Role Management
         </h1>
-        <p class="mt-1 max-w-2xl text-sm font-medium text-slate-500 dark:text-slate-400">
-          Manage platform participants, organizers, and their access levels.
+        <p class="mt-1 max-w-xl text-sm font-medium text-slate-600 dark:text-slate-400">
+          Define and control access levels across the platform.
         </p>
       </div>
-      <NuxtLink
-          to="/admin/users/create"
-          class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-primary-500/25 transition hover:bg-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/25 transition hover:bg-primary-600 active:scale-95"
+        @click="openCreateRole"
       >
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-        >
-          <path d="M5 12h14" />
-          <path d="M12 5v14" />
-        </svg>
-        Add user
-      </NuxtLink>
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        Create New Role
+      </button>
     </div>
 
-    <!-- Table card -->
-    <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div class="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-wrap gap-2">
-          <button
-              type="button"
-              :class="[
-              'rounded-full px-4 py-2 text-xs font-bold transition-colors',
-              tab === 'all'
-                ? 'bg-primary-500 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-            ]"
-              @click="setTab('all')"
-          >
-            All users
-          </button>
-          <button
-              type="button"
-              :class="[
-              'rounded-full px-4 py-2 text-xs font-bold transition-colors',
-              tab === 'organizers'
-                ? 'bg-primary-500 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-            ]"
-              @click="setTab('organizers')"
-          >
-            Organizers
-          </button>
-          <button
-              type="button"
-              :class="[
-              'rounded-full px-4 py-2 text-xs font-bold transition-colors',
-              tab === 'attendees'
-                ? 'bg-primary-500 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-            ]"
-              @click="setTab('attendees')"
-          >
-            Attendees
-          </button>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <label class="sr-only">Filter by status</label>
-          <div class="relative">
-            <select
-                v-model="selectedStatus"
-                class="appearance-none rounded-xl border border-slate-200 bg-sky-50/80 py-2 pl-3 pr-9 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                @change="usersStore.setPage(1); loadUsers()"
-            >
-              <option value="">
-                Status: All
-              </option>
-              <option value="active">
-                Status: Active
-              </option>
-              <option value="pending">
-                Status: Pending
-              </option>
-              <option value="inactive">
-                Status: Inactive
-              </option>
-              <option value="suspended">
-                Status: Suspended
-              </option>
-            </select>
-            <svg
-                class="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
+    <!-- Metric cards -->
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div class="rounded-[1.75rem] border border-primary-500/10 bg-white p-6 shadow-sm dark:bg-slate-900">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Total Roles
+            </p>
+            <p class="mt-1 text-3xl font-black text-slate-900 dark:text-white">
+              {{ formatCompactCount(stats.totalRoles) }}
+            </p>
           </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-600">
+            <AppLucideIcon name="i-lucide-shield" :size="22" class="text-primary-600" />
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-[1.75rem] border border-tertiary/20 bg-white p-6 shadow-sm dark:bg-slate-900">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Active Admins
+            </p>
+            <p class="mt-1 text-3xl font-black text-slate-900 dark:text-white">
+              {{ formatCompactCount(stats.active) }}
+            </p>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-tertiary/10 text-tertiary">
+            <AppLucideIcon name="i-lucide-shield-check" :size="22" class="text-tertiary" />
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-[1.75rem] border border-secondary/20 bg-white p-6 shadow-sm dark:bg-slate-900">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Pending Requests
+            </p>
+            <p class="mt-1 text-3xl font-black text-slate-900 dark:text-white">
+              {{ formatCompactCount(stats.pending) }}
+            </p>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+            <AppLucideIcon name="i-lucide-clock" :size="22" class="text-secondary" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roles table -->
+    <section class="overflow-hidden rounded-[2.5rem] bg-white shadow-sm dark:bg-slate-900">
+      <div class="flex items-center justify-between gap-3 border-b border-slate-200/60 bg-white/60 px-8 py-6">
+        <h2 class="flex items-center gap-3 text-lg font-extrabold text-slate-900">
+          <span class="h-2 w-2 rounded-full bg-primary-500" />
+          Access Control List
+        </h2>
+        <div class="flex items-center gap-2">
           <button
-              type="button"
-              class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-              @click="exportCsv"
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-primary-500 hover:text-white"
+            title="Filter"
+            @click="dummyFilter"
           >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line
-                  x1="12"
-                  x2="12"
-                  y1="15"
-                  y2="3"
-              />
-            </svg>
-            Export
+            <span class="material-symbols-outlined text-base">filter_list</span>
+          </button>
+          <button
+            type="button"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition hover:bg-primary-500 hover:text-white"
+            title="More"
+            @click="dummyFilter"
+          >
+            <span class="material-symbols-outlined text-base">more_vert</span>
           </button>
         </div>
       </div>
 
       <div class="overflow-x-auto">
-        <table class="min-w-[900px] w-full border-collapse text-left">
+        <table class="min-w-[980px] w-full border-collapse text-left">
           <thead>
-          <tr class="bg-slate-50/90 dark:bg-slate-800/50">
-            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              User
-            </th>
-            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Contact
-            </th>
-            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Role
-            </th>
-            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Status
-            </th>
-            <th class="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Actions
-            </th>
-          </tr>
+            <tr class="border-y border-slate-200/70 bg-slate-50/60 text-left dark:border-slate-800">
+              <th class="px-8 py-4 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                Role &amp; Description
+              </th>
+              <th class="px-8 py-4 text-[11px] font-black uppercase tracking-widest text-slate-500 text-center">
+                Users
+              </th>
+              <th class="px-8 py-4 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                Permissions Cluster
+              </th>
+              <th class="px-8 py-4 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                Status
+              </th>
+              <th class="px-8 py-4 text-[11px] font-black uppercase tracking-widest text-slate-500 text-right">
+                Actions
+              </th>
+            </tr>
           </thead>
-          <tbody>
-          <tr v-if="usersStore.loading">
-            <td
-                colspan="5"
-                class="px-5 py-16"
-            >
-              <div class="flex flex-col items-center justify-center gap-3">
-                <div
+          <tbody class="divide-y divide-slate-200/60 dark:divide-slate-800">
+            <tr v-if="rolesLoading">
+              <td colspan="5" class="px-8 py-16">
+                <div class="flex flex-col items-center justify-center gap-3">
+                  <div
                     class="h-10 w-10 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"
                     role="status"
                     aria-label="Loading"
-                />
-                <p class="text-sm font-medium text-slate-500">
-                  Loading users…
-                </p>
-              </div>
-            </td>
-          </tr>
-          <tr v-else-if="usersStore.users.length === 0">
-            <td
-                colspan="5"
-                class="px-5 py-16"
-            >
-              <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-800/30">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="mb-3 h-10 w-10 text-slate-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle
-                      cx="9"
-                      cy="7"
-                      r="4"
                   />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                <p class="font-bold text-slate-900 dark:text-white">
-                  No users found
-                </p>
-                <p class="mt-1 text-sm text-slate-500">
-                  Try another tab, status filter, or search.
-                </p>
-              </div>
-            </td>
-          </tr>
-          <tr
-              v-for="(u, index) in usersStore.users"
+                  <p class="text-sm font-medium text-slate-500">Loading roles…</p>
+                </div>
+              </td>
+            </tr>
+
+            <tr v-else-if="roles.length === 0">
+              <td colspan="5" class="px-8 py-16">
+                <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-8 py-12 text-center dark:border-slate-700 dark:bg-slate-800/30">
+                  <span class="material-symbols-outlined text-5xl text-slate-400">admin_panel_settings</span>
+                  <p class="mt-3 font-bold text-slate-900 dark:text-white">No roles found</p>
+                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Try adjusting your search or try again.</p>
+                </div>
+              </td>
+            </tr>
+
+            <tr
+              v-for="r in roles"
               v-else
-              :key="u.id"
-              :class="[
-                'border-t border-slate-100 dark:border-slate-800',
-                index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/40 dark:bg-slate-900/80'
-              ]"
-          >
-            <td class="px-5 py-4 align-middle">
-              <div class="flex items-center gap-3">
-                <img
-                    v-if="u.avatar"
-                    :src="u.avatar"
-                    :alt="getFullName(u)"
-                    class="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
-                >
-                <div
-                    v-else
-                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700 dark:bg-primary-950/50 dark:text-primary-300"
-                >
-                  {{ (u.first_name?.[0] || '') + (u.last_name?.[0] || '?') }}
+              :key="r.id"
+              class="group transition-colors hover:bg-primary/[0.02]"
+            >
+              <td class="px-8 py-6 align-middle">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 font-bold transition group-hover:bg-primary group-hover:text-white"
+                  >
+                    {{ roleInitials(r.name) }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 dark:text-white">
+                      {{ r.name }}
+                    </p>
+                    <p class="max-w-[320px] truncate text-xs text-slate-500 dark:text-slate-400">
+                      {{ safeString(r.description) || '—' }}
+                    </p>
+                  </div>
                 </div>
-                <div class="min-w-0">
-                  <p class="font-bold text-slate-900 dark:text-white">
-                    {{ getFullName(u) }}
-                  </p>
-                  <p class="text-xs font-medium text-slate-400">
-                    ID: {{ displayUserId(u) }}
-                  </p>
-                </div>
-              </div>
-            </td>
-            <td class="px-5 py-4 align-middle">
-              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                {{ u.email }}
-              </p>
-              <p class="text-xs font-medium text-slate-400">
-                Joined {{ formatJoined(u.created_at) }}
-              </p>
-            </td>
-            <td class="px-5 py-4 align-middle">
-                <span
-                    v-if="primaryRole(u)"
-                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
-                    :class="rolePillClass(primaryRole(u))"
-                >
-                  <svg
-                      v-if="primaryRole(u) === 'Organizer'"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-3.5 w-3.5"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden="true"
-                  >
-                    <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.3 7-6-4.6-6 4.6 2.3-7-6-4.8h7.6z" />
-                  </svg>
-                  <svg
-                      v-else-if="primaryRole(u) === 'Attendee'"
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-3.5 w-3.5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      aria-hidden="true"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle
-                        cx="12"
-                        cy="7"
-                        r="4"
-                    />
-                  </svg>
-                  <svg
-                      v-else
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-3.5 w-3.5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      aria-hidden="true"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-                  </svg>
-                  {{ primaryRole(u) }}
+              </td>
+
+              <td class="px-8 py-6 text-center align-middle">
+                <span class="inline-flex items-center justify-center rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-primary-700 dark:bg-slate-800 dark:text-primary-300">
+                  {{ formatCompactCount(getRoleUsersCount(r)) }}
                 </span>
-              <span
-                  v-else
-                  class="text-xs font-medium text-slate-400"
-              >—</span>
-            </td>
-            <td class="px-5 py-4 align-middle">
-                <span
-                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
-                    :class="statusDisplay(u).pill"
-                >
+              </td>
+
+              <td class="px-8 py-6 align-middle">
+                <div class="flex flex-wrap gap-1.5 max-w-[360px]">
                   <span
-                      class="h-1.5 w-1.5 shrink-0 rounded-full"
-                      :class="statusDisplay(u).dot"
-                  />
-                  {{ statusDisplay(u).label }}
+                    v-for="tag in getPermissionTags(r)"
+                    :key="tag"
+                    class="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-700 dark:bg-primary-950/40 dark:text-primary-300"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+              </td>
+
+              <td class="px-8 py-6 align-middle">
+                <span
+                  class="inline-flex items-center gap-1.5 text-xs font-bold"
+                  :class="statusPillClass(normalizeStatus(r.status).kind)"
+                >
+                  <span class="h-1.5 w-1.5 rounded-full" :class="statusDotClass(normalizeStatus(r.status).kind)" />
+                  {{ normalizeStatus(r.status).label }}
                 </span>
-            </td>
-            <td class="px-5 py-4 align-middle text-right">
-              <div class="relative inline-flex justify-end">
-                <button
-                    type="button"
-                    class="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
-                    :aria-expanded="openActionMenuId === u.id"
-                    aria-label="Open actions"
-                    @click.stop="openActionMenuId = openActionMenuId === u.id ? null : u.id"
-                >
-                  <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden="true"
-                  >
-                    <circle
-                        cx="12"
-                        cy="5"
-                        r="2"
-                    />
-                    <circle
-                        cx="12"
-                        cy="12"
-                        r="2"
-                    />
-                    <circle
-                        cx="12"
-                        cy="19"
-                        r="2"
-                    />
-                  </svg>
-                </button>
-                <div
-                    v-if="openActionMenuId === u.id"
-                    class="absolute right-0 top-full z-[60] mt-1 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
-                    @click.stop
-                >
-                  <NuxtLink
-                      :to="`/admin/users/${u.id}`"
-                      class="block px-4 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                      @click="openActionMenuId = null"
-                  >
-                    View
-                  </NuxtLink>
-                  <NuxtLink
-                      :to="`/admin/users/${u.id}/edit`"
-                      class="block px-4 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                      @click="openActionMenuId = null"
-                  >
-                    Edit
-                  </NuxtLink>
+              </td>
+
+              <td class="px-8 py-6 text-right align-middle">
+                <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                      type="button"
-                      class="w-full px-4 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
-                      @click="handleDeleteUser(u)"
+                    type="button"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-primary-500 hover:text-white active:scale-95 transition"
+                    aria-label="Edit role"
+                    @click="openEditRole(r)"
                   >
-                    Delete
+                    <span class="material-symbols-outlined text-lg">edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-rose-500 hover:text-white active:scale-95 transition"
+                    aria-label="Delete role"
+                    :disabled="deleteLoading && roleToDelete?.id === r.id"
+                    @click="handleDeleteRole(r)"
+                  >
+                    <span class="material-symbols-outlined text-lg">delete</span>
                   </button>
                 </div>
-              </div>
-            </td>
-          </tr>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Showing {{ paginationFrom }}-{{ paginationTo }} of {{ usersStore.pagination.total.toLocaleString() }} users
+      <div class="flex flex-col gap-4 border-t border-slate-200/70 px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-xs font-medium text-slate-600">
+          Showing {{ paginationFrom }}-{{ paginationTo }} of {{ pagination.total }} roles
         </p>
-        <nav
-            v-if="usersStore.pagination.last_page > 1"
-            class="flex flex-wrap items-center justify-center gap-1"
-            aria-label="Pagination"
-        >
+        <div class="flex gap-2">
           <button
-              type="button"
-              class="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 enabled:hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
-              :disabled="usersStore.pagination.page <= 1"
-              @click="usersStore.setPage(usersStore.pagination.page - 1); loadUsers()"
+            type="button"
+            class="rounded-lg bg-white px-4 py-2 text-xs font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="pagination.page <= 1"
+            @click="moveToPage(pagination.page - 1)"
           >
-            ‹
+            Previous
           </button>
-          <template
-              v-for="(p, i) in pagesToShow"
-              :key="i"
-          >
-            <span
-                v-if="p === 'ellipsis'"
-                class="px-2 text-slate-400"
-            >…</span>
-            <button
-                v-else
-                type="button"
-                :class="[
-                'min-w-[2.25rem] rounded-lg px-2 py-1.5 text-sm font-bold transition',
-                p === usersStore.pagination.page
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
-              ]"
-                @click="usersStore.setPage(p); loadUsers()"
-            >
-              {{ p }}
-            </button>
-          </template>
           <button
-              type="button"
-              class="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 enabled:hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
-              :disabled="usersStore.pagination.page >= usersStore.pagination.last_page"
-              @click="usersStore.setPage(usersStore.pagination.page + 1); loadUsers()"
+            v-if="pagination.last_page > 1"
+            type="button"
+            class="rounded-lg bg-white px-4 py-2 text-xs font-bold shadow-sm hover:bg-primary-500 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="pagination.page >= pagination.last_page"
+            @click="moveToPage(pagination.page + 1)"
           >
-            ›
+            Next
           </button>
-        </nav>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Bottom widgets -->
-    <div class="grid gap-6 lg:grid-cols-5">
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-3">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <h2 class="text-lg font-bold text-slate-900 dark:text-white">
-            Registration velocity
-          </h2>
-          <label class="sr-only">Chart range</label>
-          <select
-              v-model="chartRange"
-              class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-          >
-            <option value="30d">
-              Last 30 days
-            </option>
-            <option value="90d">
-              Last 90 days
-            </option>
-          </select>
+    <!-- Permissions matrix preview -->
+    <section class="mt-2">
+      <h2 class="flex items-center gap-3 text-2xl font-extrabold text-slate-900 mb-6">
+        <span class="material-symbols-outlined text-primary-500">security_update_good</span>
+        Permissions Matrix Preview
+      </h2>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-4">
+        <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
+          <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500/15 text-primary-600">
+            <span class="material-symbols-outlined">public</span>
+          </div>
+          <h4 class="mb-3 font-bold text-slate-900 dark:text-white">Global Management</h4>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Manage System Config
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Edit Platform Brand
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 opacity-40 dark:text-slate-300">
+              <span class="material-symbols-outlined text-sm">cancel</span>
+              Root Access
+            </li>
+          </ul>
         </div>
-        <div class="mt-6 h-48 w-full">
-          <svg
-              class="h-full w-full text-primary-300 dark:text-primary-800"
-              preserveAspectRatio="none"
-              viewBox="0 0 300 120"
-          >
-            <rect
-                v-for="(h, i) in velocityHeights"
-                :key="i"
-                :x="4 + i * 9.2"
-                :y="110 - h * 1.1"
-                width="6"
-                :height="h * 1.1"
-                :class="i === 29 ? 'fill-primary-500 dark:fill-primary-400' : 'fill-current'"
-                rx="2"
-            />
-          </svg>
+
+        <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
+          <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-tertiary/15 text-tertiary">
+            <span class="material-symbols-outlined">group_add</span>
+          </div>
+          <h4 class="mb-3 font-bold text-slate-900 dark:text-white">User Control</h4>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Create Users
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Reset Passwords
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Ban/Unban User
+            </li>
+          </ul>
+        </div>
+
+        <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
+          <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/15 text-secondary">
+            <span class="material-symbols-outlined">edit_document</span>
+          </div>
+          <h4 class="mb-3 font-bold text-slate-900 dark:text-white">Content Ops</h4>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Approve Events
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Feature Events
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Delete Content
+            </li>
+          </ul>
+        </div>
+
+        <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
+          <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <span class="material-symbols-outlined">payments</span>
+          </div>
+          <h4 class="mb-3 font-bold text-slate-900 dark:text-white">Financial Gate</h4>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 opacity-40 dark:text-slate-300">
+              <span class="material-symbols-outlined text-sm">cancel</span>
+              Process Payouts
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              View Audit Logs
+            </li>
+            <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              Revenue Insights
+            </li>
+          </ul>
         </div>
       </div>
-      <div class="rounded-2xl bg-primary-600 p-6 text-white shadow-lg shadow-primary-600/25 dark:bg-primary-700 lg:col-span-2">
-        <div class="flex items-start gap-3">
-          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                aria-hidden="true"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle
-                  cx="9"
-                  cy="7"
-                  r="4"
-              />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
+    </section>
+
+    <!-- Contextual FAB -->
+    <button
+      type="button"
+      class="fixed bottom-8 right-8 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-2xl transition hover:scale-110 active:scale-95"
+      title="Help"
+      @click="helpInfo"
+    >
+      <span class="material-symbols-outlined text-2xl">help_outline</span>
+    </button>
+
+    <!-- Confirm (delete) -->
+    <ConfirmModal
+      :open="isOpen"
+      :title="options?.title || ''"
+      :message="options?.message || ''"
+      :confirm-text="options?.confirmText"
+      :variant="options?.variant"
+      :loading="deleteLoading"
+      @update:open="handleCancel"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
+    />
+
+    <!-- Create/Edit modal -->
+    <AppModal
+      v-model="roleModalOpen"
+      max-width="lg"
+      align="top"
+    >
+      <div class="space-y-6">
+        <div class="flex items-start justify-between gap-4">
           <div>
-            <h2 class="text-lg font-bold">
-              Organizer-to-attendee ratio
+            <h2 class="text-xl font-extrabold text-slate-900 dark:text-white">
+              {{ roleModalMode === 'create' ? 'Create New Role' : 'Edit Role' }}
             </h2>
-            <p class="mt-1 text-sm font-medium text-white/85">
-              Platform healthy balance maintained at {{ ratioLabel }}
+            <p class="mt-1 text-sm font-medium text-slate-600 dark:text-slate-400">
+              {{ roleModalMode === 'create' ? 'Define a new access role for the platform.' : 'Update role details and permissions metadata.' }}
             </p>
           </div>
+          <span class="material-symbols-outlined text-slate-400">admin_panel_settings</span>
         </div>
-        <div class="mt-6">
-          <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wide text-white/80">
-            <span>Organizers</span>
-            <span>{{ organizerSharePercent }}%</span>
+
+        <form class="space-y-4" @submit.prevent="submitRole">
+          <div>
+            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">
+              Role name
+            </label>
+            <input
+              v-model="roleForm.name"
+              type="text"
+              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+              placeholder="e.g. Super Admin"
+            >
           </div>
-          <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-white/20">
-            <div
-                class="h-full rounded-full bg-white transition-all duration-500"
-                :style="{ width: `${Math.min(100, organizerSharePercent)}%` }"
+
+          <div>
+            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">
+              Description
+            </label>
+            <textarea
+              v-model="roleForm.description"
+              rows="4"
+              class="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+              placeholder="What this role can do..."
             />
           </div>
-        </div>
-      </div>
-    </div>
 
-    <ConfirmModal
-        :open="isOpen"
-        :title="options?.title || ''"
-        :message="options?.message || ''"
-        :confirm-text="options?.confirmText"
-        :variant="options?.variant"
-        :loading="deleteLoading"
-        @update:open="handleCancel"
-        @confirm="handleConfirm"
-        @cancel="handleCancel"
-    />
+          <div>
+            <label class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">
+              Status
+            </label>
+            <select
+              v-model="roleForm.status"
+              class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-400/30 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
+            <button
+              type="button"
+              class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              @click="roleModalOpen = false"
+              :disabled="roleModalLoading"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/25 transition hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="roleModalLoading"
+            >
+              {{ roleModalLoading ? 'Saving…' : roleModalMode === 'create' ? 'Create Role' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </AppModal>
   </div>
 </template>
+

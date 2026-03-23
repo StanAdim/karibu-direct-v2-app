@@ -7,11 +7,13 @@ import {
   isEventUpcoming,
   type Checkpoint,
   type Event,
+  type EventStatus,
   type EventUpdateInput,
   type Participant,
   type SessionCreateInput,
   type SessionUpdateInput
 } from '~/types'
+import { onClickOutside } from '@vueuse/core'
 import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
 import EventEditModal from '~/components/events/EventEditModal.vue'
 import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
@@ -146,6 +148,74 @@ async function cancelEvent() {
   }
 }
 
+const statusSelectRoot = ref<HTMLElement | null>(null)
+const statusSelectOpen = ref(false)
+const statusUpdateLoading = ref(false)
+
+const eventStatusOptions: Array<{ value: EventStatus; label: string }> = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'published', label: 'Published' },
+  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'archived', label: 'Archived' }
+]
+
+const statusValue = ref<EventStatus>('draft')
+
+watch(
+  () => event.value?.status,
+  s => {
+    if (s) statusValue.value = s
+  },
+  { immediate: true }
+)
+
+onClickOutside(statusSelectRoot, () => {
+  statusSelectOpen.value = false
+})
+
+const statusSelectLabel = computed(() => {
+  return eventStatusOptions.find(o => o.value === statusValue.value)?.label ?? statusValue.value
+})
+
+function chooseStatus(next: EventStatus) {
+  statusValue.value = next
+  statusSelectOpen.value = false
+
+  // Update immediately after selection (no extra submit step).
+  void submitStatusUpdate()
+}
+
+async function submitStatusUpdate() {
+  if (!event.value) return
+
+  const id = event.value.id
+  const next = statusValue.value
+  if (next === event.value.status) {
+    statusSelectOpen.value = false
+    return
+  }
+
+  statusUpdateLoading.value = true
+  try {
+    if (next === 'published') {
+      await eventsStore.publishEvent(id)
+    } else if (next === 'cancelled') {
+      await eventsStore.cancelEvent(id)
+    } else {
+      await eventsStore.updateEvent(id, { status: next })
+    }
+
+    notifications.success('Event status updated')
+    await loadData()
+  } catch {
+    notifications.error('Failed to update event status')
+  } finally {
+    statusUpdateLoading.value = false
+    statusSelectOpen.value = false
+  }
+}
+
 function openEditEventModal() {
   showEventModal.value = true
 }
@@ -272,23 +342,67 @@ onUnmounted(() => {
           </div>
 
           <div class="flex flex-wrap items-center gap-2 md:justify-end">
-            <UButton
-              v-if="event.status === 'draft'"
-              color="success"
-              icon="i-lucide-rocket"
-              @click="publishEvent"
+            <div
+              class="flex items-center gap-2"
             >
-              Publish Event
-            </UButton>
-            <UButton
-              v-if="event.status === 'published'"
-              color="error"
-              variant="outline"
-              icon="i-lucide-x"
-              @click="cancelEvent"
-            >
-              Cancel Event
-            </UButton>
+              <div
+                ref="statusSelectRoot"
+                class="relative"
+              >
+                <button
+                  type="button"
+                  class="flex w-full min-h-11 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-900 transition-colors hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600"
+                  :disabled="statusUpdateLoading"
+                  @click="statusSelectOpen = !statusSelectOpen"
+                >
+                  <span :class="statusValue ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500'">
+                    {{ statusUpdateLoading ? 'Updating…' : statusSelectLabel }}
+                  </span>
+                  <UIcon
+                    name="i-lucide-chevron-down"
+                    class="h-4 w-4 shrink-0 text-slate-400 transition-transform"
+                    :class="{ 'rotate-180': statusSelectOpen }"
+                  />
+                </button>
+
+                <Transition
+                  enter-active-class="transition duration-150 ease-out"
+                  enter-from-class="opacity-0 -translate-y-1"
+                  enter-to-class="opacity-100 translate-y-0"
+                  leave-active-class="transition duration-100 ease-in"
+                  leave-from-class="opacity-100 translate-y-0"
+                  leave-to-class="opacity-0 -translate-y-1"
+                >
+                  <div
+                    v-if="statusSelectOpen && !statusUpdateLoading"
+                    class="absolute left-0 right-0 z-20 mt-1 max-h-56 min-w-48 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <button
+                      v-for="opt in eventStatusOptions"
+                      :key="opt.value"
+                      type="button"
+                      class="flex cursor-pointer items-center w-48 gap-2 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-700/80"
+                      :class="opt.value === statusValue ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300' : ''"
+                      @click="chooseStatus(opt.value)"
+                    >
+                      <span
+                        class="inline-flex h-2 w-2 items-center justify-center rounded-full"
+                        :class="opt.value === 'draft'
+                          ? 'bg-slate-500'
+                          : opt.value === 'published'
+                            ? 'bg-emerald-500'
+                            : opt.value === 'completed'
+                              ? 'bg-sky-500'
+                            : opt.value === 'archived'
+                              ? 'bg-slate-500'
+                              : 'bg-red-500'"
+                      />
+                      {{ opt.label }}
+                    </button>
+                  </div>
+                </Transition>
+              </div>
+            </div>
             <UButton
               variant="outline"
               icon="i-lucide-pencil"
@@ -431,8 +545,9 @@ onUnmounted(() => {
 
     <!-- Schedule Session Modal -->
     <ScheduleSessionModal
+      v-if="event"
       v-model="showScheduleModal"
-      :event-id="event?.id"
+      :event-id="event.id"
       @confirm="onScheduleConfirm"
     />
 

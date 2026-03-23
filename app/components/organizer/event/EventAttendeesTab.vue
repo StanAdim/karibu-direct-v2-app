@@ -7,7 +7,14 @@ const props = defineProps<{
 }>()
 
 const searchQuery = ref('')
-const selectedStatus = ref<ParticipantStatus | ''>('')
+// Nuxt UI `USelect` does not allow SelectItems with `value=""` because empty string is reserved
+// for clearing the selection. Use a non-empty sentinel instead.
+const selectedStatus = ref<ParticipantStatus | 'all' | ''>('all')
+
+type BadgeColor = 'success' | 'error' | 'warning' | 'info' | 'neutral' | 'primary'
+function badgeColor(status: ParticipantStatus): BadgeColor {
+  return getStatusColor(status) as BadgeColor
+}
 
 const filteredParticipants = computed(() => {
   return props.participants.filter((p) => {
@@ -15,7 +22,8 @@ const filteredParticipants = computed(() => {
       getParticipantFullName(p).toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       p.email.toLowerCase().includes(searchQuery.value.toLowerCase())
 
-    const matchesStatus = !selectedStatus.value || p.status === selectedStatus.value
+    // `USelect` clearing can set the model to an empty string, which we treat as "All".
+    const matchesStatus = !selectedStatus.value || selectedStatus.value === 'all' || p.status === selectedStatus.value
 
     return matchesSearch && matchesStatus
   })
@@ -28,7 +36,7 @@ const stats = computed(() => ({
 }))
 
 const statusOptions = [
-  { value: '', label: 'All Status' },
+  { value: 'all', label: 'All Status' },
   { value: 'registered', label: 'Registered' },
   { value: 'confirmed', label: 'Confirmed' },
   { value: 'checked_in', label: 'Checked In' },
@@ -202,7 +210,7 @@ const statusOptions = [
             </td>
             <td class="px-4 py-4">
               <UBadge
-                :color="getStatusColor(participant.status) as 'success' | 'error' | 'warning' | 'info' | 'neutral' | 'primary'"
+                :color="badgeColor(participant.status)"
                 variant="soft"
               >
                 {{ getStatusLabel(participant.status) }}
