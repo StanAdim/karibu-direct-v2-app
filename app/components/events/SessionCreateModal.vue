@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import AppModal from '~/components/common/AppModal.vue'
 import SessionForm from '~/components/sessions/SessionForm.vue'
 import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
-import type { Session, SessionCreateInput, SessionUpdateInput } from '~/types'
+import type { SessionCreateInput } from '~/types'
 
 const props = defineProps<{
   modelValue: boolean
-  data?: Session
   eventId: string
   loading?: boolean
   /** Prefill start/end from Schedule Session modal. */
@@ -16,7 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  saved: [payload: (SessionCreateInput | SessionUpdateInput) & { id?: string; event_id?: string }]
+  created: [payload: SessionCreateInput]
 }>()
 
 const isOpen = computed({
@@ -26,20 +25,23 @@ const isOpen = computed({
   }
 })
 
-const isEditing = computed(() => !!props.data)
+/** Remount SessionForm when the modal opens so state matches props (same idea as EventCreateModal reset). */
+const formKey = ref(0)
 
-function handleSubmit(formData: SessionCreateInput | SessionUpdateInput) {
-  const base = {
-    ...formData,
-    event_id: 'event_id' in formData && formData.event_id ? formData.event_id : props.eventId
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      formKey.value += 1
+    }
   }
+)
 
-  const payload = (props.data
-    ? { ...props.data, ...base }
-    : base) as (SessionCreateInput | SessionUpdateInput) & { id?: string; event_id?: string }
-
-  emit('saved', payload)
-  emit('update:modelValue', false)
+function handleSubmit(formData: SessionCreateInput) {
+  emit('created', {
+    ...formData,
+    event_id: props.eventId
+  })
 }
 
 function handleCancel() {
@@ -50,31 +52,32 @@ function handleCancel() {
 <template>
   <AppModal
     v-model="isOpen"
-    max-width="lg"
+    max-width="xl"
     align="top"
   >
     <div class="flex max-h-[80vh] flex-col gap-6 overflow-y-auto">
       <header class="space-y-2">
         <p class="text-sm font-medium uppercase tracking-wide text-primary-600">
-          {{ isEditing ? 'Edit Session' : 'Add Session' }}
+          Create Session
         </p>
         <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
-          {{ isEditing ? 'Update session details' : 'Add a new session' }}
+          Create a new session
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-400">
           Define the schedule, format, and capacity for this session.
         </p>
       </header>
 
-      <SessionForm
-        :session="data"
-        :event-id="eventId"
-        :initial-schedule="initialSchedule"
-        :loading="loading"
-        @submit="handleSubmit"
-        @cancel="handleCancel"
-      />
+      <div class="m-4">
+        <SessionForm
+          :key="formKey"
+          :event-id="eventId"
+          :initial-schedule="initialSchedule"
+          :loading="loading"
+          @submit="handleSubmit"
+          @cancel="handleCancel"
+        />
+      </div>
     </div>
   </AppModal>
 </template>
-

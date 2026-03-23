@@ -25,9 +25,9 @@ const sessionTypeIcons: Record<string, string> = {
   keynote: 'i-lucide-mic-2',
   workshop: 'i-lucide-hammer',
   panel: 'i-lucide-users',
-  talk: 'i-lucide-presentation',
+  breakout: 'i-lucide-presentation',
   networking: 'i-lucide-handshake',
-  break: 'i-lucide-coffee',
+  demo: 'i-lucide-monitor-play',
   other: 'i-lucide-calendar'
 }
 
@@ -54,7 +54,7 @@ const levelColors: Record<string, string> = {
           ]"
         >
           <UIcon
-            :name="sessionTypeIcons[session.type] || 'i-lucide-calendar'"
+            :name="session.is_break ? 'i-lucide-coffee' : (sessionTypeIcons[session.session_type] || 'i-lucide-calendar')"
             :class="[
               'h-6 w-6',
               isLive ? 'text-red-600' : session.is_break ? 'text-gray-600' : 'text-primary-600'
@@ -152,7 +152,7 @@ const levelColors: Record<string, string> = {
 
             <!-- Tags -->
             <div
-              v-if="session.level || session.type !== 'other'"
+              v-if="session.level || session.session_type !== 'other'"
               class="mt-3 flex flex-wrap gap-2"
             >
               <UBadge
@@ -160,7 +160,7 @@ const levelColors: Record<string, string> = {
                 variant="soft"
                 size="xs"
               >
-                {{ session.type }}
+                {{ session.session_type }}
               </UBadge>
               <UBadge
                 v-if="session.level"

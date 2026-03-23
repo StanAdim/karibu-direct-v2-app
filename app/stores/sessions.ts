@@ -3,10 +3,12 @@ import { defineStore } from 'pinia'
 import type {
   PaginatedResponse,
   Session,
+  SessionApiPayload,
   SessionCreateInput,
   SessionFilters,
   SessionUpdateInput
 } from '~/types'
+import { normalizeSessionFromApi } from '~/types/session'
 import { useApi } from '~/composables/useApi'
 import { unwrapList, unwrapResource } from '~/utils/unwrapApiResource'
 
@@ -23,6 +25,14 @@ interface SessionsState {
 function toFiniteNumber(value: unknown, fallback: number): number {
   const num = typeof value === 'number' ? value : Number(value)
   return Number.isFinite(num) ? num : fallback
+}
+
+function mapSessionList(rows: SessionApiPayload[]): Session[] {
+  return rows.map(normalizeSessionFromApi)
+}
+
+function mapSessionResource(raw: SessionApiPayload): Session {
+  return normalizeSessionFromApi(raw)
 }
 
 export const useSessionsStore = defineStore('sessions', () => {
@@ -137,7 +147,7 @@ export const useSessionsStore = defineStore('sessions', () => {
       params.append('page', String(safePage))
       params.append('per_page', String(safePerPage))
 
-      if (sessionFilters?.type) params.append('type', sessionFilters.type)
+      if (sessionFilters?.session_type) params.append('session_type', sessionFilters.session_type)
       if (sessionFilters?.track) params.append('track', sessionFilters.track)
       if (sessionFilters?.level) params.append('level', sessionFilters.level)
       if (sessionFilters?.speaker_id) params.append('speaker_id', sessionFilters.speaker_id)
@@ -145,7 +155,8 @@ export const useSessionsStore = defineStore('sessions', () => {
       if (sessionFilters?.search) params.append('search', sessionFilters.search)
 
       const raw = await api.get<unknown>(`/sessions?${params.toString()}`)
-      const { data, meta } = unwrapList<Session>(raw)
+      const { data: rawRows, meta } = unwrapList<SessionApiPayload>(raw)
+      const data = mapSessionList(rawRows)
 
       sessions.value = data
       mergeSessions(data)
@@ -182,7 +193,7 @@ export const useSessionsStore = defineStore('sessions', () => {
 
     try {
       const raw = await api.get<unknown>(`/sessions/${id}`)
-      const session = unwrapResource<Session>(raw)
+      const session = mapSessionResource(unwrapResource<SessionApiPayload>(raw))
       sessionById.value = { ...sessionById.value, [session.id]: session }
       currentSession.value = session
       return session
@@ -212,7 +223,7 @@ export const useSessionsStore = defineStore('sessions', () => {
       params.append('per_page', String(safePerPage))
 
       const f = listFilters
-      if (f?.type) params.append('type', f.type)
+      if (f?.session_type) params.append('session_type', f.session_type)
       if (f?.track) params.append('track', f.track)
       if (f?.level) params.append('level', f.level)
       if (f?.speaker_id) params.append('speaker_id', f.speaker_id)
@@ -220,7 +231,8 @@ export const useSessionsStore = defineStore('sessions', () => {
       if (f?.search) params.append('search', f.search)
 
       const raw = await api.get<unknown>(`/sessions/event/${eventId}?${params.toString()}`)
-      const { data, meta } = unwrapList<Session>(raw)
+      const { data: rawRows, meta } = unwrapList<SessionApiPayload>(raw)
+      const data = mapSessionList(rawRows)
 
       if (seq !== fetchEventSessionsSeq) {
         return getEventSessionsFromCache(eventId)
@@ -265,7 +277,7 @@ export const useSessionsStore = defineStore('sessions', () => {
 
     try {
       const raw = await api.post<unknown>('/sessions/', input)
-      const session = unwrapResource<Session>(raw)
+      const session = mapSessionResource(unwrapResource<SessionApiPayload>(raw))
 
       sessionById.value = { ...sessionById.value, [session.id]: session }
 
@@ -287,11 +299,23 @@ export const useSessionsStore = defineStore('sessions', () => {
   }
 
   const updateSession = async (id: string, input: SessionUpdateInput): Promise<Session> => {
+    const previous = sessionById.value[id]
+    const previousList = sessions.value
+
+    if (previous) {
+      const merged = { ...previous, ...input } as Session
+      sessionById.value = { ...sessionById.value, [id]: merged }
+      sessions.value = sessions.value.map(s => (s.id === id ? merged : s))
+      if (currentSession.value?.id === id) {
+        currentSession.value = merged
+      }
+    }
+
     loadingWrite.value = true
 
     try {
-      const raw = await api.put<unknown>(`/sessions/${id}`, input)
-      const session = unwrapResource<Session>(raw)
+      const raw = await api.patch<unknown>(`/sessions/${id}`, input)
+      const session = mapSessionResource(unwrapResource<SessionApiPayload>(raw))
 
       sessionById.value = { ...sessionById.value, [session.id]: session }
 
@@ -305,6 +329,40 @@ export const useSessionsStore = defineStore('sessions', () => {
       }
 
       return session
+    }
+    catch (e) {
+      if (previous) {
+        sessionById.value = { ...sessionById.value, [id]: previous }
+        sessions.value = previousList
+        if (currentSession.value?.id === id) {
+          currentSession.value = previous
+        }
+      }
+      throw e
+    }
+    finally {
+      loadingWrite.value = false
+    }
+  }
+
+  /**
+   * Links an event registration to a session when the API exposes
+   * `POST /sessions/:id/registrations`. Refreshes the event session list on success.
+   */
+  const registerAttendeeForSession = async (
+    sessionId: string,
+    eventId: string,
+    registrationId: string
+  ): Promise<unknown> => {
+    loadingWrite.value = true
+    try {
+      const result = await api.post<unknown>(
+        `/sessions/${sessionId}/registrations`,
+        { registration_id: registrationId },
+        { suppressErrorToast: true }
+      )
+      await fetchEventSessions(eventId)
+      return result
     }
     finally {
       loadingWrite.value = false
@@ -349,6 +407,11 @@ export const useSessionsStore = defineStore('sessions', () => {
     pagination.value.page = 1
   }
 
+  /** Clears the in-memory list (e.g. when switching events before refetch). */
+  const clearSessionsList = (): void => {
+    sessions.value = []
+  }
+
   return {
     sessions,
     sessionById,
@@ -371,8 +434,10 @@ export const useSessionsStore = defineStore('sessions', () => {
     createSession,
     updateSession,
     deleteSession,
+    registerAttendeeForSession,
     setPage,
     clearCurrentSession,
-    clearFilters
+    clearFilters,
+    clearSessionsList
   }
 })

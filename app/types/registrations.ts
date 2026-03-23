@@ -19,6 +19,7 @@ export interface RegistrationCheckInPayload {
   registration_id?: string
   qr_code?: string
   event_id?: string
+  session_id?: string
   checkpoint_id?: string
 }
 

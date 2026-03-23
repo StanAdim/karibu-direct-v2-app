@@ -15,7 +15,7 @@ const mySessions = ref<Session[]>([
     event_id: 'event-1',
     title: 'Opening Keynote: The Future of Technology',
     description: 'Join us for the opening keynote session',
-    type: 'keynote',
+    session_type: 'keynote',
     start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 9).toISOString(),
     end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10).toISOString(),
     room: 'Main Hall',
@@ -34,7 +34,7 @@ const mySessions = ref<Session[]>([
     id: '2',
     event_id: 'event-1',
     title: 'Coffee Break',
-    type: 'break',
+    session_type: 'other',
     start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10).toISOString(),
     end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10.5).toISOString(),
     room: 'Lobby',
@@ -50,7 +50,7 @@ const mySessions = ref<Session[]>([
     event_id: 'event-1',
     title: 'Building Scalable Applications with Vue 3',
     description: 'Learn best practices for building large-scale Vue applications',
-    type: 'workshop',
+    session_type: 'workshop',
     start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 10.5).toISOString(),
     end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 12).toISOString(),
     room: 'Workshop Room A',
@@ -71,7 +71,7 @@ const mySessions = ref<Session[]>([
     event_id: 'event-1',
     title: 'AI in Production: Real-world Case Studies',
     description: 'Panel discussion on deploying AI in production environments',
-    type: 'panel',
+    session_type: 'panel',
     start_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 14).toISOString(),
     end_time: new Date(Date.now() + 86400000 * 10 + 3600000 * 15).toISOString(),
     room: 'Main Hall',
@@ -117,9 +117,9 @@ const sessionTypeIcons: Record<string, string> = {
   keynote: 'i-lucide-mic-2',
   workshop: 'i-lucide-hammer',
   panel: 'i-lucide-users',
-  talk: 'i-lucide-presentation',
+  breakout: 'i-lucide-presentation',
   networking: 'i-lucide-handshake',
-  break: 'i-lucide-coffee',
+  demo: 'i-lucide-monitor-play',
   other: 'i-lucide-calendar'
 }
 
@@ -200,7 +200,7 @@ onMounted(() => {
               ]"
             >
               <UIcon
-                :name="sessionTypeIcons[session.type] || 'i-lucide-calendar'"
+                :name="session.is_break ? 'i-lucide-coffee' : (sessionTypeIcons[session.session_type] || 'i-lucide-calendar')"
                 :class="[
                   'h-6 w-6',
                   session.is_break ? 'text-gray-600' : 'text-primary-600'
@@ -283,7 +283,7 @@ onMounted(() => {
                   variant="soft"
                   size="xs"
                 >
-                  {{ session.type }}
+                  {{ session.session_type }}
                 </UBadge>
                 <UBadge
                   v-if="session.level"

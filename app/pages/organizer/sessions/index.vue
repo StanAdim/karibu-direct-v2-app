@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { watchDebounced } from '@vueuse/core'
 import type { Session, SessionType } from '~/types'
 
 definePageMeta({
@@ -24,15 +25,16 @@ const typeOptions = [
   { value: 'keynote', label: 'Keynote' },
   { value: 'workshop', label: 'Workshop' },
   { value: 'panel', label: 'Panel' },
-  { value: 'talk', label: 'Talk' },
+  { value: 'breakout', label: 'Breakout' },
   { value: 'networking', label: 'Networking' },
-  { value: 'break', label: 'Break' }
+  { value: 'demo', label: 'Demo' },
+  { value: 'other', label: 'Other' }
 ]
 
 async function loadSessions() {
   await sessionsStore.fetchSessions({
     event_id: eventId.value,
-    type: selectedType.value || undefined,
+    session_type: selectedType.value || undefined,
     search: searchQuery.value || undefined
   })
 }
@@ -70,7 +72,17 @@ async function handleDeleteSession(session: Session) {
   }
 }
 
-watch([searchQuery, selectedType], loadSessions)
+watchDebounced(
+  [searchQuery, selectedType],
+  () => {
+    void loadSessions()
+  },
+  { debounce: 350, maxWait: 1200 }
+)
+
+watch(eventId, () => {
+  void loadSessions()
+})
 
 onMounted(loadSessions)
 </script>

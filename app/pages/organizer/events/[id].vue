@@ -10,6 +10,7 @@ import {
   type EventStatus,
   type EventUpdateInput,
   type Participant,
+  type Session,
   type SessionCreateInput,
   type SessionUpdateInput
 } from '~/types'
@@ -17,7 +18,11 @@ import { onClickOutside } from '@vueuse/core'
 import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
 import EventEditModal from '~/components/events/EventEditModal.vue'
 import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
-import AddEditSessionModal from '~/components/events/AddEditSessionModal.vue'
+import SessionCreateModal from '~/components/events/SessionCreateModal.vue'
+import SessionEditModal from '~/components/events/SessionEditModal.vue'
+import AssignSessionSpeakerModal from '~/components/events/AssignSessionSpeakerModal.vue'
+import SessionRegistrationModal from '~/components/events/SessionRegistrationModal.vue'
+import SessionCheckInModal from '~/components/events/SessionCheckInModal.vue'
 import EventOverviewTab from '~/components/organizer/event/EventOverviewTab.vue'
 import EventSessionsTab from '~/components/organizer/event/EventSessionsTab.vue'
 import EventCheckpointsTab from '~/components/organizer/event/EventCheckpointsTab.vue'
@@ -33,15 +38,30 @@ const eventsStore = useEventsStore()
 const sessionsStore = useSessionsStore()
 const checkpointStore = useCheckpointStore()
 const registrationStore = useRegistrationStore()
+const attendanceStore = useAttendanceStore()
 const notifications = useNotifications()
 const router = useRouter()
 
 const eventId = computed(() => String(route.params.id ?? ''))
 const showEventModal = ref(false)
 const showScheduleModal = ref(false)
-const showSessionModal = ref(false)
+const showSessionCreateModal = ref(false)
+const showSessionEditModal = ref(false)
+const editingSession = ref<Session | null>(null)
 const scheduledSlot = ref<Pick<ScheduleSessionPayload, 'date' | 'startTime' | 'endTime'> | null>(null)
 const sessionSaveLoading = ref(false)
+
+const showAssignSpeakerModal = ref(false)
+const assignSession = ref<Session | null>(null)
+const assignSpeakerLoading = ref(false)
+
+const showSessionRegModal = ref(false)
+const regSession = ref<Session | null>(null)
+const sessionRegLoading = ref(false)
+
+const showSessionCheckInModal = ref(false)
+const checkInSession = ref<Session | null>(null)
+const sessionCheckInLoading = ref(false)
 const loading = ref(true)
 const activeTab = ref<'overview' | 'sessions' | 'checkpoints' | 'attendees'>('overview')
 
@@ -221,7 +241,38 @@ function openEditEventModal() {
 }
 
 function openScheduleModal() {
+  editingSession.value = null
+  showSessionEditModal.value = false
   showScheduleModal.value = true
+}
+
+function openAddSessionQuick() {
+  editingSession.value = null
+  showSessionEditModal.value = false
+  scheduledSlot.value = null
+  showSessionCreateModal.value = true
+}
+
+function openEditSession(session: Session) {
+  showSessionCreateModal.value = false
+  scheduledSlot.value = null
+  editingSession.value = session
+  showSessionEditModal.value = true
+}
+
+function openAssignSpeaker(session: Session) {
+  assignSession.value = session
+  showAssignSpeakerModal.value = true
+}
+
+function openSessionRegistration(session: Session) {
+  regSession.value = session
+  showSessionRegModal.value = true
+}
+
+function openSessionCheckIn(session: Session) {
+  checkInSession.value = session
+  showSessionCheckInModal.value = true
 }
 
 function onScheduleConfirm(payload: ScheduleSessionPayload) {
@@ -231,38 +282,105 @@ function onScheduleConfirm(payload: ScheduleSessionPayload) {
     endTime: payload.endTime
   }
   showScheduleModal.value = false
-  showSessionModal.value = true
+  showSessionCreateModal.value = true
 }
 
-async function onSessionSaved(
-  payload: (SessionCreateInput | SessionUpdateInput) & { id?: string; event_id?: string }
-) {
-  const id = payload.event_id ?? eventId.value
-  if (!id) return
+async function onSessionCreated(payload: SessionCreateInput) {
+  const ev = eventId.value
+  if (!ev) return
   sessionSaveLoading.value = true
   try {
-    const createPayload = payload as SessionCreateInput
     await sessionsStore.createSession({
-      event_id: id,
-      title: createPayload.title,
-      type: createPayload.type,
-      start_time: createPayload.start_time,
-      end_time: createPayload.end_time,
-      description: createPayload.description,
-      room: createPayload.room,
-      track: createPayload.track,
-      capacity: createPayload.capacity,
-      level: createPayload.level,
-      is_break: createPayload.is_break ?? false
+      ...payload,
+      event_id: payload.event_id || ev
     })
     notifications.success('Session created')
     await loadData()
-    showSessionModal.value = false
+    showSessionCreateModal.value = false
     scheduledSlot.value = null
-  } catch {
+  }
+  catch {
     notifications.error('Failed to create session')
-  } finally {
+  }
+  finally {
     sessionSaveLoading.value = false
+  }
+}
+
+async function onSessionUpdated(payload: SessionUpdateInput) {
+  if (!editingSession.value) return
+  sessionSaveLoading.value = true
+  try {
+    await sessionsStore.updateSession(editingSession.value.id, payload)
+    notifications.success('Session updated')
+    await loadData()
+    showSessionEditModal.value = false
+    editingSession.value = null
+  }
+  catch {
+    notifications.error('Failed to update session')
+  }
+  finally {
+    sessionSaveLoading.value = false
+  }
+}
+
+async function onAssignSpeakerSaved(update: SessionUpdateInput) {
+  if (!assignSession.value) return
+  assignSpeakerLoading.value = true
+  try {
+    await sessionsStore.updateSession(assignSession.value.id, update)
+    notifications.success('Speaker updated')
+    showAssignSpeakerModal.value = false
+    assignSession.value = null
+    await loadData()
+  }
+  catch {
+    notifications.error('Failed to update speaker')
+  }
+  finally {
+    assignSpeakerLoading.value = false
+  }
+}
+
+async function onSessionRegistrationSubmit(registrationId: string) {
+  if (!regSession.value) return
+  sessionRegLoading.value = true
+  try {
+    await sessionsStore.registerAttendeeForSession(regSession.value.id, eventId.value, registrationId)
+    notifications.success('Registration linked to session')
+    showSessionRegModal.value = false
+    regSession.value = null
+  }
+  catch (e: unknown) {
+    const msg = e && typeof e === 'object' && 'message' in e && typeof (e as { message: string }).message === 'string'
+      ? (e as { message: string }).message
+      : 'Could not link registration. Ensure the API supports POST /sessions/:id/registrations.'
+    notifications.error(msg)
+  }
+  finally {
+    sessionRegLoading.value = false
+  }
+}
+
+async function onSessionCheckInSubmit(qrCode: string) {
+  if (!checkInSession.value || !event.value) return
+  sessionCheckInLoading.value = true
+  try {
+    await attendanceStore.qrCheckIn({
+      qr_code: qrCode,
+      session_id: checkInSession.value.id,
+      event_id: event.value.id
+    })
+    notifications.success('Checked in')
+    showSessionCheckInModal.value = false
+    checkInSession.value = null
+  }
+  catch {
+    notifications.error('Check-in failed')
+  }
+  finally {
+    sessionCheckInLoading.value = false
   }
 }
 
@@ -288,7 +406,7 @@ watch(
     }
     if (prevId !== undefined && id !== prevId) {
       eventsStore.clearCurrentEvent()
-      sessionsStore.sessions = []
+      sessionsStore.clearSessionsList()
       checkpointStore.invalidateEvent(prevId)
     }
     void loadData()
@@ -465,9 +583,14 @@ onUnmounted(() => {
             />
             <EventSessionsTab
               v-else-if="activeTab === 'sessions'"
-              :event-id="event.id"
               :sessions="sessions"
-              :on-schedule-session="openScheduleModal"
+              @schedule-session="openScheduleModal"
+              @add-session="openAddSessionQuick"
+              @edit-session="openEditSession"
+              @assign-speaker="openAssignSpeaker"
+              @session-register="openSessionRegistration"
+              @session-checkin="openSessionCheckIn"
+              @sessions-changed="loadData"
             />
             <EventCheckpointsTab
               v-else-if="activeTab === 'checkpoints'"
@@ -481,56 +604,6 @@ onUnmounted(() => {
             />
           </div>
 
-          <div class="space-y-4">
-            <UCard>
-              <template #header>
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
-                  At a Glance
-                </h3>
-              </template>
-              <div class="grid gap-3 text-sm">
-                <div
-                  v-for="stat in stats"
-                  :key="stat.title"
-                  class="flex items-center justify-between"
-                >
-                  <div class="flex items-center gap-2">
-                    <UIcon
-                      :name="stat.icon"
-                      class="h-4 w-4 text-gray-400"
-                    />
-                    <span class="text-gray-500 dark:text-gray-400">
-                      {{ stat.title }}
-                    </span>
-                  </div>
-                  <span class="font-semibold text-gray-900 dark:text-white">
-                    {{ stat.value }}
-                  </span>
-                </div>
-              </div>
-            </UCard>
-
-            <UCard>
-              <template #header>
-                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
-                  Registration Progress
-                </h3>
-              </template>
-              <div class="text-center">
-                <div class="text-3xl font-bold text-gray-900 dark:text-white">
-                  {{ capacityPercentage }}%
-                </div>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {{ event.registered_count }} of {{ event.capacity }} spots filled
-                </p>
-                <UProgress
-                  :value="capacityPercentage"
-                  class="mt-4"
-                  :color="capacityPercentage >= 90 ? 'error' : capacityPercentage >= 70 ? 'warning' : 'primary'"
-                />
-              </div>
-            </UCard>
-          </div>
         </div>
       </div>
     </template>
@@ -551,14 +624,46 @@ onUnmounted(() => {
       @confirm="onScheduleConfirm"
     />
 
-    <!-- Add Session Modal (e.g. after scheduling) -->
-    <AddEditSessionModal
+    <!-- Create Session Modal -->
+    <SessionCreateModal
       v-if="event"
-      v-model="showSessionModal"
+      v-model="showSessionCreateModal"
       :event-id="event.id"
       :initial-schedule="scheduledSlot ?? undefined"
       :loading="sessionSaveLoading"
-      @saved="onSessionSaved"
+      @created="onSessionCreated"
+    />
+
+    <!-- Edit Session Modal -->
+    <SessionEditModal
+      v-if="event && editingSession"
+      v-model="showSessionEditModal"
+      :data="editingSession"
+      :event-id="event.id"
+      :loading="sessionSaveLoading"
+      @updated="onSessionUpdated"
+    />
+
+    <AssignSessionSpeakerModal
+      v-model="showAssignSpeakerModal"
+      :session="assignSession"
+      :loading="assignSpeakerLoading"
+      @saved="onAssignSpeakerSaved"
+    />
+
+    <SessionRegistrationModal
+      v-model="showSessionRegModal"
+      :session="regSession"
+      :registrations="registrationStore.eventRegistrations"
+      :loading="sessionRegLoading"
+      @submit="onSessionRegistrationSubmit"
+    />
+
+    <SessionCheckInModal
+      v-model="showSessionCheckInModal"
+      :session="checkInSession"
+      :loading="sessionCheckInLoading"
+      @submit="onSessionCheckInSubmit"
     />
   </div>
 </template>
