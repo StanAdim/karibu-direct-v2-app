@@ -79,9 +79,9 @@ const userMenuItems = computed(() => [
 ])
 
 const moderatorSubtitle = computed(() => {
-  const roles = user.value?.roles || []
-  if (roles.includes('Admin')) return 'Senior moderator'
-  if (roles.includes('Organizer')) return 'Organizer'
+  const role = user.value?.primary_role?.name
+  if (role === 'Admin') return 'Senior moderator'
+  if (role === 'Organizer') return 'Organizer'
   return 'Team member'
 })
 

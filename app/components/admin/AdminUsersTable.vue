@@ -104,9 +104,7 @@ function displayUserId(user: User): string {
 }
 
 function primaryRole(user: User): UserRole | null {
-  const raw = user.roles?.[0]
-  if (raw == null) return null
-  const r = typeof raw === 'string' ? raw : (raw as { name: UserRole }).name
+  const r = user.primary_role?.name
   if (r === 'Admin' || r === 'Organizer' || r === 'Attendee') return r
   return null
 }

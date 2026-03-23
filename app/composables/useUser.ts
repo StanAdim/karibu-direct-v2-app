@@ -20,7 +20,13 @@ export function useUser(): UseUserReturn {
   const userId = computed(() => user.value?.id ?? null)
   const userName = computed(() => user.value?.name ?? null)
   const userEmail = computed(() => user.value?.email ?? null)
-  const userRole = computed(() => user.value?.roles?.[0] ?? null)
+  const userRole = computed<UserRole | null>(() => {
+    const roleName = user.value?.primary_role?.name
+    if (roleName === 'Admin' || roleName === 'Organizer' || roleName === 'Attendee') {
+      return roleName
+    }
+    return null
+  })
   const userAvatar = computed(() => user.value?.avatar ?? null)
 
   const isAdmin = computed(() => userRole.value === 'Admin')

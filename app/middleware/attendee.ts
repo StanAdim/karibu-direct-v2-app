@@ -5,11 +5,8 @@ export default defineNuxtRouteMiddleware(() => {
     return navigateTo('/login', { replace: true })
   }
 
-  const allowedRoles = ['Admin', 'Organizer', 'Attendee']
-
-  const userRoles = authStore.user?.roles || []
-    // console.log('userRoles:', userRoles)
-  if (userRoles.length === 0 || !userRoles.some(role => allowedRoles.includes(role))) {
+  const primaryRole = authStore.user?.primary_role?.name
+  if (primaryRole !== 'Admin' && primaryRole !== 'Organizer' && primaryRole !== 'Attendee') {
     const notifications = useNotifications()
     notifications.error({
       title: 'Access Denied',

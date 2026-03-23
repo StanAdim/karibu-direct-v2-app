@@ -20,17 +20,26 @@ export const useAuthStore = defineStore('auth', () => {
 
   const currentUser = computed<User | null>(() => user.value)
 
-  const userRole = computed<UserRole | null>(() => user.value?.roles?.[0] ?? null)
+  const resolvePrimaryUserRole = (): UserRole | null => {
+    const roleName = user.value?.primary_role?.name
+    if (roleName === 'Admin' || roleName === 'Organizer' || roleName === 'Attendee') {
+      return roleName
+    }
+    return null
+  }
 
-  const isAdmin = computed<boolean>(() => user.value?.roles?.includes('Admin') ?? false)
+  const userRole = computed<UserRole | null>(() => resolvePrimaryUserRole())
 
-  const isOrganizer = computed<boolean>(() => user.value?.roles?.includes('Organizer') ?? false)
+  const isAdmin = computed<boolean>(() => resolvePrimaryUserRole() === 'Admin')
 
-  const isAttendee = computed<boolean>(() => user.value?.roles?.includes('Attendee') ?? false)
+  const isOrganizer = computed<boolean>(() => resolvePrimaryUserRole() === 'Organizer')
+
+  const isAttendee = computed<boolean>(() => resolvePrimaryUserRole() === 'Attendee')
 
   const hasRole = (roles: UserRole[]): boolean => {
-    if (!user.value?.roles || user.value.roles.length === 0) return false
-    return user.value.roles.some(r => roles.includes(r))
+    const role = resolvePrimaryUserRole()
+    if (!role) return false
+    return roles.includes(role)
   }
 
   // Actions
@@ -62,7 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = loginData.user
       }
 
-      if (!user.value?.roles?.length && token.value) {
+      if (!user.value?.primary_role && token.value) {
         const fetchedUser = await api.get<User>('/auth/me')
         const userData = (fetchedUser as { data?: User })?.data ?? (fetchedUser as User)
         user.value = userData
@@ -166,7 +175,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const getDefaultRoute = (): string => {
-    const role = user.value?.roles?.[0]
+    const role = resolvePrimaryUserRole()
     if (!role) return '/'
     switch (role) {
       case 'Admin':

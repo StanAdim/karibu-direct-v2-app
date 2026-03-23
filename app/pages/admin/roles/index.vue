@@ -106,7 +106,7 @@ function displayUserId(user: User): string {
 }
 
 function primaryRole(user: User): UserRole | null {
-  const r = user.roles?.[0]
+  const r = user.primary_role?.name
   if (r === 'Admin' || r === 'Organizer' || r === 'Attendee') return r
   return null
 }
@@ -180,7 +180,7 @@ async function handleDeleteUser(user: User) {
 function exportCsv() {
   const headers = ['Name', 'Email', 'Role', 'Status', 'Joined']
   const rows = usersStore.users.map((u) => {
-    const role = u.roles?.[0] ?? ''
+    const role = u.primary_role?.name ?? ''
     return [
       getFullName(u),
       u.email,
