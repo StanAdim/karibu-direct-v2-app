@@ -1,19 +1,38 @@
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Participant, ParticipantStatus } from '~/types'
-import { getParticipantFullName, getStatusColor, getStatusLabel } from '~/types'
+import { getParticipantFullName } from '~/types'
+import AppButton from '~/components/ui/AppButton.vue'
+import AppAvatar from '~/components/common/AppAvatar.vue'
+import AppSearchInput from '~/components/common/AppSearchInput.vue'
+import AppLucideIcon from '~/components/common/AppLucideIcon.vue'
+import StatusBadge from '~/components/common/StatusBadge.vue'
 
 definePageMeta({
   layout: 'organizer',
   middleware: 'organizer'
 })
 
-const route = useRoute()
 const notifications = useNotifications()
 
-const eventId = computed(() => route.query.event_id as string | undefined)
 const searchQuery = ref('')
-const selectedStatus = ref<ParticipantStatus | ''>('')
+const selectedStatus = ref<ParticipantStatus | 'all'>('all')
 const loading = ref(false)
+const openMenuParticipantId = ref<string | null>(null)
+
+function closeMenus() {
+  openMenuParticipantId.value = null
+}
+
+function onDocumentClick(e: MouseEvent) {
+  const el = e.target as HTMLElement
+  if (!el.closest('[data-participant-menu-root]')) {
+    closeMenus()
+  }
+}
+
+onMounted(() => document.addEventListener('click', onDocumentClick))
+onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 
 const participants = ref<Participant[]>([
   {
@@ -84,7 +103,7 @@ const participants = ref<Participant[]>([
 ])
 
 const statusOptions = [
-  { value: '', label: 'All Status' },
+  { value: 'all', label: 'All Status' },
   { value: 'registered', label: 'Registered' },
   { value: 'confirmed', label: 'Confirmed' },
   { value: 'checked_in', label: 'Checked In' },
@@ -98,7 +117,7 @@ const filteredParticipants = computed(() => {
       getParticipantFullName(p).toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       p.email.toLowerCase().includes(searchQuery.value.toLowerCase())
 
-    const matchesStatus = !selectedStatus.value || p.status === selectedStatus.value
+    const matchesStatus = selectedStatus.value === 'all' || p.status === selectedStatus.value
 
     return matchesSearch && matchesStatus
   })
@@ -112,7 +131,8 @@ const stats = computed(() => ({
 
 async function checkInParticipant(participant: Participant) {
   participant.status = 'checked_in'
-  participant.checkedInAt = new Date().toISOString()
+  participant.checked_in_at = new Date().toISOString()
+  closeMenus()
   notifications.success(`${getParticipantFullName(participant)} checked in`)
 }
 
@@ -133,28 +153,29 @@ function formatDate(dateString: string): string {
       description="Manage event participants and check-ins"
     >
       <template #actions>
-        <UButton
-          variant="outline"
-          icon="i-lucide-download"
+        <AppButton
+          color="neutral"
+          icon="download"
         >
           Export
-        </UButton>
-        <UButton
-          icon="i-lucide-plus"
+        </AppButton>
+        <AppButton
+          icon="person_add"
         >
           Add Participant
-        </UButton>
+        </AppButton>
       </template>
     </PageHeader>
 
     <!-- Stats -->
     <div class="mb-6 grid gap-4 sm:grid-cols-3">
-      <UCard>
+      <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-950">
-            <UIcon
+            <AppLucideIcon
               name="i-lucide-users"
-              class="h-6 w-6 text-primary-600"
+              :size="24"
+              class="text-primary-600 dark:text-primary-400"
             />
           </div>
           <div>
@@ -166,14 +187,15 @@ function formatDate(dateString: string): string {
             </p>
           </div>
         </div>
-      </UCard>
+      </div>
 
-      <UCard>
+      <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-950">
-            <UIcon
+            <AppLucideIcon
               name="i-lucide-user-check"
-              class="h-6 w-6 text-emerald-600"
+              :size="24"
+              class="text-emerald-600 dark:text-emerald-400"
             />
           </div>
           <div>
@@ -185,14 +207,15 @@ function formatDate(dateString: string): string {
             </p>
           </div>
         </div>
-      </UCard>
+      </div>
 
-      <UCard>
+      <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-950">
-            <UIcon
+            <AppLucideIcon
               name="i-lucide-clock"
-              class="h-6 w-6 text-amber-600"
+              :size="24"
+              class="text-amber-600 dark:text-amber-400"
             />
           </div>
           <div>
@@ -204,30 +227,38 @@ function formatDate(dateString: string): string {
             </p>
           </div>
         </div>
-      </UCard>
+      </div>
     </div>
 
     <!-- Filters -->
-    <UCard class="mb-6">
+    <div class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div class="flex flex-wrap items-center gap-4">
-        <div class="flex-1 min-w-64">
-          <UInput
+        <div class="min-w-64 flex-1">
+          <AppSearchInput
             v-model="searchQuery"
             placeholder="Search by name or email..."
-            icon="i-lucide-search"
           />
         </div>
 
-        <USelect
-          v-model="selectedStatus"
-          :items="statusOptions"
-          value-key="value"
-          label-key="label"
-          placeholder="Filter by status"
-          class="w-40"
-        />
+        <div
+          class="flex min-w-44 items-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/50"
+        >
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</span>
+          <select
+            v-model="selectedStatus"
+            class="min-w-0 flex-1 cursor-pointer border-0 bg-transparent text-sm font-semibold text-slate-900 focus:ring-0 dark:text-white"
+          >
+            <option
+              v-for="opt in statusOptions"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </option>
+          </select>
+        </div>
       </div>
-    </UCard>
+    </div>
 
     <!-- Participants Table -->
     <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
@@ -283,9 +314,10 @@ function formatDate(dateString: string): string {
           >
             <td class="px-4 py-4">
               <div class="flex items-center gap-3">
-                <UAvatar
+                <AppAvatar
                   :alt="getParticipantFullName(participant)"
                   size="sm"
+                  class="shrink-0"
                 />
                 <div>
                   <div class="font-medium text-gray-900 dark:text-white">
@@ -304,53 +336,95 @@ function formatDate(dateString: string): string {
                   {{ participant.ticket.ticket_type.name }}
                 </div>
                 <div class="text-sm text-gray-600 dark:text-gray-400">
-                  {{ participant.ticket.ticketNumber }}
+                  {{ participant.ticket.ticket_number }}
                 </div>
               </div>
             </td>
 
             <td class="px-4 py-4">
-              <UBadge
-                :color="getStatusColor(participant.status) as 'success' | 'error' | 'warning' | 'info' | 'neutral' | 'primary'"
-                variant="soft"
-              >
-                {{ getStatusLabel(participant.status) }}
-              </UBadge>
+              <StatusBadge
+                :status="participant.status"
+                variant="solid"
+                size="sm"
+              />
             </td>
 
             <td class="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
-              {{ formatDate(participant.registeredAt) }}
+              {{ formatDate(participant.registered_at) }}
             </td>
 
             <td class="px-4 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
-                <UButton
+                <AppButton
                   v-if="participant.status !== 'checked_in' && participant.status !== 'cancelled'"
                   size="sm"
-                  icon="i-lucide-check"
+                  color="success"
+                  icon="check"
+                  class="!px-3 !py-1.5 !text-xs"
                   @click="checkInParticipant(participant)"
                 >
                   Check In
-                </UButton>
+                </AppButton>
 
-                <UDropdownMenu
-                  :items="[
-                    [
-                      { label: 'View Details', icon: 'i-lucide-eye' },
-                      { label: 'Edit', icon: 'i-lucide-pencil' }
-                    ],
-                    [
-                      { label: 'Cancel Registration', icon: 'i-lucide-x' }
-                    ]
-                  ]"
+                <div
+                  data-participant-menu-root
+                  class="relative inline-flex justify-end"
                 >
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-lucide-more-horizontal"
-                    size="sm"
-                  />
-                </UDropdownMenu>
+                  <button
+                    type="button"
+                    class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                    aria-label="Row actions"
+                    @click.stop="openMenuParticipantId = openMenuParticipantId === participant.id ? null : participant.id"
+                  >
+                    <AppLucideIcon
+                      name="i-lucide-more-horizontal"
+                      :size="20"
+                    />
+                  </button>
+                  <div
+                    v-if="openMenuParticipantId === participant.id"
+                    class="absolute right-0 top-full z-30 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+                    role="menu"
+                    @click.stop
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                      @click="closeMenus()"
+                    >
+                      <AppLucideIcon
+                        name="i-lucide-eye"
+                        :size="16"
+                      />
+                      View Details
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                      @click="closeMenus()"
+                    >
+                      <AppLucideIcon
+                        name="i-lucide-pencil"
+                        :size="16"
+                      />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                      @click="closeMenus()"
+                    >
+                      <AppLucideIcon
+                        name="i-lucide-x"
+                        :size="16"
+                      />
+                      Cancel Registration
+                    </button>
+                  </div>
+                </div>
               </div>
             </td>
           </tr>
