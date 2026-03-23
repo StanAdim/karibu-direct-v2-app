@@ -601,6 +601,9 @@ onUnmounted(() => {
             <EventAttendeesTab
               v-else-if="activeTab === 'attendees'"
               :participants="eventParticipants"
+              :event-title="event.title"
+              :event-capacity="event.capacity"
+              :event-registered="event.registered_count"
             />
           </div>
 
