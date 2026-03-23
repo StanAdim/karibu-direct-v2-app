@@ -5,6 +5,7 @@ export interface User {
   last_name: string
   avatar?: string
   phone?: string
+  primary_role?: PlatformRole
   roles?: UserRole[]
   status: UserStatus
   organization_id?: string
@@ -14,6 +15,12 @@ export interface User {
 }
 
 export type UserRole = 'Admin' | 'Organizer' | 'Attendee'
+
+/** Role row from `GET /api/v1/roles/` (assignable platform roles). */
+export interface PlatformRole {
+  id: string
+  name: string
+}
 
 export type UserStatus = 'active' | 'inactive' | 'pending' | 'suspended'
 

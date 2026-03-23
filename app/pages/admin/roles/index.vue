@@ -271,7 +271,7 @@ const paginationTo = computed(() => {
 })
 
 const pagesToShow = computed(() =>
-  visiblePages(usersStore.pagination.page, usersStore.pagination.last_page)
+    visiblePages(usersStore.pagination.page, usersStore.pagination.last_page)
 )
 </script>
 
@@ -285,14 +285,14 @@ const pagesToShow = computed(() =>
         </p>
         <div class="mt-2 flex items-end justify-between gap-3">
           <p
-            v-if="statsLoading"
-            class="text-3xl font-bold text-slate-200 dark:text-slate-700"
+              v-if="statsLoading"
+              class="text-3xl font-bold text-slate-200 dark:text-slate-700"
           >
             —
           </p>
           <p
-            v-else
-            class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
+              v-else
+              class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
           >
             {{ directoryStats.totalUsers.toLocaleString() }}
           </p>
@@ -307,14 +307,14 @@ const pagesToShow = computed(() =>
         </p>
         <div class="mt-2 flex items-end justify-between gap-3">
           <p
-            v-if="statsLoading"
-            class="text-3xl font-bold text-slate-200 dark:text-slate-700"
+              v-if="statsLoading"
+              class="text-3xl font-bold text-slate-200 dark:text-slate-700"
           >
             —
           </p>
           <p
-            v-else
-            class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
+              v-else
+              class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
           >
             {{ directoryStats.activeNow.toLocaleString() }}
           </p>
@@ -330,21 +330,21 @@ const pagesToShow = computed(() =>
         </p>
         <div class="mt-2 flex items-end justify-between gap-3">
           <p
-            v-if="statsLoading"
-            class="text-3xl font-bold text-slate-200 dark:text-slate-700"
+              v-if="statsLoading"
+              class="text-3xl font-bold text-slate-200 dark:text-slate-700"
           >
             —
           </p>
           <p
-            v-else
-            class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
+              v-else
+              class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
           >
             {{ directoryStats.pendingVerification.toLocaleString() }}
           </p>
           <button
-            type="button"
-            class="text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400"
-            @click="goToPendingReviews"
+              type="button"
+              class="text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400"
+              @click="goToPendingReviews"
           >
             Review all
           </button>
@@ -363,20 +363,20 @@ const pagesToShow = computed(() =>
         </p>
       </div>
       <NuxtLink
-        to="/admin/users/create"
-        class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-primary-500/25 transition hover:bg-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          to="/admin/users/create"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-primary-500/25 transition hover:bg-primary-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
       >
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
         >
           <path d="M5 12h14" />
           <path d="M12 5v14" />
@@ -390,38 +390,38 @@ const pagesToShow = computed(() =>
       <div class="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-wrap gap-2">
           <button
-            type="button"
-            :class="[
+              type="button"
+              :class="[
               'rounded-full px-4 py-2 text-xs font-bold transition-colors',
               tab === 'all'
                 ? 'bg-primary-500 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             ]"
-            @click="setTab('all')"
+              @click="setTab('all')"
           >
             All users
           </button>
           <button
-            type="button"
-            :class="[
+              type="button"
+              :class="[
               'rounded-full px-4 py-2 text-xs font-bold transition-colors',
               tab === 'organizers'
                 ? 'bg-primary-500 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             ]"
-            @click="setTab('organizers')"
+              @click="setTab('organizers')"
           >
             Organizers
           </button>
           <button
-            type="button"
-            :class="[
+              type="button"
+              :class="[
               'rounded-full px-4 py-2 text-xs font-bold transition-colors',
               tab === 'attendees'
                 ? 'bg-primary-500 text-white shadow-sm'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
             ]"
-            @click="setTab('attendees')"
+              @click="setTab('attendees')"
           >
             Attendees
           </button>
@@ -430,9 +430,9 @@ const pagesToShow = computed(() =>
           <label class="sr-only">Filter by status</label>
           <div class="relative">
             <select
-              v-model="selectedStatus"
-              class="appearance-none rounded-xl border border-slate-200 bg-sky-50/80 py-2 pl-3 pr-9 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-              @change="usersStore.setPage(1); loadUsers()"
+                v-model="selectedStatus"
+                class="appearance-none rounded-xl border border-slate-200 bg-sky-50/80 py-2 pl-3 pr-9 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                @change="usersStore.setPage(1); loadUsers()"
             >
               <option value="">
                 Status: All
@@ -451,38 +451,38 @@ const pagesToShow = computed(() =>
               </option>
             </select>
             <svg
-              class="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
+                class="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
             >
               <path d="m6 9 6 6 6-6" />
             </svg>
           </div>
           <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-            @click="exportCsv"
+              type="button"
+              class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              @click="exportCsv"
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line
-                x1="12"
-                x2="12"
-                y1="15"
-                y2="3"
+                  x1="12"
+                  x2="12"
+                  y1="15"
+                  y2="3"
               />
             </svg>
             Export
@@ -493,75 +493,75 @@ const pagesToShow = computed(() =>
       <div class="overflow-x-auto">
         <table class="min-w-[900px] w-full border-collapse text-left">
           <thead>
-            <tr class="bg-slate-50/90 dark:bg-slate-800/50">
-              <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                User
-              </th>
-              <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Contact
-              </th>
-              <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Role
-              </th>
-              <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Status
-              </th>
-              <th class="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Actions
-              </th>
-            </tr>
+          <tr class="bg-slate-50/90 dark:bg-slate-800/50">
+            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              User
+            </th>
+            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Contact
+            </th>
+            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Role
+            </th>
+            <th class="px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Status
+            </th>
+            <th class="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Actions
+            </th>
+          </tr>
           </thead>
           <tbody>
-            <tr v-if="usersStore.loading">
-              <td
+          <tr v-if="usersStore.loading">
+            <td
                 colspan="5"
                 class="px-5 py-16"
-              >
-                <div class="flex flex-col items-center justify-center gap-3">
-                  <div
+            >
+              <div class="flex flex-col items-center justify-center gap-3">
+                <div
                     class="h-10 w-10 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"
                     role="status"
                     aria-label="Loading"
-                  />
-                  <p class="text-sm font-medium text-slate-500">
-                    Loading users…
-                  </p>
-                </div>
-              </td>
-            </tr>
-            <tr v-else-if="usersStore.users.length === 0">
-              <td
+                />
+                <p class="text-sm font-medium text-slate-500">
+                  Loading users…
+                </p>
+              </div>
+            </td>
+          </tr>
+          <tr v-else-if="usersStore.users.length === 0">
+            <td
                 colspan="5"
                 class="px-5 py-16"
-              >
-                <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-800/30">
-                  <svg
+            >
+              <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-800/30">
+                <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="mb-3 h-10 w-10 text-slate-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     stroke-width="1.5"
-                  >
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle
                       cx="9"
                       cy="7"
                       r="4"
-                    />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                  <p class="font-bold text-slate-900 dark:text-white">
-                    No users found
-                  </p>
-                  <p class="mt-1 text-sm text-slate-500">
-                    Try another tab, status filter, or search.
-                  </p>
-                </div>
-              </td>
-            </tr>
-            <tr
+                  />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <p class="font-bold text-slate-900 dark:text-white">
+                  No users found
+                </p>
+                <p class="mt-1 text-sm text-slate-500">
+                  Try another tab, status filter, or search.
+                </p>
+              </div>
+            </td>
+          </tr>
+          <tr
               v-for="(u, index) in usersStore.users"
               v-else
               :key="u.id"
@@ -569,167 +569,167 @@ const pagesToShow = computed(() =>
                 'border-t border-slate-100 dark:border-slate-800',
                 index % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/40 dark:bg-slate-900/80'
               ]"
-            >
-              <td class="px-5 py-4 align-middle">
-                <div class="flex items-center gap-3">
-                  <img
+          >
+            <td class="px-5 py-4 align-middle">
+              <div class="flex items-center gap-3">
+                <img
                     v-if="u.avatar"
                     :src="u.avatar"
                     :alt="getFullName(u)"
                     class="h-10 w-10 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
-                  >
-                  <div
+                >
+                <div
                     v-else
                     class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700 dark:bg-primary-950/50 dark:text-primary-300"
-                  >
-                    {{ (u.first_name?.[0] || '') + (u.last_name?.[0] || '?') }}
-                  </div>
-                  <div class="min-w-0">
-                    <p class="font-bold text-slate-900 dark:text-white">
-                      {{ getFullName(u) }}
-                    </p>
-                    <p class="text-xs font-medium text-slate-400">
-                      ID: {{ displayUserId(u) }}
-                    </p>
-                  </div>
+                >
+                  {{ (u.first_name?.[0] || '') + (u.last_name?.[0] || '?') }}
                 </div>
-              </td>
-              <td class="px-5 py-4 align-middle">
-                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  {{ u.email }}
-                </p>
-                <p class="text-xs font-medium text-slate-400">
-                  Joined {{ formatJoined(u.created_at) }}
-                </p>
-              </td>
-              <td class="px-5 py-4 align-middle">
+                <div class="min-w-0">
+                  <p class="font-bold text-slate-900 dark:text-white">
+                    {{ getFullName(u) }}
+                  </p>
+                  <p class="text-xs font-medium text-slate-400">
+                    ID: {{ displayUserId(u) }}
+                  </p>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-4 align-middle">
+              <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                {{ u.email }}
+              </p>
+              <p class="text-xs font-medium text-slate-400">
+                Joined {{ formatJoined(u.created_at) }}
+              </p>
+            </td>
+            <td class="px-5 py-4 align-middle">
                 <span
-                  v-if="primaryRole(u)"
-                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
-                  :class="rolePillClass(primaryRole(u))"
+                    v-if="primaryRole(u)"
+                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
+                    :class="rolePillClass(primaryRole(u))"
                 >
                   <svg
-                    v-if="primaryRole(u) === 'Organizer'"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3.5 w-3.5"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
+                      v-if="primaryRole(u) === 'Organizer'"
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3.5 w-3.5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
                   >
                     <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.3 7-6-4.6-6 4.6 2.3-7-6-4.8h7.6z" />
                   </svg>
                   <svg
-                    v-else-if="primaryRole(u) === 'Attendee'"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3.5 w-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    aria-hidden="true"
+                      v-else-if="primaryRole(u) === 'Attendee'"
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3.5 w-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
                   >
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
+                        cx="12"
+                        cy="7"
+                        r="4"
                     />
                   </svg>
                   <svg
-                    v-else
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3.5 w-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    aria-hidden="true"
+                      v-else
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3.5 w-3.5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
                   >
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
                   </svg>
                   {{ primaryRole(u) }}
                 </span>
-                <span
+              <span
                   v-else
                   class="text-xs font-medium text-slate-400"
-                >—</span>
-              </td>
-              <td class="px-5 py-4 align-middle">
+              >—</span>
+            </td>
+            <td class="px-5 py-4 align-middle">
                 <span
-                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
-                  :class="statusDisplay(u).pill"
+                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
+                    :class="statusDisplay(u).pill"
                 >
                   <span
-                    class="h-1.5 w-1.5 shrink-0 rounded-full"
-                    :class="statusDisplay(u).dot"
+                      class="h-1.5 w-1.5 shrink-0 rounded-full"
+                      :class="statusDisplay(u).dot"
                   />
                   {{ statusDisplay(u).label }}
                 </span>
-              </td>
-              <td class="px-5 py-4 align-middle text-right">
-                <div class="relative inline-flex justify-end">
-                  <button
+            </td>
+            <td class="px-5 py-4 align-middle text-right">
+              <div class="relative inline-flex justify-end">
+                <button
                     type="button"
                     class="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
                     :aria-expanded="openActionMenuId === u.id"
                     aria-label="Open actions"
                     @click.stop="openActionMenuId = openActionMenuId === u.id ? null : u.id"
-                  >
-                    <svg
+                >
+                  <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="18"
                       height="18"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                       aria-hidden="true"
-                    >
-                      <circle
+                  >
+                    <circle
                         cx="12"
                         cy="5"
                         r="2"
-                      />
-                      <circle
+                    />
+                    <circle
                         cx="12"
                         cy="12"
                         r="2"
-                      />
-                      <circle
+                    />
+                    <circle
                         cx="12"
                         cy="19"
                         r="2"
-                      />
-                    </svg>
-                  </button>
-                  <div
+                    />
+                  </svg>
+                </button>
+                <div
                     v-if="openActionMenuId === u.id"
                     class="absolute right-0 top-full z-[60] mt-1 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
                     @click.stop
-                  >
-                    <NuxtLink
+                >
+                  <NuxtLink
                       :to="`/admin/users/${u.id}`"
                       class="block px-4 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                       @click="openActionMenuId = null"
-                    >
-                      View
-                    </NuxtLink>
-                    <NuxtLink
+                  >
+                    View
+                  </NuxtLink>
+                  <NuxtLink
                       :to="`/admin/users/${u.id}/edit`"
                       class="block px-4 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                       @click="openActionMenuId = null"
-                    >
-                      Edit
-                    </NuxtLink>
-                    <button
+                  >
+                    Edit
+                  </NuxtLink>
+                  <button
                       type="button"
                       class="w-full px-4 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
                       @click="handleDeleteUser(u)"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  >
+                    Delete
+                  </button>
                 </div>
-              </td>
-            </tr>
+              </div>
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -739,45 +739,45 @@ const pagesToShow = computed(() =>
           Showing {{ paginationFrom }}-{{ paginationTo }} of {{ usersStore.pagination.total.toLocaleString() }} users
         </p>
         <nav
-          v-if="usersStore.pagination.last_page > 1"
-          class="flex flex-wrap items-center justify-center gap-1"
-          aria-label="Pagination"
+            v-if="usersStore.pagination.last_page > 1"
+            class="flex flex-wrap items-center justify-center gap-1"
+            aria-label="Pagination"
         >
           <button
-            type="button"
-            class="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 enabled:hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
-            :disabled="usersStore.pagination.page <= 1"
-            @click="usersStore.setPage(usersStore.pagination.page - 1); loadUsers()"
+              type="button"
+              class="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 enabled:hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
+              :disabled="usersStore.pagination.page <= 1"
+              @click="usersStore.setPage(usersStore.pagination.page - 1); loadUsers()"
           >
             ‹
           </button>
           <template
-            v-for="(p, i) in pagesToShow"
-            :key="i"
+              v-for="(p, i) in pagesToShow"
+              :key="i"
           >
             <span
-              v-if="p === 'ellipsis'"
-              class="px-2 text-slate-400"
+                v-if="p === 'ellipsis'"
+                class="px-2 text-slate-400"
             >…</span>
             <button
-              v-else
-              type="button"
-              :class="[
+                v-else
+                type="button"
+                :class="[
                 'min-w-[2.25rem] rounded-lg px-2 py-1.5 text-sm font-bold transition',
                 p === usersStore.pagination.page
                   ? 'bg-primary-500 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
               ]"
-              @click="usersStore.setPage(p); loadUsers()"
+                @click="usersStore.setPage(p); loadUsers()"
             >
               {{ p }}
             </button>
           </template>
           <button
-            type="button"
-            class="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 enabled:hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
-            :disabled="usersStore.pagination.page >= usersStore.pagination.last_page"
-            @click="usersStore.setPage(usersStore.pagination.page + 1); loadUsers()"
+              type="button"
+              class="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-600 enabled:hover:bg-slate-100 disabled:opacity-40 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
+              :disabled="usersStore.pagination.page >= usersStore.pagination.last_page"
+              @click="usersStore.setPage(usersStore.pagination.page + 1); loadUsers()"
           >
             ›
           </button>
@@ -794,8 +794,8 @@ const pagesToShow = computed(() =>
           </h2>
           <label class="sr-only">Chart range</label>
           <select
-            v-model="chartRange"
-            class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              v-model="chartRange"
+              class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="30d">
               Last 30 days
@@ -807,19 +807,19 @@ const pagesToShow = computed(() =>
         </div>
         <div class="mt-6 h-48 w-full">
           <svg
-            class="h-full w-full text-primary-300 dark:text-primary-800"
-            preserveAspectRatio="none"
-            viewBox="0 0 300 120"
+              class="h-full w-full text-primary-300 dark:text-primary-800"
+              preserveAspectRatio="none"
+              viewBox="0 0 300 120"
           >
             <rect
-              v-for="(h, i) in velocityHeights"
-              :key="i"
-              :x="4 + i * 9.2"
-              :y="110 - h * 1.1"
-              width="6"
-              :height="h * 1.1"
-              :class="i === 29 ? 'fill-primary-500 dark:fill-primary-400' : 'fill-current'"
-              rx="2"
+                v-for="(h, i) in velocityHeights"
+                :key="i"
+                :x="4 + i * 9.2"
+                :y="110 - h * 1.1"
+                width="6"
+                :height="h * 1.1"
+                :class="i === 29 ? 'fill-primary-500 dark:fill-primary-400' : 'fill-current'"
+                rx="2"
             />
           </svg>
         </div>
@@ -828,19 +828,19 @@ const pagesToShow = computed(() =>
         <div class="flex items-start gap-3">
           <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
             >
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
               <circle
-                cx="9"
-                cy="7"
-                r="4"
+                  cx="9"
+                  cy="7"
+                  r="4"
               />
               <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
@@ -862,8 +862,8 @@ const pagesToShow = computed(() =>
           </div>
           <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-white/20">
             <div
-              class="h-full rounded-full bg-white transition-all duration-500"
-              :style="{ width: `${Math.min(100, organizerSharePercent)}%` }"
+                class="h-full rounded-full bg-white transition-all duration-500"
+                :style="{ width: `${Math.min(100, organizerSharePercent)}%` }"
             />
           </div>
         </div>
@@ -871,15 +871,15 @@ const pagesToShow = computed(() =>
     </div>
 
     <ConfirmModal
-      :open="isOpen"
-      :title="options?.title || ''"
-      :message="options?.message || ''"
-      :confirm-text="options?.confirmText"
-      :variant="options?.variant"
-      :loading="deleteLoading"
-      @update:open="handleCancel"
-      @confirm="handleConfirm"
-      @cancel="handleCancel"
+        :open="isOpen"
+        :title="options?.title || ''"
+        :message="options?.message || ''"
+        :confirm-text="options?.confirmText"
+        :variant="options?.variant"
+        :loading="deleteLoading"
+        @update:open="handleCancel"
+        @confirm="handleConfirm"
+        @cancel="handleCancel"
     />
   </div>
 </template>

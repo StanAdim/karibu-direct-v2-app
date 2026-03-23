@@ -2,6 +2,7 @@
 import { useDark } from '@vueuse/core'
 import { getFullName } from '~/types'
 import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
+import ToastContainer from '~/components/common/ToastContainer.vue'
 
 const { user, logout } = useAuth()
 const route = useRoute()
@@ -18,7 +19,8 @@ watch(
     const keepSearch =
       path.startsWith('/admin/events')
       || path.startsWith('/admin/users')
-      || path.startsWith('/admin/analytics')
+        || path.startsWith('/admin/analytics')
+        || path.startsWith('/admin/roles')
       || path.startsWith('/admin/settings')
     if (!keepSearch) {
       adminHeaderSearch.value = ''
@@ -39,6 +41,9 @@ const headerSearchPlaceholder = computed(() => {
   if (route.path.startsWith('/admin/settings')) {
     return 'Search configurations...'
   }
+  if (route.path.startsWith('/admin/roles')) {
+    return 'Search roles...'
+  }
   return 'Search platform data...'
 })
 
@@ -47,6 +52,7 @@ const navigationItems = [
   { label: 'Users', icon: 'i-lucide-users', to: '/admin/users' },
   { label: 'Events', icon: 'i-lucide-calendar', to: '/admin/events' },
   { label: 'Finances', icon: 'i-lucide-wallet', to: '/admin/analytics' },
+  { label: 'Roles', icon: 'i-lucide-check', to: '/admin/roles' },
   { label: 'System Settings', icon: 'i-lucide-settings', to: '/admin/settings' }
 ]
 
@@ -276,5 +282,7 @@ function toggleColorMode() {
         <slot />
       </main>
     </div>
+
+    <ToastContainer />
   </div>
 </template>

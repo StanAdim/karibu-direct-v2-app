@@ -198,6 +198,23 @@ export const useUsersStore = defineStore('users', () => {
     pagination.value.page = 1
   }
 
+  /**
+   * Assigns a role via `POST /api/v1/users/{user_id}/roles/{role_id}`.
+   * Refetches the user to update the local list (response shape may vary).
+   */
+  const assignUserRole = async (userId: string, roleId: string): Promise<User> => {
+    await api.post(`/users/${userId}/roles/${roleId}`, undefined, { suppressErrorToast: true })
+    const user = await api.get<User>(`/users/${userId}`, { suppressErrorToast: true })
+    const index = users.value.findIndex(u => u.id === userId)
+    if (index !== -1) {
+      users.value[index] = user
+    }
+    if (currentUser.value?.id === userId) {
+      currentUser.value = user
+    }
+    return user
+  }
+
   return {
     // State
     users,
@@ -224,7 +241,8 @@ export const useUsersStore = defineStore('users', () => {
     setPage,
     setPerPage,
     clearCurrentUser,
-    clearFilters
+    clearFilters,
+    assignUserRole
   }
 })
 

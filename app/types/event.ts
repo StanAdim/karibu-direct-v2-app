@@ -74,6 +74,12 @@ export interface EventCustomField {
   options?: string[]
 }
 
+/** Event taxonomy option from `GET /events/categories/`. */
+export interface EventCategory {
+  id: string
+  name: string
+}
+
 export interface EventCreateInput {
   title: string
   description: string
@@ -85,6 +91,7 @@ export interface EventCreateInput {
   venue: EventVenue
   visibility: EventVisibility
   capacity: number
+  /** Category ids returned by the categories API. */
   categories?: string[]
   tags?: string[]
 }
