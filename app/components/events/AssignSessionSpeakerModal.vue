@@ -2,7 +2,19 @@
 import { computed, ref, watch } from 'vue'
 import AppModal from '~/components/common/AppModal.vue'
 import AppButton from '~/components/ui/AppButton.vue'
-import type { Session, SessionSpeaker, SessionUpdateInput } from '~/types'
+import { useApi } from '~/composables/useApi'
+import type { Session } from '~/types'
+
+type AssignSpeakerPayload = {
+  user_id: string
+  role: string
+}
+
+type OrganizerListUser = {
+  id: string
+  email: string
+  full_name: string
+}
 
 const props = defineProps<{
   modelValue: boolean
@@ -12,7 +24,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  saved: [payload: SessionUpdateInput]
+  saved: [payload: AssignSpeakerPayload]
 }>()
 
 const isOpen = computed({
@@ -20,11 +32,12 @@ const isOpen = computed({
   set: (v: boolean) => emit('update:modelValue', v)
 })
 
-const name = ref('')
-const email = ref('')
-const title = ref('')
-const company = ref('')
-const role = ref('speaker')
+const api = useApi()
+const selectedUserId = ref<string | null>(null)
+const role = ref<string | null>('speaker')
+const loadingUsers = ref(false)
+const userLoadFailed = ref(false)
+const users = ref<OrganizerListUser[]>([])
 
 const speakerRoles = [
   { value: 'speaker', label: 'Speaker' },
@@ -33,19 +46,52 @@ const speakerRoles = [
   { value: 'panelist', label: 'Panelist' }
 ]
 
+const userOptions = computed(() =>
+  users.value.map(user => ({
+    value: user.id,
+    label: user.full_name || user.email
+  }))
+)
+
+function normalizeUsers(raw: unknown): OrganizerListUser[] {
+  if (Array.isArray(raw)) return raw as OrganizerListUser[]
+  if (raw && typeof raw === 'object') {
+    const o = raw as Record<string, unknown>
+    if (Array.isArray(o.data)) return o.data as OrganizerListUser[]
+    if (Array.isArray(o.results)) return o.results as OrganizerListUser[]
+  }
+  return []
+}
+
+async function fetchUsers() {
+  loadingUsers.value = true
+  userLoadFailed.value = false
+  try {
+    const raw = await api.get<unknown>('/users/organizers/list', { suppressErrorToast: true })
+    users.value = normalizeUsers(raw)
+  }
+  catch {
+    userLoadFailed.value = true
+    users.value = []
+  }
+  finally {
+    loadingUsers.value = false
+  }
+}
+
 function resetFromSession(s: Session | null) {
   const primary = s?.speakers?.[0]
-  name.value = primary?.name ?? ''
-  email.value = primary?.email ?? ''
-  title.value = primary?.title ?? ''
-  company.value = primary?.company ?? ''
+  selectedUserId.value = primary?.user?.id ?? null
   role.value = primary?.role ?? 'speaker'
 }
 
 watch(
   () => [props.modelValue, props.session] as const,
   ([open, s]) => {
-    if (open) resetFromSession(s)
+    if (open) {
+      resetFromSession(s)
+      if (!users.value.length) void fetchUsers()
+    }
   },
   { immediate: true }
 )
@@ -55,20 +101,11 @@ function handleCancel() {
 }
 
 function handleSave() {
-  if (!props.session) return
-  if (!name.value.trim()) return
-
-  const primary: Omit<SessionSpeaker, 'id'> = {
-    name: name.value.trim(),
-    email: email.value.trim() || undefined,
-    title: title.value.trim() || undefined,
-    company: company.value.trim() || undefined,
+  if (!selectedUserId.value || !role.value) return
+  emit('saved', {
+    user_id: selectedUserId.value,
     role: role.value
-  }
-
-  const tail = (props.session.speakers ?? []).slice(1).map(({ id: _id, ...rest }) => rest as Omit<SessionSpeaker, 'id'>)
-
-  emit('saved', { speakers: [primary, ...tail] })
+  })
 }
 </script>
 
@@ -87,49 +124,42 @@ function handleSave() {
           Assign speaker
         </h2>
         <p class="text-sm text-gray-600 dark:text-gray-400">
-          Updates the primary speaker for this session. Additional speakers on the session are preserved.
+          Assign a user to this session with a role.
         </p>
       </header>
 
       <div class="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/50">
-        <AppInput
-          v-model="name"
-          label="NAME"
-          placeholder="Speaker name"
-          required
+        <AppSingleSelect
+          v-model="selectedUserId"
+          label="USER"
+          :placeholder="loadingUsers ? 'Loading users...' : 'Select user'"
+          :options="userOptions"
+          searchable
+          search-placeholder="Search users..."
+          :disabled="loadingUsers || !userOptions.length"
+          :show-selected-chip="false"
           class="[&_.ml-1]:text-xs [&_.ml-1]:uppercase [&_.ml-1]:tracking-wide"
         />
-        <AppInput
-          v-model="email"
-          label="EMAIL"
-          placeholder="Optional"
-          type="email"
+        <p
+          v-if="userLoadFailed"
+          class="-mt-2 text-xs text-red-500"
+        >
+          Failed to load users.
+        </p>
+        <p
+          v-else-if="!loadingUsers && !userOptions.length"
+          class="-mt-2 text-xs text-slate-500 dark:text-slate-400"
+        >
+          No users available.
+        </p>
+        <AppSingleSelect
+          v-model="role"
+          label="ROLE"
+          placeholder="Select role"
+          :options="speakerRoles"
+          :show-selected-chip="false"
           class="[&_.ml-1]:text-xs [&_.ml-1]:uppercase [&_.ml-1]:tracking-wide"
         />
-        <AppInput
-          v-model="title"
-          label="TITLE"
-          placeholder="Job title"
-          class="[&_.ml-1]:text-xs [&_.ml-1]:uppercase [&_.ml-1]:tracking-wide"
-        />
-        <AppInput
-          v-model="company"
-          label="COMPANY"
-          placeholder="Organization"
-          class="[&_.ml-1]:text-xs [&_.ml-1]:uppercase [&_.ml-1]:tracking-wide"
-        />
-        <div class="flex flex-col gap-1.5">
-          <label class="ml-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            ROLE
-          </label>
-          <USelect
-            v-model="role"
-            :items="speakerRoles"
-            value-key="value"
-            label-key="label"
-            class="h-12 rounded-xl border border-slate-200 dark:border-slate-700"
-          />
-        </div>
       </div>
 
       <div class="flex justify-end gap-3">
@@ -143,7 +173,7 @@ function handleSave() {
         <AppButton
           type="button"
           :loading="loading"
-          :disabled="!session || !name.trim()"
+          :disabled="!selectedUserId || !role"
           @click="handleSave"
         >
           Save

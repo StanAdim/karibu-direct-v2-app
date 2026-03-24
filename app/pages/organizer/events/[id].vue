@@ -41,6 +41,12 @@ const registrationStore = useRegistrationStore()
 const attendanceStore = useAttendanceStore()
 const notifications = useNotifications()
 const router = useRouter()
+const api = useApi()
+
+type AssignSpeakerPayload = {
+  user_id: string
+  role: string
+}
 
 const eventId = computed(() => String(route.params.id ?? ''))
 const showEventModal = ref(false)
@@ -325,11 +331,11 @@ async function onSessionUpdated(payload: SessionUpdateInput) {
   }
 }
 
-async function onAssignSpeakerSaved(update: SessionUpdateInput) {
+async function onAssignSpeakerSaved(payload: AssignSpeakerPayload) {
   if (!assignSession.value) return
   assignSpeakerLoading.value = true
   try {
-    await sessionsStore.updateSession(assignSession.value.id, update)
+    await api.post(`/sessions/${assignSession.value.id}/speakers`, payload)
     notifications.success('Speaker updated')
     showAssignSpeakerModal.value = false
     assignSession.value = null
