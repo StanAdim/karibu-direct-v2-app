@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-const appName = process.env.NUXT_PUBLIC_APP_NAME || 'EventHub'
+const appName = process.env.NUXT_PUBLIC_APP_NAME || 'KariCon'
 const appDescription = 'Enterprise Event Management Platform'
 
 export default defineNuxtConfig({
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
     jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api/v1',
-      appName: process.env.NUXT_APP_NAME || 'KaribuDirect',
+      appName: process.env.NUXT_APP_NAME || 'KariCon',
       appDescription,
       /** Backend role IDs for `POST /users/{id}/roles/{role_id}` */
       roleIdAdmin: process.env.NUXT_PUBLIC_ROLE_ID_ADMIN || '',

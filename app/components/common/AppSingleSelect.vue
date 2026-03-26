@@ -86,7 +86,7 @@ function toggleOpen() {
     </label>
     <p
       v-if="hint"
-      class="text-xs text-slate-500 dark:text-slate-400 ml-1 -mt-0.5"
+      class="text-xs text-slate-500 dark:text-slate-400 ml-1"
     >
       {{ hint }}
     </p>

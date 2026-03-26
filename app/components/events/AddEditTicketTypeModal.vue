@@ -38,7 +38,7 @@ const form = reactive<FormState>({
   name: '',
   description: '',
   price: 0,
-  currency: 'USD',
+  currency: 'TZS',
   quantity: 0,
   max_per_order: 10,
   sales_start: '',
@@ -75,7 +75,7 @@ function setFormFromData(data?: TicketType | null) {
   form.name = data?.name ?? ''
   form.description = data?.description ?? ''
   form.price = typeof data?.price === 'number' ? data.price : Number(data?.price ?? 0)
-  form.currency = data?.currency ?? 'USD'
+  form.currency = data?.currency ?? 'TZS'
   form.quantity = typeof data?.quantity === 'number' ? data.quantity : Number(data?.quantity ?? 0)
   form.max_per_order = typeof data?.max_per_order === 'number' ? data.max_per_order : Number(data?.max_per_order ?? 10)
   form.sales_start = isoToLocalInput(data?.sales_start ?? null)
@@ -154,7 +154,7 @@ function cancel() {
     max-width="lg"
     align="top"
   >
-    <div class="flex max-h-[80vh] flex-col gap-6 overflow-y-auto">
+    <div class="flex max-h-[80vh] flex-col gap-6 overflow-y-auto ">
       <header class="space-y-2">
         <p class="text-sm font-medium uppercase tracking-wide text-primary-600">
           {{ isEditing ? 'Edit Ticket Type' : 'Add Ticket Type' }}
@@ -168,7 +168,7 @@ function cancel() {
       </header>
 
       <form
-        class="space-y-6"
+        class="space-y-6 mx-2"
         @submit.prevent="submit"
       >
         <div class="grid gap-5 sm:grid-cols-2">
@@ -204,7 +204,7 @@ function cancel() {
           <AppInput
             v-model="form.currency"
             label="Currency"
-            placeholder="USD"
+            placeholder="TZS"
             :error="errors.currency"
           />
 

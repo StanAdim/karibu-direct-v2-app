@@ -76,12 +76,11 @@ function onInput(event: Event) {
         :max="max"
         :step="step"
         :class="[
-          'w-full h-12 rounded-xl border border-slate-400  bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-all outline-none',
-          'focus:ring-2 focus:border-transparent',
+          'w-full min-h-11 rounded-xl border bg-white px-3 py-2 text-left text-sm text-slate-900 transition-colors hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600',
           error
             ? 'border-red-500 focus:ring-red-500'
-            : 'border-slate-200 dark:border-slate-700 focus:ring-primary-500',
-          icon ? 'pl-11 pr-4' : 'px-4',
+            : 'border-slate-200 dark:border-slate-700',
+          icon ? 'pl-11 pr-3' : 'px-3',
           trailingIcon ? 'pr-11' : ''
         ]"
         @input="onInput"

@@ -147,7 +147,7 @@ export const useEventsStore = defineStore('events', () => {
       if (eventFilters?.end_date) params.append('end_date', eventFilters.end_date)
       // Intentionally do not send `organizer_id` for the "my-events" endpoint.
 
-      const response = await api.get<PaginatedResponse<Event>>(`/events/my-events/?${params.toString()}`)
+      const response = await api.get<PaginatedResponse<Event>>(`/events/my-events?${params.toString()}`)
 
       events.value = response.data
       const meta = response.meta as any
