@@ -16,6 +16,8 @@ import {
 } from '~/types'
 import { onClickOutside } from '@vueuse/core'
 import type { ScheduleSessionPayload } from '~/components/events/ScheduleSessionModal.vue'
+import AppButton from '~/components/ui/AppButton.vue'
+import AddEditTicketTypeModal from '~/components/events/AddEditTicketTypeModal.vue'
 import EventEditModal from '~/components/events/EventEditModal.vue'
 import ScheduleSessionModal from '~/components/events/ScheduleSessionModal.vue'
 import SessionCreateModal from '~/components/events/SessionCreateModal.vue'
@@ -27,6 +29,8 @@ import EventOverviewTab from '~/components/organizer/event/EventOverviewTab.vue'
 import EventSessionsTab from '~/components/organizer/event/EventSessionsTab.vue'
 import EventCheckpointsTab from '~/components/organizer/event/EventCheckpointsTab.vue'
 import EventAttendeesTab from '~/components/organizer/event/EventAttendeesTab.vue'
+import EventTicketTypesTab from '~/components/organizer/event/EventTicketTypesTab.vue'
+import type { TicketType, TicketTypeUpsertInput } from '~/stores/ticket_types'
 
 definePageMeta({
   layout: 'organizer',
@@ -39,6 +43,7 @@ const sessionsStore = useSessionsStore()
 const checkpointStore = useCheckpointStore()
 const registrationStore = useRegistrationStore()
 const attendanceStore = useAttendanceStore()
+const ticketTypesStore = useTicketTypesStore()
 const notifications = useNotifications()
 const router = useRouter()
 const api = useApi()
@@ -69,11 +74,12 @@ const showSessionCheckInModal = ref(false)
 const checkInSession = ref<Session | null>(null)
 const sessionCheckInLoading = ref(false)
 const loading = ref(true)
-const activeTab = ref<'overview' | 'sessions' | 'checkpoints' | 'attendees'>('overview')
+const activeTab = ref<'overview' | 'sessions' | 'ticket_types' | 'checkpoints' | 'attendees'>('overview')
 
 const organizerEventTabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'sessions', label: 'Sessions' },
+  { id: 'ticket_types', label: 'Ticket Types' },
   { id: 'checkpoints', label: 'Checkpoints' },
   { id: 'attendees', label: 'Attendee List' }
 ] as const
@@ -88,6 +94,10 @@ const event = computed<Event | null>(() => {
 })
 
 const sessions = computed(() => sessionsStore.sessions)
+
+const ticketTypes = computed<TicketType[]>(() =>
+  ticketTypesStore.getEventTicketTypesFromCache(eventId.value)
+)
 
 const eventCheckpoints = computed<Checkpoint[]>(() =>
   checkpointStore.eventCheckpoints(eventId.value)
@@ -141,6 +151,7 @@ async function loadData() {
     await Promise.all([
       eventsStore.fetchEvent(id),
       sessionsStore.fetchEventSessions(id),
+      ticketTypesStore.fetchEventTicketTypes(id),
       checkpointStore.fetchEventCheckpoints(id),
       registrationStore.fetchEventRegistrations(id)
     ])
@@ -281,6 +292,72 @@ function openSessionCheckIn(session: Session) {
   showSessionCheckInModal.value = true
 }
 
+const showTicketTypeModal = ref(false)
+const editingTicketType = ref<TicketType | null>(null)
+
+function openAddTicketType() {
+  editingTicketType.value = null
+  showTicketTypeModal.value = true
+}
+
+function openEditTicketType(ticketType: TicketType) {
+  editingTicketType.value = ticketType
+  showTicketTypeModal.value = true
+}
+
+async function onTicketTypeSaved(payload: TicketTypeUpsertInput) {
+  const ev = eventId.value
+  if (!ev) return
+
+  try {
+    if (editingTicketType.value?.id) {
+      await ticketTypesStore.updateTicketType(ev, editingTicketType.value.id, payload)
+      notifications.success('Ticket type updated')
+    } else {
+      await ticketTypesStore.createTicketType(ev, payload)
+      notifications.success('Ticket type created')
+    }
+
+    showTicketTypeModal.value = false
+    editingTicketType.value = null
+    await ticketTypesStore.fetchEventTicketTypes(ev)
+  }
+  catch {
+    notifications.error('Failed to save ticket type')
+  }
+}
+
+async function onTicketTypeClone(ticketType: TicketType) {
+  const ev = eventId.value
+  if (!ev) return
+  try {
+    await ticketTypesStore.cloneTicketType(ev, ticketType.id)
+    notifications.success('Ticket type cloned')
+    await ticketTypesStore.fetchEventTicketTypes(ev)
+  }
+  catch {
+    notifications.error('Failed to clone ticket type')
+  }
+}
+
+async function onTicketTypeDelete(ticketType: TicketType) {
+  const ev = eventId.value
+  if (!ev) return
+  try {
+    await ticketTypesStore.deleteTicketType(ev, ticketType.id)
+    notifications.success('Ticket type deleted')
+  }
+  catch {
+    notifications.error('Failed to delete ticket type')
+  }
+}
+
+function onTicketTypeModalUpdate(v: boolean) {
+  if (!v) {
+    editingTicketType.value = null
+  }
+}
+
 function onScheduleConfirm(payload: ScheduleSessionPayload) {
   scheduledSlot.value = {
     date: payload.date,
@@ -414,6 +491,7 @@ watch(
       eventsStore.clearCurrentEvent()
       sessionsStore.clearSessionsList()
       checkpointStore.invalidateEvent(prevId)
+      ticketTypesStore.clearEventTicketTypes(prevId)
     }
     void loadData()
   },
@@ -527,19 +605,24 @@ onUnmounted(() => {
                 </Transition>
               </div>
             </div>
-            <UButton
-              variant="outline"
-              icon="i-lucide-pencil"
+            <AppButton
+              color="neutral"
+              size="sm"
+              icon="edit"
+              class="!shadow-sm !bg-white !text-slate-800 border border-slate-200/80 hover:!bg-[#e8efff]/80 dark:!bg-slate-900 dark:border-slate-700 dark:!text-slate-100"
               @click="openEditEventModal"
             >
               Edit Details
-            </UButton>
-            <UButton
-              variant="ghost"
-              icon="i-lucide-external-link"
+            </AppButton>
+            <AppButton
+              color="neutral"
+              size="sm"
+              icon="open_in_new"
+              :to="event ? `/attendee/events/${event.id}` : undefined"
+              class="!shadow-none !bg-transparent !text-slate-700 hover:!bg-slate-100/70 dark:!text-slate-200 dark:hover:!bg-slate-800/70"
             >
               View Public Page
-            </UButton>
+            </AppButton>
           </div>
         </div>
 
@@ -597,6 +680,17 @@ onUnmounted(() => {
               @session-register="openSessionRegistration"
               @session-checkin="openSessionCheckIn"
               @sessions-changed="loadData"
+            />
+            <EventTicketTypesTab
+              v-else-if="activeTab === 'ticket_types'"
+              :event-id="event.id"
+              :ticket-types="ticketTypes"
+              :loading="ticketTypesStore.loadingList"
+              @add="openAddTicketType"
+              @edit="openEditTicketType"
+              @clone="onTicketTypeClone"
+              @delete="onTicketTypeDelete"
+              @refresh="ticketTypesStore.fetchEventTicketTypes(event.id)"
             />
             <EventCheckpointsTab
               v-else-if="activeTab === 'checkpoints'"
@@ -673,6 +767,14 @@ onUnmounted(() => {
       :session="checkInSession"
       :loading="sessionCheckInLoading"
       @submit="onSessionCheckInSubmit"
+    />
+
+    <AddEditTicketTypeModal
+      v-model="showTicketTypeModal"
+      :data="editingTicketType"
+      :loading="ticketTypesStore.loadingWrite"
+      @saved="onTicketTypeSaved"
+      @update:model-value="onTicketTypeModalUpdate"
     />
   </div>
 </template>
