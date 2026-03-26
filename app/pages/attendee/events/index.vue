@@ -157,7 +157,7 @@ function getLocationLine(event: Event): string {
 }
 
 function getCategoryLabel(event: Event): string {
-  return (event.categories && event.categories[0]) ? event.categories[0].toUpperCase() : 'EVENT'
+  return (event.categories && event.categories[0]) ? event.categories[0].name.toUpperCase() : 'EVENT'
 }
 
 watch(selectedCategoryId, () => {

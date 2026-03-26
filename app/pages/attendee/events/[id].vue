@@ -311,7 +311,7 @@ const organizerLine = computed(() => {
         </NuxtLink>
         <span class="text-slate-400 material-symbols-outlined text-xs">chevron_right</span>
         <span class="text-slate-500 dark:text-slate-400">
-          {{ event.categories?.[0] || 'Event' }}
+          {{ event.slug || 'Event' }}
         </span>
       </nav>
 
@@ -324,13 +324,13 @@ const organizerLine = computed(() => {
                 v-for="(cat, idx) in (event.categories || []).slice(0, 2)"
                 :key="cat"
                 :class="[
-                  'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider',
+                  'px-1.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider',
                   idx === 0
                     ? 'bg-primary-500/10 text-primary-500'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 ]"
               >
-                {{ cat }}
+                #{{ cat.name }}
               </span>
               <span
                 v-if="!event.categories?.length"
