@@ -65,7 +65,7 @@ function closeMobileSidebar() {
     <!-- Mobile menu button -->
     <button
       type="button"
-      class="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700"
+      class="lg:hidden fixed top-3 left-3 z-50 p-2 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700"
       aria-label="Toggle menu"
       @click="isMobileSidebarOpen = !isMobileSidebarOpen"
     >
@@ -190,21 +190,21 @@ function closeMobileSidebar() {
     <!-- Main content -->
     <main class="flex-1 min-h-screen flex flex-col min-w-0">
       <!-- Header: search + actions -->
-      <header class="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <header class="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 lg:px-6 py-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div class="relative flex-1 min-w-0 order-2 sm:order-1 pl-12 sm:pl-0 max-w-full sm:max-w-md">
           <span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none hidden sm:inline ml-1">search</span>
           <input
             v-model="searchQuery"
             type="search"
             placeholder="Search events, venues, or bookings..."
-            class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl py-2.5 pl-10 pr-4 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
+            class="w-full bg-slate-100 dark:bg-slate-800 border-0 rounded-xl py-2 pl-10 pr-3 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
           />
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3 order-1 sm:order-2 ml-auto">
           <button
             type="button"
-            class="p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl relative transition-colors"
+            class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl relative transition-colors"
             aria-label="Notifications"
           >
             <span class="material-symbols-outlined">notifications</span>
@@ -212,7 +212,7 @@ function closeMobileSidebar() {
           </button>
           <button
             type="button"
-            class="hidden sm:flex p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            class="hidden sm:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
             aria-label="Help"
           >
             <span class="material-symbols-outlined">help_outline</span>
@@ -233,7 +233,7 @@ function closeMobileSidebar() {
       </header>
 
       <!-- Page content: consistent padding for all attendee routes -->
-      <div class="p-4 sm:p-6 lg:p-8 flex-1 overflow-x-hidden">
+      <div class="p-4 sm:p-5 lg:p-6 flex-1 overflow-x-hidden">
         <slot />
       </div>
     </main>

@@ -115,7 +115,7 @@ function handleSave() {
     max-width="lg"
     align="top"
   >
-    <div class="flex max-h-[80vh] flex-col gap-5 overflow-y-auto">
+    <div class="flex max-h-[80vh] flex-col gap-4 overflow-y-auto">
       <header class="space-y-1">
         <p class="text-sm font-medium uppercase tracking-wide text-primary-600">
           Speaker
@@ -162,7 +162,7 @@ function handleSave() {
         />
       </div>
 
-      <div class="flex justify-end gap-3">
+      <div class="flex justify-end gap-2">
         <button
           type="button"
           class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"

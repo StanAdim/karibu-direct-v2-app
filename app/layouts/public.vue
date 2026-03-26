@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import ToastContainer from '~/components/common/ToastContainer.vue'
+
 const config = useRuntimeConfig()
 const { user } = useAuth()
 const route = useRoute()
 const isMobileMenuOpen = ref(false)
-import ToastContainer from '~/components/common/ToastContainer.vue'
 
 interface NavLink {
   label: string
@@ -76,7 +77,7 @@ const footerSections = [
       v-if="showNavbar"
       class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md"
     >
-      <div class="flex items-center justify-between px-6 py-4">
+      <div class="flex items-center justify-between px-4 py-3">
         <!-- Brand: icon + app name (dark) -->
         <NuxtLink to="/" class="flex items-center gap-2">
           <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500 text-white shrink-0">
@@ -86,7 +87,7 @@ const footerSections = [
         </NuxtLink>
 
         <!-- Desktop Navigation: Explore, Host an Event, Help -->
-        <nav class="hidden md:flex items-center gap-8">
+        <nav class="hidden md:flex items-center gap-6">
           <NuxtLink
             v-for="link in resolvedNavLinks"
             :key="link.to"
@@ -101,7 +102,7 @@ const footerSections = [
         <!-- Search (optional) -->
         <div
           v-if="showSearch"
-          class="hidden lg:flex w-full max-w-md items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2.5 mx-8"
+          class="hidden lg:flex w-full max-w-md items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-3 py-2 mx-6"
         >
           <span class="material-symbols-outlined text-slate-400">search</span>
           <input
@@ -112,7 +113,7 @@ const footerSections = [
         </div>
 
         <!-- Auth: Log in (text) + Sign Up (purple button) -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <template v-if="showAuthButtons && !user">
             <NuxtLink
               to="/login"
@@ -164,9 +165,9 @@ const footerSections = [
       >
         <div
           v-if="isMobileMenuOpen"
-          class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-6 py-4"
+          class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3"
         >
-          <nav class="flex flex-col gap-4">
+          <nav class="flex flex-col gap-3">
             <NuxtLink
               v-for="link in resolvedNavLinks"
               :key="link.to"
@@ -190,10 +191,10 @@ const footerSections = [
     <!-- Footer -->
     <footer
       v-if="showFooter"
-      class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-6 py-16"
+      class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-10"
     >
       <div class="mx-auto max-w-7xl">
-        <div class="grid grid-cols-1 gap-12 md:grid-cols-4 lg:grid-cols-5">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-4 lg:grid-cols-5">
           <!-- Brand Column -->
           <div class="col-span-1 lg:col-span-2">
             <div class="flex items-center gap-2">
@@ -202,10 +203,10 @@ const footerSections = [
               </div>
               <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</h2>
             </div>
-            <p class="mt-6 max-w-sm text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p class="mt-4 max-w-sm text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               Connecting people through shared experiences. Discover, host, and manage amazing events worldwide.
             </p>
-            <div class="mt-8 flex gap-3">
+            <div class="mt-5 flex gap-3">
               <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary-500 hover:text-white transition-colors text-slate-600 dark:text-slate-400" aria-label="Twitter">
                 <span class="material-symbols-outlined text-lg">chat</span>
               </a>
@@ -218,7 +219,7 @@ const footerSections = [
           <!-- Link Columns: PLAN EVENTS, FIND EVENTS, CONNECT -->
           <div v-for="section in footerSections" :key="section.title">
             <h5 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">{{ section.title }}</h5>
-            <ul class="mt-6 space-y-3 text-sm text-slate-500 dark:text-slate-400">
+            <ul class="mt-4 space-y-2 text-sm text-slate-500 dark:text-slate-400">
               <li v-for="link in section.links" :key="link.href">
                 <NuxtLink :to="link.href" class="hover:text-primary-500 transition-colors">
                   {{ link.label }}
@@ -229,7 +230,7 @@ const footerSections = [
         </div>
 
         <!-- Bottom Bar -->
-        <div class="mt-16 flex flex-col items-center justify-between gap-6 border-t border-slate-200 dark:border-slate-800 pt-10 md:flex-row">
+        <div class="mt-10 flex flex-col items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 pt-6 md:flex-row">
           <p class="text-xs text-slate-400">&copy; {{ new Date().getFullYear() }} {{ config.public.appName }} Inc. All rights reserved.</p>
           <div class="flex gap-8 text-xs text-slate-400">
             <NuxtLink to="/terms" class="hover:text-primary-500 transition-colors">Terms of Service</NuxtLink>

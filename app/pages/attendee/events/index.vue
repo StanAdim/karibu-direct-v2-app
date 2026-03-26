@@ -157,7 +157,13 @@ function getLocationLine(event: Event): string {
 }
 
 function getCategoryLabel(event: Event): string {
-  return (event.categories && event.categories[0]) ? event.categories[0].name.toUpperCase() : 'EVENT'
+  const first = event.categories?.[0]
+  if (!first) return 'EVENT'
+  if (typeof first === 'string') return first.toUpperCase()
+  if (typeof first === 'object' && 'name' in first && typeof (first as { name?: unknown }).name === 'string') {
+    return (first as { name: string }).name.toUpperCase()
+  }
+  return 'EVENT'
 }
 
 watch(selectedCategoryId, () => {
@@ -178,12 +184,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-100 dark:bg-slate-950">
-    <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+  <div>
+    <div class="flex flex-col lg:flex-row gap-4 lg:gap-5">
       <!-- Left sidebar: filters -->
       <aside class="lg:w-72 shrink-0">
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden sticky top-24">
-          <div class="p-5 border-b border-slate-100 dark:border-slate-800">
+          <div class="p-4 border-b border-slate-100 dark:border-slate-800">
             <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
               Categories
             </h2>
@@ -195,7 +201,7 @@ onBeforeUnmount(() => {
               :key="cat.id"
               type="button"
               :class="[
-                'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors',
+                'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-colors',
                 selectedCategoryId === cat.id
                   ? 'bg-primary-500 text-white'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -207,7 +213,7 @@ onBeforeUnmount(() => {
             </button>
           </nav>
 
-          <div class="p-5 border-t border-slate-100 dark:border-slate-800">
+          <div class="p-4 border-t border-slate-100 dark:border-slate-800">
             <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
               Price Range
             </h2>
@@ -227,13 +233,13 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="p-5 border-t border-slate-100 dark:border-slate-800">
-            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-3">
+          <div class="p-4 border-t border-slate-100 dark:border-slate-800">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-2">
               Location
             </h2>
             <select
               v-model="locationOption"
-              class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
+              class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
             >
               <option value="Dar es Salaam">Dar es Salaam</option>
               <option value="Arusha">Arusha</option>
@@ -245,7 +251,7 @@ onBeforeUnmount(() => {
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 min-w-0 space-y-6">
+      <main class="flex-1 min-w-0 space-y-4">
         <!-- Search in main area (optional duplicate for focus) or rely on layout search -->
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -255,7 +261,7 @@ onBeforeUnmount(() => {
                 v-model="searchQuery"
                 type="search"
                 placeholder="Search events, organizers, or cities..."
-                class="w-full rounded-xl bg-slate-100 dark:bg-slate-800 border-0 py-2.5 pl-10 pr-4 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                class="w-full rounded-xl bg-slate-100 dark:bg-slate-800 border-0 py-2 pl-10 pr-3 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
               >
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -280,7 +286,7 @@ onBeforeUnmount(() => {
         <!-- Empty -->
         <div
           v-else-if="displayEvents.length === 0"
-          class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm py-16 px-6 text-center"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm py-10 px-4 text-center"
         >
           <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600">event_busy</span>
           <p class="mt-4 text-slate-700 dark:text-slate-300 font-medium">
@@ -386,14 +392,14 @@ onBeforeUnmount(() => {
 <!--        </div>-->
 
         <!-- Footer: count + Explore More -->
-        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6 text-center">
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4 text-center">
           <p class="text-sm text-slate-600 dark:text-slate-400">
             Showing {{ showingCount }} event{{ showingCount === 1 ? '' : 's' }}
             <template v-if="totalCount > 0">
               · {{ totalCount }} total from the server for this search
             </template>
           </p>
-        <div class="mt-4 flex justify-center">
+        <div class="mt-3 flex justify-center">
           <AppButton
             icon="arrow_forward"
             icon-position="right"

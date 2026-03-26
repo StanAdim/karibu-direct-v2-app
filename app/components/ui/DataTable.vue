@@ -119,7 +119,7 @@ const alignmentClasses = {
           <tr>
             <th
               v-if="selectable"
-              class="w-12 px-4 py-3"
+              class="w-12 px-3 py-2"
             >
               <UCheckbox
                 :model-value="selectedRows.length === data.length && data.length > 0"
@@ -132,7 +132,7 @@ const alignmentClasses = {
               v-for="column in columns"
               :key="String(column.key)"
               :class="[
-                'px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white',
+                'px-3 py-2 text-sm font-semibold text-gray-900 dark:text-white',
                 alignmentClasses[column.align || 'left'],
                 column.sortable ? 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800' : ''
               ]"
@@ -151,7 +151,7 @@ const alignmentClasses = {
 
             <th
               v-if="$slots['row-actions'] || $slots['header-actions']"
-              class="w-12 px-4 py-3"
+              class="w-12 px-3 py-2"
             >
               <slot name="header-actions" />
             </th>
@@ -162,7 +162,7 @@ const alignmentClasses = {
           <tr v-if="loading">
             <td
               :colspan="columns.length + (selectable ? 1 : 0) + ($slots['row-actions'] ? 1 : 0)"
-              class="px-4 py-8 text-center"
+              class="px-3 py-6 text-center"
             >
               <LoadingState />
             </td>
@@ -171,7 +171,7 @@ const alignmentClasses = {
           <tr v-else-if="data.length === 0">
             <td
               :colspan="columns.length + (selectable ? 1 : 0) + ($slots['row-actions'] ? 1 : 0)"
-              class="px-4 py-8"
+              class="px-3 py-6"
             >
               <slot name="empty">
                 <EmptyState
@@ -191,7 +191,7 @@ const alignmentClasses = {
           >
             <td
               v-if="selectable"
-              class="w-12 px-4 py-4"
+              class="w-12 px-3 py-2"
               @click.stop
             >
               <UCheckbox
@@ -204,7 +204,7 @@ const alignmentClasses = {
               v-for="column in columns"
               :key="String(column.key)"
               :class="[
-                'px-4 py-4 text-sm',
+                'px-3 py-2 text-sm',
                 alignmentClasses[column.align || 'left']
               ]"
             >
@@ -219,7 +219,7 @@ const alignmentClasses = {
 
             <td
               v-if="$slots['row-actions']"
-              class="w-12 px-4 py-4"
+              class="w-12 px-3 py-2"
               @click.stop
             >
               <slot

@@ -112,7 +112,7 @@ const isUpcoming = computed(() => event.value ? isEventUpcoming(event.value) : f
 const isPast = computed(() => event.value ? isEventPast(event.value) : false)
 const capacityPercentage = computed(() => event.value ? getEventCapacityPercentage(event.value) : 0)
 
-const stats = computed(() => [
+const _stats = computed(() => [
   {
     title: 'Registered',
     value: event.value?.registered_count || 0,
@@ -161,7 +161,7 @@ async function loadData() {
   }
 }
 
-async function publishEvent() {
+async function _publishEvent() {
   if (!event.value) return
 
   try {
@@ -173,7 +173,7 @@ async function publishEvent() {
   }
 }
 
-async function cancelEvent() {
+async function _cancelEvent() {
   if (!event.value) return
 
   try {
@@ -529,7 +529,7 @@ onUnmounted(() => {
 
     <!-- Event Management Hub -->
     <template v-else>
-      <div class="space-y-6">
+      <div class="space-y-4">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary-500">
@@ -553,7 +553,7 @@ onUnmounted(() => {
               >
                 <button
                   type="button"
-                  class="flex w-full min-h-11 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-900 transition-colors hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600"
+                  class="flex w-full min-h-10 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-900 transition-colors hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600"
                   :disabled="statusUpdateLoading"
                   @click="statusSelectOpen = !statusSelectOpen"
                 >
@@ -663,7 +663,7 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-[2.2fr,1fr]">
+        <div class="grid gap-4 lg:grid-cols-[2.2fr,1fr]">
           <div>
             <EventOverviewTab
               v-if="activeTab === 'overview'"

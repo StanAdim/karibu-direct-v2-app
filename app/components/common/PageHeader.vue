@@ -13,8 +13,8 @@ defineSlots<{
 </script>
 
 <template>
-  <div class="mb-8">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="mb-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ title }}
@@ -30,7 +30,7 @@ defineSlots<{
 
       <div
         v-if="$slots.actions"
-        class="flex items-center gap-3"
+        class="flex items-center gap-2"
       >
         <slot name="actions" />
       </div>

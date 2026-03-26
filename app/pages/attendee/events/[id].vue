@@ -16,7 +16,7 @@ const eventsStore = useEventsStore()
 const sessionsStore = useSessionsStore()
 const registrationStore = useRegistrationStore()
 const notifications = useNotifications()
-const { user } = useAuth()
+useAuth()
 
 const eventId = computed(() => String(route.params.id ?? ''))
 
@@ -154,6 +154,19 @@ function directionsUrl(ev: Event): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`
 }
 
+function categoryName(cat: unknown): string | null {
+  if (!cat) return null
+  if (typeof cat === 'string') return cat
+  if (typeof cat === 'object' && 'name' in cat && typeof (cat as { name?: unknown }).name === 'string') {
+    return (cat as { name: string }).name
+  }
+  return null
+}
+
+function categoryKey(cat: unknown, idx: number): string {
+  return categoryName(cat) ?? `cat-${idx}`
+}
+
 function descriptionParagraphs(text: string): string[] {
   return text
     .split(/\n\s*\n/)
@@ -192,7 +205,8 @@ async function loadRelated(ev: Event) {
     params.append('status', 'published')
     params.append('visibility', 'public')
     const cat = ev.categories?.[0]
-    if (cat) params.append('category', cat)
+    const catName = categoryName(cat)
+    if (catName) params.append('category', catName)
     const res = await api.get<PaginatedResponse<Event>>(`/events/?${params.toString()}`)
     relatedEvents.value = res.data.filter(e => e.id !== ev.id).slice(0, 3)
   }
@@ -301,7 +315,7 @@ const organizerLine = computed(() => {
 
     <template v-else-if="event">
       <!-- Breadcrumbs -->
-      <nav class="flex flex-wrap items-center gap-2 mb-8 text-sm font-medium">
+      <nav class="flex flex-wrap items-center gap-2 mb-4 text-sm font-medium">
         <NuxtLink to="/attendee" class="text-primary-500 hover:underline">
           Home
         </NuxtLink>
@@ -315,14 +329,14 @@ const organizerLine = computed(() => {
         </span>
       </nav>
 
-      <div class="flex flex-col lg:flex-row gap-10 lg:gap-12 max-w-[1280px]">
+      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 max-w-[1280px]">
         <!-- Left column -->
-        <div class="flex-1 min-w-0 space-y-10">
-          <div class="space-y-4  ">
-            <div class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-0 space-y-6">
+          <div class="space-y-3">
+            <div class="flex flex-wrap gap-3">
               <span
                 v-for="(cat, idx) in (event.categories || []).slice(0, 2)"
-                :key="cat"
+                :key="categoryKey(cat, idx)"
                 :class="[
                   'px-1.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider',
                   idx === 0
@@ -330,7 +344,7 @@ const organizerLine = computed(() => {
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 ]"
               >
-                #{{ cat.name }}
+                #{{ categoryName(cat) }}
               </span>
               <span
                 v-if="!event.categories?.length"
@@ -382,7 +396,7 @@ const organizerLine = computed(() => {
           </div>
 
           <!-- Tab panels -->
-          <div v-show="activeTab === 'about'" class="space-y-6 animate-fade-in">
+          <div v-show="activeTab === 'about'" class="space-y-4 animate-fade-in">
             <h3 v-if="event.short_description" class="text-2xl font-bold text-slate-900 dark:text-white">
               {{ event.short_description }}
             </h3>
@@ -491,7 +505,7 @@ const organizerLine = computed(() => {
           <!-- Organizer -->
           <div
             v-if="organizerLine"
-            class="card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6"
+            class="card card-pad flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
           >
             <div class="flex items-center gap-4 min-w-0">
               <div
@@ -535,8 +549,8 @@ const organizerLine = computed(() => {
 
         <!-- Sidebar -->
         <div class="lg:w-[400px] shrink-0">
-          <div class="lg:sticky lg:top-28 space-y-6">
-            <div class="card p-6 shadow-xl space-y-6">
+          <div class="lg:sticky lg:top-28 space-y-4">
+            <div class="card card-pad shadow-xl space-y-4">
               <div class="space-y-2">
                 <div class="flex justify-between items-center gap-3">
                   <span class="text-slate-500 dark:text-slate-400 font-semibold text-sm">Tickets starting from</span>
@@ -610,7 +624,7 @@ const organizerLine = computed(() => {
               <div class="space-y-3">
                 <button
                   type="button"
-                  class="w-full btn-primary py-4 text-lg justify-center disabled:opacity-50 disabled:pointer-events-none"
+                  class="w-full btn-primary py-3 text-base justify-center disabled:opacity-50 disabled:pointer-events-none"
                   :disabled="!bookableTicketTypes.length || bookingLoading"
                   @click="handleBook"
                 >
@@ -622,8 +636,8 @@ const organizerLine = computed(() => {
               </div>
             </div>
 
-            <div class="card p-6">
-              <p class="text-sm font-bold text-slate-900 dark:text-white mb-4">
+            <div class="card card-pad">
+              <p class="text-sm font-bold text-slate-900 dark:text-white mb-3">
                 Share with friends
               </p>
               <div class="flex gap-4">
@@ -644,7 +658,7 @@ const organizerLine = computed(() => {
                   <span class="text-xs font-bold">{{ savedToggle ? 'Saved' : 'Save' }}</span>
                 </button>
               </div>
-              <div class="mt-6 pt-6 border-t border-primary-500/10 flex justify-center gap-6 text-slate-400">
+              <div class="mt-4 pt-4 border-t border-primary-500/10 flex justify-center gap-5 text-slate-400">
                 <span class="material-symbols-outlined cursor-default opacity-50" title="Social links">public</span>
                 <span class="material-symbols-outlined cursor-default opacity-50" title="Social links">groups</span>
                 <span class="material-symbols-outlined cursor-default opacity-50" title="Social links">alternate_email</span>
@@ -655,7 +669,7 @@ const organizerLine = computed(() => {
       </div>
 
       <!-- Related -->
-      <div class="max-w-[1280px] mx-auto mt-16 sm:mt-20 space-y-8">
+      <div class="max-w-[1280px] mx-auto mt-10 sm:mt-12 space-y-5">
         <div class="flex justify-between items-center gap-4">
           <h3 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
             More Events You'll Love
@@ -670,7 +684,7 @@ const organizerLine = computed(() => {
           <LoadingState text="Loading suggestions..." />
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           <NuxtLink
             v-for="ev in relatedEvents"
             :key="ev.id"

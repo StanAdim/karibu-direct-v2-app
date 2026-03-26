@@ -124,7 +124,7 @@ function formatShortAgo(iso: string): string {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-5">
     <header>
       <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
         System Overview
@@ -139,7 +139,7 @@ function formatShortAgo(iso: string): string {
       <div
         v-for="m in topMetrics"
         :key="m.key"
-        class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+        class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
       >
         <div class="flex items-start justify-between gap-3">
           <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -191,11 +191,11 @@ function formatShortAgo(iso: string): string {
     </div>
 
     <!-- Charts + pending -->
-    <div class="grid gap-6 xl:grid-cols-5">
+    <div class="grid gap-5 xl:grid-cols-5">
       <div
-        class="xl:col-span-3 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+        class="xl:col-span-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
       >
-        <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 class="text-lg font-bold text-slate-900 dark:text-white">
             Revenue vs payouts
           </h2>
@@ -289,7 +289,7 @@ function formatShortAgo(iso: string): string {
       </div>
 
       <div
-        class="flex flex-col rounded-2xl border border-primary-100 bg-primary-50/80 p-5 shadow-sm dark:border-primary-900/40 dark:bg-primary-950/20 xl:col-span-2"
+        class="flex flex-col rounded-2xl border border-primary-100 bg-primary-50/80 p-4 shadow-sm dark:border-primary-900/40 dark:bg-primary-950/20 xl:col-span-2"
       >
         <h2 class="text-lg font-bold text-slate-900 dark:text-white">
           Pending actions
@@ -297,7 +297,7 @@ function formatShortAgo(iso: string): string {
         <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
           Items needing your attention
         </p>
-        <div class="mt-5 flex flex-1 flex-col gap-3">
+        <div class="mt-4 flex flex-1 flex-col gap-3">
           <div
             v-for="action in pendingActions"
             :key="action.title"
@@ -324,7 +324,7 @@ function formatShortAgo(iso: string): string {
         </div>
         <NuxtLink
           to="/admin/events"
-          class="mt-5 flex w-full items-center justify-center rounded-xl border-2 border-primary-200 bg-white py-3 text-sm font-semibold text-primary-700 transition hover:bg-primary-50 dark:border-primary-800 dark:bg-slate-900 dark:text-primary-300 dark:hover:bg-primary-950/30"
+          class="mt-4 flex w-full items-center justify-center rounded-xl border-2 border-primary-200 bg-white py-2 text-sm font-semibold text-primary-700 transition hover:bg-primary-50 dark:border-primary-800 dark:bg-slate-900 dark:text-primary-300 dark:hover:bg-primary-950/30"
         >
           View full command center
         </NuxtLink>
@@ -333,7 +333,7 @@ function formatShortAgo(iso: string): string {
 
     <!-- Regional + activity -->
     <div class="grid gap-6 lg:grid-cols-2">
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 class="text-lg font-bold text-slate-900 dark:text-white">
             Regional distribution
@@ -368,7 +368,7 @@ function formatShortAgo(iso: string): string {
 
         <div
           v-if="regionalView === 'map'"
-          class="relative mt-5 h-56 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-100 via-slate-50 to-primary-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800"
+          class="relative mt-4 h-56 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-100 via-slate-50 to-primary-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800"
         >
           <div class="absolute inset-0 opacity-40">
             <div class="absolute left-[18%] top-[42%] h-3 w-3 rounded-full bg-primary-500 ring-4 ring-primary-200/50" />
@@ -390,7 +390,7 @@ function formatShortAgo(iso: string): string {
 
         <ul
           v-else
-          class="mt-5 space-y-2"
+          class="mt-4 space-y-2"
         >
           <li
             v-for="r in regions"
@@ -417,14 +417,14 @@ function formatShortAgo(iso: string): string {
         </ul>
       </div>
 
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 class="text-lg font-bold text-slate-900 dark:text-white">
           Platform activity
         </h2>
         <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
           Latest operational signals
         </p>
-        <div class="relative mt-6 space-y-0 pl-2">
+        <div class="relative mt-4 space-y-0 pl-2">
           <div class="absolute bottom-2 left-[7px] top-2 w-px bg-slate-200 dark:bg-slate-700" />
           <div
             v-for="item in platformActivity"

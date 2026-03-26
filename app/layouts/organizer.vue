@@ -63,10 +63,10 @@ const pageTitle = computed(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen overflow-x-hidden bg-[var(--color-background-light)] dark:bg-[var(--color-background-dark)]">
+  <div class="flex min-h-screen overflow-x-hidden bg-background-light dark:bg-background-dark">
     <!-- Mobile menu button -->
     <button
-      class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700"
+      class="lg:hidden fixed top-3 left-3 z-50 p-2 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700"
       @click="isMobileSidebarOpen = !isMobileSidebarOpen"
     >
       <span class="material-symbols-outlined">{{ isMobileSidebarOpen ? 'close' : 'menu' }}</span>
@@ -84,15 +84,15 @@ const pageTitle = computed(() => {
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed lg:static flex-shrink-0 border-r border-primary-500/10 bg-white dark:bg-slate-900 flex flex-col h-full z-40 transition-all duration-300 lg:translate-x-0',
+        'fixed lg:static shrink-0 border-r border-primary-500/10 bg-white dark:bg-slate-900 flex flex-col h-full z-40 transition-all duration-300 lg:translate-x-0',
         isSidebarOpen ? 'w-64' : 'w-20',
         isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
     >
       <!-- Brand -->
-      <div class="p-6 flex items-center gap-3">
+      <div class="p-4 flex items-center gap-3">
         <NuxtLink to="/organizer" class="flex items-center gap-3">
-          <div class="size-10 bg-primary-500 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+          <div class="size-10 bg-primary-500 rounded-xl flex items-center justify-center text-white shrink-0">
             <span class="material-symbols-outlined">event_seat</span>
           </div>
           <div v-if="isSidebarOpen" class="overflow-hidden">
@@ -103,13 +103,13 @@ const pageTitle = computed(() => {
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+      <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
         <NuxtLink
           v-for="item in navigationItems"
           :key="item.id"
           :to="item.to"
           :class="[
-            'flex items-center gap-3 px-4 py-3 rounded-xl transition-colors',
+            'flex items-center gap-2 px-3 py-2 rounded-xl transition-colors',
             isActiveRoute(item.to)
               ? 'bg-primary-500/10 text-primary-500 font-medium'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -158,25 +158,25 @@ const pageTitle = computed(() => {
     <!-- Main content -->
     <main class="flex-1 flex flex-col min-w-0">
       <!-- Header -->
-      <header class="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-primary-500/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
-        <div class="flex items-center gap-4 flex-1 ml-12 lg:ml-0">
+      <header class="h-14 flex items-center justify-between px-4 lg:px-6 border-b border-primary-500/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10">
+        <div class="flex items-center gap-3 flex-1 ml-12 lg:ml-0">
           <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ pageTitle }}</h2>
 
           <!-- Search -->
-          <div class="max-w-md w-full ml-4 relative hidden md:block">
+          <div class="max-w-md w-full ml-3 relative hidden md:block">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search events or attendees..."
-              class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
+              class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
             />
           </div>
         </div>
 
         <div class="flex items-center gap-3">
           <!-- Notifications -->
-          <button class="size-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative">
+          <button class="size-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative">
             <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
             <span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800" />
           </button>
@@ -192,12 +192,12 @@ const pageTitle = computed(() => {
       </header>
 
       <!-- Page content -->
-      <div class="p-4 lg:p-8 space-y-8 flex-1">
+      <div class="p-4 lg:p-6 space-y-4 flex-1">
         <slot />
       </div>
 
       <!-- Footer -->
-      <footer class="mt-auto p-4 lg:p-8 border-t border-slate-100 dark:border-slate-800 text-center">
+      <footer class="mt-auto p-4 lg:p-6 border-t border-slate-100 dark:border-slate-800 text-center">
         <p class="text-xs text-slate-400 font-medium">
           &copy; {{ new Date().getFullYear() }} {{ config.public.appName }}. Built for professional organizers.
           <a href="#" class="text-primary-500 ml-1 underline underline-offset-2">Terms & Support</a>

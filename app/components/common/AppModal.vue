@@ -53,7 +53,7 @@ const alignmentClass = computed(() => {
     <Transition name="fade">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex justify-center px-4 sm:px-6 lg:px-8"
+        class="fixed inset-0 z-50 flex justify-center px-4 sm:px-4 lg:px-6"
       >
         <!-- Backdrop -->
         <div
@@ -80,7 +80,7 @@ const alignmentClass = computed(() => {
             >
               <button
                 type="button"
-                class="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-slate-50 hover:text-slate-700 dark:bg-slate-800/90 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700"
+              class="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-slate-50 hover:text-slate-700 dark:bg-slate-800/90 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700"
                 aria-label="Close"
                 @click="isOpen = false"
               >
@@ -89,7 +89,7 @@ const alignmentClass = computed(() => {
                 </span>
               </button>
 
-              <div class="p-6 sm:p-8 lg:p-10">
+            <div class="p-4 sm:p-5 lg:p-6">
                 <slot />
               </div>
             </div>

@@ -116,7 +116,7 @@ function toggleColorMode() {
       class="fixed left-0 top-0 z-50 flex h-full w-[272px] flex-col border-r border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0"
       :class="isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     >
-      <div class="px-6 pb-6 pt-8">
+      <div class="px-4 pb-4 pt-6">
         <NuxtLink
           to="/admin"
           class="block"
@@ -137,7 +137,7 @@ function toggleColorMode() {
           :key="item.to"
           :to="item.to"
           :class="[
-            'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors',
+            'flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-semibold transition-colors',
             isActiveRoute(item.to)
               ? 'bg-white text-primary-600 shadow-md ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-primary-400 dark:ring-slate-700'
               : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/80'
@@ -201,7 +201,7 @@ function toggleColorMode() {
 
     <!-- Main -->
     <div class="lg:pl-[272px]">
-      <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 px-4 py-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90 sm:px-6 lg:px-8">
+      <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90 sm:px-5 lg:px-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div class="flex items-center gap-3 lg:hidden">
             <button
@@ -278,7 +278,7 @@ function toggleColorMode() {
         </div>
       </header>
 
-      <main class="min-h-[calc(100vh-5rem)] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+      <main class="min-h-[calc(100vh-5rem)] px-4 py-6 sm:px-5 lg:px-8 lg:py-8">
         <slot />
       </main>
     </div>

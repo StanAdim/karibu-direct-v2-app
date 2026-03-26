@@ -14,8 +14,8 @@ const navItems = [
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <header class="sticky top-0 z-50 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
-      <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center gap-8">
+      <div class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-4 lg:px-6">
+        <div class="flex items-center gap-6">
           <NuxtLink
             to="/dashboard"
             class="text-xl font-bold text-gray-900 dark:text-white"
@@ -28,7 +28,7 @@ const navItems = [
               v-for="item in navItems"
               :key="item.to"
               :to="item.to"
-              class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+              class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
               active-class="bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white"
             >
               <UIcon
@@ -40,7 +40,7 @@ const navItems = [
           </nav>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <UserAccountMenu
             :items="[
               [
@@ -62,12 +62,12 @@ const navItems = [
       </div>
     </header>
 
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-4 lg:px-6">
       <slot />
     </main>
 
     <footer class="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
-      <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl px-4 py-5 sm:px-4 lg:px-6">
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
           &copy; {{ new Date().getFullYear() }} {{ config.public.appName }}. All rights reserved.
         </p>

@@ -22,7 +22,7 @@ const recentActivity = ref([
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-5">
     <div>
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
         Welcome back, {{ userName }}!
@@ -32,7 +32,7 @@ const recentActivity = ref([
       </p>
     </div>
 
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <AppCard
         v-for="stat in stats"
         :key="stat.label"
@@ -47,7 +47,7 @@ const recentActivity = ref([
               {{ stat.value }}
             </p>
           </div>
-          <div class="rounded-lg bg-primary-100 p-3 dark:bg-primary-900">
+          <div class="rounded-lg bg-primary-100 p-2 dark:bg-primary-900">
             <UIcon
               :name="stat.icon"
               class="size-6 text-primary-600 dark:text-primary-400"
@@ -70,12 +70,12 @@ const recentActivity = ref([
       </AppCard>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
+    <div class="grid gap-4 lg:grid-cols-2">
       <AppCard
         title="User Profile"
         icon="i-lucide-user"
       >
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div class="flex items-center gap-4">
             <UAvatar
               :alt="userName || 'User'"
@@ -123,7 +123,7 @@ const recentActivity = ref([
         </div>
 
         <template #footer>
-          <div class="flex gap-3">
+          <div class="flex gap-2">
             <AppButton
               variant="outline"
               size="sm"
@@ -146,7 +146,7 @@ const recentActivity = ref([
         title="Recent Activity"
         icon="i-lucide-activity"
       >
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div
             v-for="activity in recentActivity"
             :key="activity.id"

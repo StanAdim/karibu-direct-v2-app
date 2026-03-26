@@ -139,7 +139,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="space-y-5">
     <!-- Greeting -->
     <div class="flex flex-col gap-1">
       <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -151,13 +151,13 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
     </div>
 
     <!-- Key Metrics -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <article
         v-for="metric in keyMetrics"
         :key="metric.id"
-        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary-500/10 shadow-sm"
+        class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary-500/10 shadow-sm"
       >
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex justify-between items-start mb-3">
           <div class="size-12 bg-primary-500/10 rounded-xl flex items-center justify-center text-primary-500">
             <span class="material-symbols-outlined">
               {{ metric.icon }}
@@ -185,10 +185,10 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
     </section>
 
     <!-- Charts and Activity -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
       <!-- Sales Performance -->
-      <article class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary-500/10 shadow-sm">
-        <div class="flex items-center justify-between mb-8 gap-4">
+      <article class="lg:col-span-2 bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary-500/10 shadow-sm">
+        <div class="flex items-center justify-between mb-5 gap-4">
           <div>
             <h2 class="font-bold text-lg text-slate-900 dark:text-white">
               Sales Performance
@@ -251,18 +251,18 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
       </article>
 
       <!-- Recent Activity -->
-      <aside class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-primary-500/10 shadow-sm flex flex-col">
-        <h2 class="font-bold text-lg mb-6 text-slate-900 dark:text-white">
+      <aside class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary-500/10 shadow-sm flex flex-col">
+        <h2 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">
           Recent Activity
         </h2>
-        <div class="space-y-6 flex-1 overflow-y-auto pr-1.5">
+        <div class="space-y-4 flex-1 overflow-y-auto pr-1.5">
           <div
             v-for="item in recentActivity"
             :key="item.id"
             class="flex gap-4"
           >
             <div
-              class="size-10 rounded-full flex items-center justify-center flex-shrink-0"
+              class="size-10 rounded-full flex items-center justify-center shrink-0"
               :class="{
                 'bg-blue-100 text-primary-500': item.color === 'blue',
                 'bg-emerald-100 text-emerald-600': item.color === 'emerald',
@@ -288,7 +288,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
         </div>
         <NuxtLink
           to="/organizer/events"
-          class="w-full mt-6 py-2 text-primary-500 font-bold text-sm border border-primary-500/20 rounded-lg text-center hover:bg-primary-500/5 transition-colors"
+          class="w-full mt-4 py-2 text-primary-500 font-bold text-sm border border-primary-500/20 rounded-lg text-center hover:bg-primary-500/5 transition-colors"
         >
           View All Logs
         </NuxtLink>
@@ -297,7 +297,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
 
     <!-- Upcoming Events Table -->
     <section class="bg-white dark:bg-slate-900 rounded-xl border border-primary-500/10 shadow-sm overflow-hidden">
-      <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <h2 class="font-bold text-lg text-slate-900 dark:text-white">
           Upcoming Events
         </h2>
@@ -309,22 +309,22 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
         <table class="w-full text-left min-w-[640px]">
           <thead>
             <tr class="bg-slate-50 dark:bg-slate-800/50">
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Event Details
               </th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Date &amp; Time
               </th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Capacity
               </th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Revenue
               </th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Status
               </th>
-              <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider" />
+              <th class="px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider" />
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -333,10 +333,10 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
               :key="event.id"
               class="align-middle"
             >
-              <td class="px-6 py-4">
+              <td class="px-4 py-2">
                 <div class="flex items-center gap-3">
                   <div
-                    class="size-10 rounded-lg bg-slate-100 bg-cover bg-center flex-shrink-0"
+                    class="size-10 rounded-lg bg-slate-100 bg-cover bg-center shrink-0"
                     :style="{ backgroundImage: `url('${event.coverUrl}')` }"
                   />
                   <div>
@@ -349,7 +349,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4">
+              <td class="px-4 py-2">
                 <p class="text-sm font-medium text-slate-900 dark:text-white">
                   {{ event.date }}
                 </p>
@@ -357,7 +357,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
                   {{ event.time }}
                 </p>
               </td>
-              <td class="px-6 py-4">
+              <td class="px-4 py-2">
                 <div class="w-full max-w-[100px] h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-primary-500"
@@ -368,10 +368,10 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
                   {{ event.sold }} / {{ event.capacity }} sold
                 </p>
               </td>
-              <td class="px-6 py-4 font-bold text-sm text-slate-900 dark:text-white">
+              <td class="px-4 py-2 font-bold text-sm text-slate-900 dark:text-white">
                 {{ event.revenue }}
               </td>
-              <td class="px-6 py-4">
+              <td class="px-4 py-2">
                 <span
                   class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold"
                   :class="event.status === 'selling_fast'
@@ -387,7 +387,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
                   </span>
                 </span>
               </td>
-              <td class="px-6 py-4 text-right">
+              <td class="px-4 py-2 text-right">
                 <button
                   type="button"
                   class="material-symbols-outlined text-slate-400 hover:text-primary-500 transition-colors"
