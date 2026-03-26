@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import RecentActivityCard from '~/components/dashboard/RecentActivityCard.vue'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -121,6 +123,16 @@ function formatShortAgo(iso: string): string {
   const d = Math.floor(h / 24)
   return `${d}D AGO`
 }
+
+const platformActivityItems = computed(() =>
+  platformActivity.map(item => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    timeAgo: item.at,
+    color: 'amber' as const
+  }))
+)
 </script>
 
 <template>
@@ -417,45 +429,13 @@ function formatShortAgo(iso: string): string {
         </ul>
       </div>
 
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <h2 class="text-lg font-bold text-slate-900 dark:text-white">
-          Platform activity
-        </h2>
-        <p class="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-          Latest operational signals
-        </p>
-        <div class="relative mt-4 space-y-0 pl-2">
-          <div class="absolute bottom-2 left-[7px] top-2 w-px bg-slate-200 dark:bg-slate-700" />
-          <div
-            v-for="item in platformActivity"
-            :key="item.id"
-            class="relative flex gap-4 pb-8 pl-6 last:pb-0"
-          >
-            <span class="absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full bg-primary-500 ring-4 ring-primary-100 dark:ring-primary-950" />
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-bold text-slate-900 dark:text-white">
-                {{ item.title }}
-              </p>
-              <p class="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                {{ item.description }}
-              </p>
-              <p class="mt-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                {{ formatShortAgo(item.at) }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <NuxtLink
-          to="/admin/analytics"
-          class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400"
-        >
-          View audit logs
-          <AppLucideIcon
-            name="i-lucide-arrow-right"
-            :size="16"
-          />
-        </NuxtLink>
-      </div>
+      <RecentActivityCard
+        :items="platformActivityItems"
+        title="Platform activity"
+        view-all-to="/admin/analytics"
+        view-all-label="View audit logs"
+        empty-label="No recent platform activity yet."
+      />
     </div>
   </div>
 </template>

@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import RecentActivityCard from '~/components/dashboard/RecentActivityCard.vue'
+
 definePageMeta({
   layout: 'organizer',
   middleware: 'organizer'
 })
 
 const { user } = useAuth()
+const usersStore = useUsersStore()
 
 type MetricTrend = {
   value: string
@@ -34,7 +37,7 @@ type UpcomingEvent = {
 }
 
 type ActivityItem = {
-  id: string
+  id: string | number
   title: string
   description: string
   timeAgo: string
@@ -108,32 +111,59 @@ const upcomingEvents = ref<UpcomingEvent[]>([
   }
 ])
 
-const recentActivity = ref<ActivityItem[]>([
-  {
-    id: '1',
-    title: 'New Ticket Sale',
-    description: '2 VIP tickets for Serengeti Night',
-    timeAgo: '2 minutes ago',
-    icon: 'shopping_cart',
-    color: 'blue'
-  },
-  {
-    id: '2',
-    title: 'New Attendee Registered',
-    description: 'Amani Juma registered for TechFest TZ',
-    timeAgo: '15 minutes ago',
-    icon: 'person_add',
-    color: 'emerald'
-  },
-  {
-    id: '3',
-    title: 'Event Updated',
-    description: 'Venue changed for Dar Wine Expo',
-    timeAgo: '1 hour ago',
-    icon: 'edit_calendar',
-    color: 'amber'
+const recentActivity = computed<ActivityItem[]>(() =>
+  usersStore.activityLogs.slice(0, 10).map(log => {
+    const baseId = log.id ?? log.timestamp ?? log.created_at ?? Math.random().toString(36).slice(2, 8)
+    const type = (log.type || log.action || '').toString().toLowerCase()
+    const status = (log.status as string | undefined)?.toLowerCase()
+
+    let icon: ActivityItem['icon'] = 'activity_history'
+    if (type.includes('ticket')) icon = 'confirmation_number'
+    else if (type.includes('user') || type.includes('attendee')) icon = 'person'
+    else if (type.includes('update')) icon = 'edit_calendar'
+
+    let color: ActivityItem['color'] = 'amber'
+    // Green dot for successful actions; red (amber) for others.
+    if (status === 'success') {
+      color = 'emerald'
+    }
+
+    return {
+      id: baseId,
+      title: (log.title as string) || (log.action as string) || 'Activity',
+      description: (log.description as string) || (log.details as string) || (log.entity_name as string) || '',
+      timeAgo: (log.timestamp as string) || (log.created_at as string) || '',
+      icon,
+      color
+    }
+  })
+)
+
+async function loadRecentActivity(): Promise<void> {
+  const userId = user.value?.id
+  if (!userId) return
+
+  try {
+    await usersStore.fetchUserActivityLogs(userId)
   }
-])
+  catch {
+    // Swallow errors here; UI will just show empty activity.
+  }
+}
+
+onNuxtReady(() => {
+  if (user.value?.id) {
+    void loadRecentActivity()
+    return
+  }
+
+  const stop = watch(user, (u) => {
+    if (u?.id) {
+      stop()
+      void loadRecentActivity()
+    }
+  })
+})
 
 const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / event.capacity) * 100)
 </script>
@@ -251,48 +281,13 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
       </article>
 
       <!-- Recent Activity -->
-      <aside class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-primary-500/10 shadow-sm flex flex-col">
-        <h2 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">
-          Recent Activity
-        </h2>
-        <div class="space-y-4 flex-1 overflow-y-auto pr-1.5">
-          <div
-            v-for="item in recentActivity"
-            :key="item.id"
-            class="flex gap-4"
-          >
-            <div
-              class="size-10 rounded-full flex items-center justify-center shrink-0"
-              :class="{
-                'bg-blue-100 text-primary-500': item.color === 'blue',
-                'bg-emerald-100 text-emerald-600': item.color === 'emerald',
-                'bg-amber-100 text-amber-600': item.color === 'amber'
-              }"
-            >
-              <span class="material-symbols-outlined text-xl">
-                {{ item.icon }}
-              </span>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-slate-900 dark:text-white">
-                {{ item.title }}
-              </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
-                {{ item.description }}
-              </p>
-              <p class="text-[10px] text-slate-400 mt-1">
-                {{ item.timeAgo }}
-              </p>
-            </div>
-          </div>
-        </div>
-        <NuxtLink
-          to="/organizer/events"
-          class="w-full mt-4 py-2 text-primary-500 font-bold text-sm border border-primary-500/20 rounded-lg text-center hover:bg-primary-500/5 transition-colors"
-        >
-          View All Logs
-        </NuxtLink>
-      </aside>
+      <RecentActivityCard
+        :items="recentActivity"
+        title="Recent Activity"
+        view-all-to="/organizer/events"
+        view-all-label="View All Logs"
+        empty-label="No recent activity for your events yet."
+      />
     </section>
 
     <!-- Upcoming Events Table -->

@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type {
+  ActivityLog,
   PaginatedResponse,
   User,
   UserCreateInput,
@@ -9,6 +10,7 @@ import type {
   UserUpdateInput
 } from '~/types'
 import { useApi } from '~/composables/useApi'
+import { unwrapList } from '~/utils/unwrapApiResource'
 
 interface UsersState {
   users: User[]
@@ -32,6 +34,8 @@ export const useUsersStore = defineStore('users', () => {
   const users = ref<User[]>([])
   const currentUser = ref<User | null>(null)
   const loading = ref(false)
+  const activityLogs = ref<ActivityLog[]>([])
+  const loadingActivityLogs = ref(false)
   const pagination = ref<UsersState['pagination']>({
     total: 0,
     page: 1,
@@ -116,6 +120,42 @@ export const useUsersStore = defineStore('users', () => {
     }
     finally {
       loading.value = false
+    }
+  }
+
+  /**
+   * GET /api/v1/activity-logs/user/{user_id}
+   * Backend response shape may vary (plain array, `{ data: [] }`, etc.).
+   */
+  const fetchUserActivityLogs = async (userId: string): Promise<ActivityLog[]> => {
+    if (!userId) {
+      activityLogs.value = []
+      return []
+    }
+
+    loadingActivityLogs.value = true
+    try {
+      const raw = await api.get<unknown>(`/activity-logs/user/${encodeURIComponent(userId)}`)
+
+      // Most common shapes supported by unwrapList; we also check a few common alternatives.
+      const unwrapped = unwrapList<ActivityLog>(raw)
+      if (unwrapped.data.length) {
+        activityLogs.value = unwrapped.data
+        return unwrapped.data
+      }
+
+      const obj = raw as Record<string, unknown>
+      const maybeList =
+        (Array.isArray(obj.logs) ? obj.logs : undefined)
+        ?? (Array.isArray(obj.activity_logs) ? obj.activity_logs : undefined)
+        ?? (Array.isArray(obj.items) ? obj.items : undefined)
+
+      const list = maybeList ?? []
+      activityLogs.value = list
+      return list
+    }
+    finally {
+      loadingActivityLogs.value = false
     }
   }
 
@@ -237,6 +277,8 @@ export const useUsersStore = defineStore('users', () => {
     users,
     currentUser,
     loading,
+    activityLogs,
+    loadingActivityLogs,
     pagination,
     filters,
 
@@ -250,6 +292,7 @@ export const useUsersStore = defineStore('users', () => {
     // Actions
     fetchUsers,
     fetchUser,
+    fetchUserActivityLogs,
     createUser,
     updateUser,
     deleteUser,

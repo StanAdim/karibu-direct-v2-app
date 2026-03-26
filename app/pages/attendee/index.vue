@@ -1,10 +1,16 @@
 <script setup lang="ts">
+import type { ActivityLog } from '~/types'
+import RecentActivityCard from '~/components/dashboard/RecentActivityCard.vue'
+
+import { watch } from 'vue'
+
 definePageMeta({
   layout: 'attendee',
   middleware: 'attendee'
 })
 
 const { user } = useAuth()
+const usersStore = useUsersStore()
 
 const firstName = computed(() => user.value?.first_name || 'there')
 
@@ -60,35 +66,54 @@ const upcomingEvents = ref([
   }
 ])
 
-const recentActivity = ref([
-  {
-    id: '1',
-    icon: 'shopping_cart',
-    iconColor: 'text-blue-500',
-    title: 'Art Basel Ticket Purchase',
-    details: 'Order #89210 • 2 tickets',
-    meta: '$120.00',
-    timestamp: '2 HOURS AGO'
-  },
-  {
-    id: '2',
-    icon: 'favorite',
-    iconColor: 'text-emerald-500',
-    title: "Saved 'Urban Food Festival'",
-    details: 'Added to your wishlist',
-    meta: 'Active',
-    timestamp: 'YESTERDAY'
-  },
-  {
-    id: '3',
-    icon: 'rate_review',
-    iconColor: 'text-amber-500',
-    title: "Reviewed 'Design Worksh...'",
-    details: 'You gave 5 stars ⭐',
-    meta: 'Contribution +50 pts',
-    timestamp: '2 DAYS AGO'
+type RecentActivityItem = {
+  id: string | number
+  title: string
+  description?: string
+  timeAgo?: string
+  color?: 'blue' | 'emerald' | 'amber'
+}
+
+const recentActivity = ref<RecentActivityItem[]>([])
+
+async function loadRecentActivity(): Promise<void> {
+  const userId = user.value?.id
+  if (!userId) return
+
+  try {
+    const logs = await usersStore.fetchUserActivityLogs(userId)
+    recentActivity.value = logs.slice(0, 10).map((log, index) => {
+      const baseId = log.id ?? log.timestamp ?? log.created_at ?? index
+      const status = (log.status as string | undefined)?.toLowerCase()
+
+      return {
+        id: baseId,
+        title: (log.title as string) || (log.action as string) || 'Activity',
+        description: (log.details as string) || (log.description as string) || (log.entity_name as string) || '',
+        timeAgo: (log.timestamp as string) || (log.created_at as string) || '',
+        color: status === 'success' ? 'emerald' : 'amber'
+      }
+    })
   }
-])
+  catch {
+    recentActivity.value = []
+  }
+}
+
+onNuxtReady(() => {
+  if (user.value?.id) {
+    void loadRecentActivity()
+    return
+  }
+
+  // If auth hydration hasn't populated `user` yet, wait for it once.
+  const stop = watch(user, (u) => {
+    if (u?.id) {
+      stop()
+      void loadRecentActivity()
+    }
+  })
+})
 </script>
 
 <template>
@@ -201,48 +226,13 @@ const recentActivity = ref([
       <!-- Right column: Recent Activity + Upgrade to Pro -->
       <aside class="space-y-6">
         <!-- Recent Activity -->
-        <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Recent Activity
-            </h3>
-            <button
-              type="button"
-              class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg"
-              aria-label="More options"
-            >
-              <span class="material-symbols-outlined">more_vert</span>
-            </button>
-          </div>
-          <ul class="divide-y divide-slate-100 dark:divide-slate-800">
-            <li
-              v-for="item in recentActivity"
-              :key="item.id"
-              class="flex items-start gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-            >
-              <div
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
-                :class="item.iconColor"
-              >
-                <span class="material-symbols-outlined text-xl">{{ item.icon }}</span>
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                  {{ item.title }}
-                </p>
-                <p class="text-sm text-slate-500 dark:text-slate-400 truncate">
-                  {{ item.details }}
-                </p>
-                <p class="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-                  {{ item.meta }}
-                </p>
-              </div>
-              <p class="shrink-0 text-xs font-medium text-slate-400 uppercase tracking-wide">
-                {{ item.timestamp }}
-              </p>
-            </li>
-          </ul>
-        </div>
+        <RecentActivityCard
+          :items="recentActivity"
+          title="Recent Activity"
+          view-all-to="/attendee"
+          view-all-label="View all activity"
+          empty-label="No recent activity yet."
+        />
 
         <!-- Upgrade to Pro -->
         <div class="relative rounded-2xl bg-primary-500 overflow-hidden p-6 text-white shadow-lg">
