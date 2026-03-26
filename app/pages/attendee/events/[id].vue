@@ -268,6 +268,7 @@ async function handleBook() {
     await router.push('/attendee/tickets')
   }
   catch {
+    if (registrationStore.error?.code === 409) return
     notifications.error(registrationStore.error?.message || 'Booking failed')
   }
   finally {

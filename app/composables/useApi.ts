@@ -65,10 +65,15 @@ export function useApi(): UseApiReturn {
       }
       catch (error: unknown) {
         lastError = error
-        const fetchError = error as { statusCode?: number; message?: string; data?: unknown }
+        const fetchError = error as {
+          statusCode?: number
+          status?: number
+          message?: string
+          data?: { message?: string; detail?: string }
+        }
 
-        const statusCode = fetchError.statusCode || 500
-        const message = fetchError.message || 'An unexpected error occurred'
+        const statusCode = fetchError.statusCode || fetchError.status || 500
+        const message = fetchError.data?.message || fetchError.data?.detail || fetchError.message || 'An unexpected error occurred'
 
         const retryable = statusCode >= 500 || statusCode === 408 || statusCode === 429
         if (retryable && attempt < attempts) {
@@ -82,10 +87,18 @@ export function useApi(): UseApiReturn {
         }
 
         if (!options.suppressErrorToast) {
-          notifications.error({
-            title: 'Error',
-            description: message
-          })
+          if (statusCode === 409) {
+            notifications.warning({
+              title: 'Warning',
+              description: message
+            })
+          }
+          else {
+            notifications.error({
+              title: 'Error',
+              description: message
+            })
+          }
         }
 
         throw error
