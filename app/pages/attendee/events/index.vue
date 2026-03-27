@@ -166,6 +166,14 @@ function getCategoryLabel(event: Event): string {
   return 'EVENT'
 }
 
+function isEventSaved(event: Event): boolean {
+  return Boolean(event.is_saved) || eventsStore.isEventSaved(event.id)
+}
+
+async function toggleEventSaved(event: Event): Promise<void> {
+  await eventsStore.toggleSavedEvent(event.id, !isEventSaved(event))
+}
+
 watch(selectedCategoryId, () => {
   void loadEvents(true)
 })
@@ -175,7 +183,10 @@ watch(searchQuery, () => {
 })
 
 onMounted(() => {
-  void loadEvents(true)
+  void Promise.all([
+    loadEvents(true),
+    eventsStore.fetchMySavedEvents()
+  ])
 })
 
 onBeforeUnmount(() => {
@@ -316,10 +327,15 @@ onBeforeUnmount(() => {
               </span>
               <button
                 type="button"
-                class="absolute right-4 top-4 rounded-full bg-white/90 dark:bg-slate-900/90 p-2 shadow-md text-slate-500 hover:text-primary-500 transition-colors"
-                @click.stop
+                class="absolute right-4 top-4 rounded-full bg-white/90 dark:bg-slate-900/90 p-2 shadow-md transition-colors"
+                :class="isEventSaved(event) ? 'text-primary-500' : 'text-slate-500 hover:text-primary-500'"
+                :disabled="eventsStore.isSavingEvent(event.id)"
+                :aria-label="isEventSaved(event) ? 'Unsave event' : 'Save event'"
+                @click.stop="toggleEventSaved(event)"
               >
-                <span class="material-symbols-outlined text-lg">favorite</span>
+                <span class="material-symbols-outlined text-lg">
+                  {{ isEventSaved(event) ? 'favorite' : 'favorite_border' }}
+                </span>
               </button>
             </div>
             <div class="p-4 flex-1 flex flex-col">

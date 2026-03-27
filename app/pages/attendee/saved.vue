@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { Event } from '~/types'
+import { getEventCoverImageUrl } from '~/utils/eventImage'
+
 definePageMeta({
   layout: 'attendee',
   middleware: 'attendee'
@@ -20,81 +23,46 @@ interface SavedEvent {
 }
 
 const activeTab = ref<TabId>('upcoming')
+const eventsStore = useEventsStore()
+const config = useRuntimeConfig()
 
-const savedEvents = ref<SavedEvent[]>([
-  {
-    id: '1',
-    title: 'Tech Innovation Summit 2024',
-    category: 'TECHNOLOGY',
-    date: 'June 15, 2024',
-    time: '09:00 AM',
-    location: 'Moscone Center, San Francisco',
-    price: 199,
-    image: 'https://picsum.photos/seed/tech-summit/800/500',
-    isUpcoming: true,
-    isArchived: false
-  },
-  {
-    id: '2',
-    title: 'Blue Note Jazz Night',
-    category: 'MUSIC',
-    date: 'June 22, 2024',
-    time: '08:00 PM',
-    location: 'Blue Note Lounge, Seattle',
-    price: 50,
-    image: 'https://picsum.photos/seed/jazz/800/500',
-    isUpcoming: true,
-    isArchived: false
-  },
-  {
-    id: '3',
-    title: 'Design Workshop Series',
-    category: 'ARTS',
-    date: 'July 10, 2024',
-    time: '02:00 PM',
-    location: 'Creative Hub, Austin',
-    price: 25,
-    image: 'https://picsum.photos/seed/design/800/500',
-    isUpcoming: true,
-    isArchived: false
-  },
-  {
-    id: '4',
-    title: 'Startup Pitch Night',
-    category: 'STARTUP',
-    date: 'July 18, 2024',
-    time: '06:00 PM',
-    location: 'WeWork Downtown, NYC',
-    price: 0,
-    image: 'https://picsum.photos/seed/startup/800/500',
-    isUpcoming: true,
-    isArchived: false
-  },
-  {
-    id: '5',
-    title: 'Food & Wine Festival',
-    category: 'FOOD',
-    date: 'August 5, 2024',
-    time: '12:00 PM',
-    location: 'Pier 39, San Francisco',
-    price: 75,
-    image: 'https://picsum.photos/seed/food/800/500',
-    isUpcoming: true,
-    isArchived: false
-  },
-  {
-    id: '6',
-    title: 'Community 5K Run',
-    category: 'SPORTS',
-    date: 'August 12, 2024',
-    time: '07:00 AM',
-    location: 'Golden Gate Park',
-    price: 35,
-    image: 'https://picsum.photos/seed/sports/800/500',
-    isUpcoming: true,
-    isArchived: false
+function getMinTicketPrice(event: Event): number | null {
+  const prices = (event.ticket_types ?? [])
+    .map(t => Number(t.price))
+    .filter(p => Number.isFinite(p) && p >= 0)
+  if (!prices.length) return null
+  return Math.min(...prices)
+}
+
+function mapEventToSavedEvent(event: Event): SavedEvent {
+  const now = new Date()
+  const start = new Date(event.start_date)
+  const end = new Date(event.end_date)
+  const category = event.categories?.[0]
+  const location = event.venue?.type === 'virtual'
+    ? 'Online'
+    : [event.venue?.name, event.venue?.city].filter(Boolean).join(', ')
+
+  return {
+    id: event.id,
+    title: event.title,
+    category: String(category ?? 'EVENT').toUpperCase(),
+    date: start.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+    time: start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+    location: location || '—',
+    price: getMinTicketPrice(event),
+    image: getEventCoverImageUrl(
+      event.cover_image,
+      String(config.public.apiBase ?? ''),
+      `https://picsum.photos/seed/saved-event-${event.id}/800/500`
+    ),
+    isUpcoming: start > now,
+    isArchived: end < now && event.status !== 'published'
   }
-])
+}
+
+const savedEvents = computed<SavedEvent[]>(() => eventsStore.savedEvents.map(mapEventToSavedEvent))
+const loading = computed<boolean>(() => eventsStore.loadingSavedEvents)
 
 const upcomingCount = computed(() => savedEvents.value.filter(e => e.isUpcoming && !e.isArchived).length)
 
@@ -115,6 +83,10 @@ function formatPrice(price: number | null): string {
   if (price === null || price === 0) return 'Free Entry'
   return `$${price.toFixed(2)}`
 }
+
+onMounted(() => {
+  void eventsStore.fetchMySavedEvents()
+})
 </script>
 
 <template>
@@ -171,7 +143,7 @@ function formatPrice(price: number | null): string {
 
     <!-- Empty state -->
     <div
-      v-if="filteredEvents.length === 0"
+      v-if="!loading && filteredEvents.length === 0"
       class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center"
     >
       <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600">favorite</span>
@@ -190,14 +162,14 @@ function formatPrice(price: number | null): string {
     </div>
 
     <!-- Event grid -->
-    <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-else-if="!loading" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <article
         v-for="event in filteredEvents"
         :key="event.id"
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden hover:shadow-md transition-shadow flex flex-col"
       >
         <NuxtLink :to="`/attendee/events/${event.id}`" class="flex flex-col flex-1">
-          <div class="relative aspect-[16/10] overflow-hidden">
+          <div class="relative aspect-16/10 overflow-hidden">
             <img :src="event.image" :alt="event.title" class="h-full w-full object-cover">
             <span class="absolute left-4 bottom-4 rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-bold text-white uppercase tracking-wide">
               {{ event.category }}
@@ -234,6 +206,10 @@ function formatPrice(price: number | null): string {
           </div>
         </NuxtLink>
       </article>
+    </div>
+
+    <div v-else class="py-12 flex justify-center">
+      <LoadingState text="Loading saved events..." />
     </div>
   </div>
 </template>

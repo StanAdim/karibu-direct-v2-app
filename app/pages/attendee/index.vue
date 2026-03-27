@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ActivityLog } from '~/types'
 import RecentActivityCard from '~/components/dashboard/RecentActivityCard.vue'
+import { getEventCoverImageUrl } from '~/utils/eventImage'
 
 import { watch } from 'vue'
 
@@ -11,60 +11,92 @@ definePageMeta({
 
 const { user } = useAuth()
 const usersStore = useUsersStore()
+const eventsStore = useEventsStore()
+const api = useApi()
+const config = useRuntimeConfig()
 
 const firstName = computed(() => user.value?.first_name || 'there')
 
-const stats = ref([
+type ApiAttendeeStat = {
+  title: string
+  value: string
+  trend: unknown | null
+  subtitle: string | null
+}
+
+type AttendeeStatsResponse = {
+  success?: boolean
+  data?: {
+    role?: string
+    stats?: ApiAttendeeStat[]
+  }
+}
+
+type DashboardStat = {
+  title: string
+  value: string
+  materialIcon: string
+  variant: 'blue' | 'purple' | 'amber' | 'slate'
+  trend?: { value: string, direction: 'up' | 'down' }
+  subtitle?: string
+}
+
+const defaultStats: DashboardStat[] = [
   {
     title: 'Total Tickets',
-    value: '12',
+    value: '0',
     materialIcon: 'confirmation_number',
-    variant: 'blue' as const,
-    trend: { value: '+2', direction: 'up' as const }
+    variant: 'blue'
   },
   {
     title: 'Saved Events',
-    value: '24',
+    value: '0',
     materialIcon: 'favorite',
-    variant: 'purple' as const,
-    trend: { value: '+5', direction: 'up' as const }
+    variant: 'purple'
   },
   {
     title: 'Attended',
-    value: '48',
+    value: '0',
     materialIcon: 'event_available',
-    variant: 'amber' as const,
-    subtitle: 'Upcoming'
+    variant: 'amber',
+    subtitle: 'Checked in'
   },
   {
     title: 'Rewards Points',
-    value: '1,250',
+    value: '0',
     materialIcon: 'military_tech',
-    variant: 'slate' as const,
+    variant: 'slate',
     subtitle: 'Rewards'
   }
-])
+]
 
-const upcomingEvents = ref([
-  {
-    id: '1',
-    title: 'Future of AI Summit 2024',
-    date: 'OCT 15',
-    category: 'TECH CONFERENCE',
-    location: 'Convention Center, San Francisco',
-    time: '09:00 AM - 05:00 PM',
-    image: 'https://picsum.photos/seed/ai-summit/800/500'
-  },
-  {
-    id: '2',
-    title: 'Midnight Jazz Collective',
-    date: 'NOV 02',
-    category: 'CONCERT',
-    location: 'Blue Note Lounge, Seattle',
-    time: '08:30 PM - 11:30 PM',
-    image: 'https://picsum.photos/seed/jazz/800/500'
-  }
-])
+const stats = ref<DashboardStat[]>([...defaultStats])
+
+const upcomingEvents = computed(() => {
+  return eventsStore.upcomingEvents.slice(0, 4).map((event) => {
+    const startDate = new Date(event.start_date)
+    const endDate = new Date(event.end_date)
+    const category = event.categories?.[0] || 'EVENT'
+    const location = event.venue?.type === 'virtual'
+      ? 'Online'
+      : [event.venue?.name, event.venue?.city].filter(Boolean).join(', ')
+
+    return {
+      id: event.id,
+      title: event.title,
+      date: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
+      category: String(category).toUpperCase(),
+      location: location || '—',
+      time: `${startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} - ${endDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`,
+      isSaved: Boolean(event.is_saved) || eventsStore.isEventSaved(event.id),
+      image: getEventCoverImageUrl(
+        event.cover_image,
+        String(config.public.apiBase ?? ''),
+        `https://picsum.photos/seed/event-${event.id}/800/500`
+      )
+    }
+  })
+})
 
 type RecentActivityItem = {
   id: string | number
@@ -75,6 +107,42 @@ type RecentActivityItem = {
 }
 
 const recentActivity = ref<RecentActivityItem[]>([])
+
+async function loadAttendeeStats(): Promise<void> {
+  try {
+    const response = await api.get<AttendeeStatsResponse>('/registrations/stats')
+    const apiStats = response?.data?.stats ?? []
+
+    stats.value = defaultStats.map((baseStat) => {
+      const matched = apiStats.find(item => item.title === baseStat.title)
+      if (!matched) return baseStat
+
+      const trend = matched.trend
+      const normalizedTrend = (
+        trend
+        && typeof trend === 'object'
+        && 'value' in trend
+        && 'direction' in trend
+        && ((trend as { direction: string }).direction === 'up' || (trend as { direction: string }).direction === 'down')
+      )
+        ? {
+            value: String((trend as { value: unknown }).value ?? ''),
+            direction: (trend as { direction: 'up' | 'down' }).direction
+          }
+        : undefined
+
+      return {
+        ...baseStat,
+        value: String(matched.value ?? baseStat.value),
+        trend: normalizedTrend,
+        subtitle: matched.subtitle ?? baseStat.subtitle
+      }
+    })
+  }
+  catch {
+    stats.value = [...defaultStats]
+  }
+}
 
 async function loadRecentActivity(): Promise<void> {
   const userId = user.value?.id
@@ -100,8 +168,31 @@ async function loadRecentActivity(): Promise<void> {
   }
 }
 
+async function loadUpcomingEvents(): Promise<void> {
+  try {
+    eventsStore.setPage(1)
+    eventsStore.setPerPage(8)
+    await Promise.all([
+      eventsStore.fetchEvents({
+        status: 'published',
+        visibility: 'public'
+      }),
+      eventsStore.fetchMySavedEvents()
+    ])
+  }
+  catch {
+    // Keep UI empty if events endpoint fails.
+  }
+}
+
+async function toggleEventSaved(eventId: string, isSaved: boolean): Promise<void> {
+  await eventsStore.toggleSavedEvent(eventId, !isSaved)
+}
+
 onNuxtReady(() => {
   if (user.value?.id) {
+    void loadAttendeeStats()
+    void loadUpcomingEvents()
     void loadRecentActivity()
     return
   }
@@ -110,6 +201,8 @@ onNuxtReady(() => {
   const stop = watch(user, (u) => {
     if (u?.id) {
       stop()
+      void loadAttendeeStats()
+      void loadUpcomingEvents()
       void loadRecentActivity()
     }
   })
@@ -149,10 +242,10 @@ onNuxtReady(() => {
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 class="text-lg font-bold text-slate-900 dark:text-white">
             Upcoming Events
-            <span class="text-primary-500 font-semibold ml-2">3 active</span>
+            <span class="text-primary-500 font-semibold ml-2">{{ upcomingEvents.length }} active</span>
           </h2>
           <NuxtLink
-            to="/attendee/tickets"
+            to="/attendee/events"
             class="text-sm font-medium text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
           >
             View all
@@ -166,7 +259,7 @@ onNuxtReady(() => {
             class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
           >
             <NuxtLink :to="`/attendee/events/${event.id}`" class="block">
-              <div class="relative aspect-[16/10] overflow-hidden">
+              <div class="relative aspect-16/10 overflow-hidden">
                 <img
                   :src="event.image"
                   :alt="event.title"
@@ -177,10 +270,15 @@ onNuxtReady(() => {
                 </span>
                 <button
                   type="button"
-                  class="absolute right-4 top-4 rounded-full bg-white/90 dark:bg-slate-900/90 p-2 shadow-md hover:bg-white dark:hover:bg-slate-800 text-slate-500 hover:text-primary-500"
-                  @click.prevent
+                  class="absolute right-4 top-4 rounded-full bg-white/90 dark:bg-slate-900/90 p-2 shadow-md hover:bg-white dark:hover:bg-slate-800 transition-colors"
+                  :class="event.isSaved ? 'text-primary-500' : 'text-slate-500 hover:text-primary-500'"
+                  :disabled="eventsStore.isSavingEvent(event.id)"
+                  :aria-label="event.isSaved ? 'Unsave event' : 'Save event'"
+                  @click.prevent.stop="toggleEventSaved(event.id, event.isSaved)"
                 >
-                  <span class="material-symbols-outlined text-lg">favorite</span>
+                  <span class="material-symbols-outlined text-lg">
+                    {{ event.isSaved ? 'favorite' : 'favorite_border' }}
+                  </span>
                 </button>
               </div>
               <div class="p-4">

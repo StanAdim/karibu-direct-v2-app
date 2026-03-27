@@ -23,6 +23,7 @@ export interface Event {
   settings: EventSettings
   created_at: string
   updated_at: string
+  is_saved?: boolean
 }
 
 export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed' | 'archived'

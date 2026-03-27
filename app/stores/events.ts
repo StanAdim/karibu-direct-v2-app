@@ -32,9 +32,12 @@ interface EventsState {
 export const useEventsStore = defineStore('events', () => {
   // States
   const events = ref<Event[]>([])
+  const savedEvents = ref<Event[]>([])
   const currentEvent = ref<Event | null>(null)
   const eventStats = ref<EventStats | null>(null)
   const loading = ref(false)
+  const loadingSavedEvents = ref(false)
+  const savingEventIds = ref<string[]>([])
   const pagination = ref<EventsState['pagination']>({
     total: 0,
     page: 1,
@@ -72,6 +75,10 @@ export const useEventsStore = defineStore('events', () => {
 
   const hasMorePages = computed<boolean>(() => {
     return pagination.value.page < pagination.value.last_page
+  })
+
+  const savedEventIdSet = computed<Set<string>>(() => {
+    return new Set(savedEvents.value.map(event => String(event.id)))
   })
 
   // Actions
@@ -161,6 +168,124 @@ export const useEventsStore = defineStore('events', () => {
     finally {
       loading.value = false
     }
+  }
+
+  const fetchMySavedEvents = async (): Promise<Event[]> => {
+    loadingSavedEvents.value = true
+    try {
+      const unwrapSavedEvents = (raw: unknown): Event[] => {
+        if (Array.isArray(raw)) return raw as Event[]
+        const obj = raw as Record<string, unknown> | null
+        if (!obj) return []
+        if (Array.isArray(obj.data)) return obj.data as Event[]
+        const dataObj = obj.data as Record<string, unknown> | undefined
+        if (dataObj && Array.isArray(dataObj.data)) return dataObj.data as Event[]
+        if (Array.isArray(obj.events)) return obj.events as Event[]
+        return []
+      }
+
+      let raw: unknown
+      try {
+        raw = await api.get<unknown>('/api/1/events/saved/me', { suppressErrorToast: true })
+      }
+      catch {
+        raw = await api.get<unknown>('/events/saved/me')
+      }
+
+      const list = unwrapSavedEvents(raw).map(event => ({ ...event, is_saved: true }))
+      savedEvents.value = list
+      return list
+    }
+    catch {
+      savedEvents.value = []
+      return []
+    }
+    finally {
+      loadingSavedEvents.value = false
+    }
+  }
+
+  const isEventSaved = (eventId: string): boolean => {
+    return savedEventIdSet.value.has(String(eventId))
+  }
+
+  const isSavingEvent = (eventId: string): boolean => {
+    return savingEventIds.value.includes(String(eventId))
+  }
+
+  const setEventSavedFlag = (eventId: string, isSaved: boolean): void => {
+    const id = String(eventId)
+
+    const eventIndex = events.value.findIndex(event => String(event.id) === id)
+    if (eventIndex !== -1) {
+      events.value[eventIndex] = {
+        ...events.value[eventIndex],
+        is_saved: isSaved
+      }
+    }
+
+    if (currentEvent.value && String(currentEvent.value.id) === id) {
+      currentEvent.value = {
+        ...currentEvent.value,
+        is_saved: isSaved
+      }
+    }
+  }
+
+  const getKnownEventById = (eventId: string): Event | null => {
+    const id = String(eventId)
+    return (
+      events.value.find(event => String(event.id) === id)
+      || savedEvents.value.find(event => String(event.id) === id)
+      || (currentEvent.value && String(currentEvent.value.id) === id ? currentEvent.value : null)
+      || null
+    )
+  }
+
+  const saveEvent = async (eventId: string): Promise<void> => {
+    const id = String(eventId)
+    if (isSavingEvent(id)) return
+
+    savingEventIds.value.push(id)
+    try {
+      await api.post(`/events/${id}/save`)
+      setEventSavedFlag(id, true)
+
+      if (!isEventSaved(id)) {
+        const knownEvent = getKnownEventById(id)
+        if (knownEvent) {
+          savedEvents.value = [{ ...knownEvent, is_saved: true }, ...savedEvents.value]
+        }
+      }
+    }
+    finally {
+      savingEventIds.value = savingEventIds.value.filter(itemId => itemId !== id)
+    }
+  }
+
+  const unsaveEvent = async (eventId: string): Promise<void> => {
+    const id = String(eventId)
+    if (isSavingEvent(id)) return
+
+    savingEventIds.value.push(id)
+    try {
+      await api.delete(`/events/${id}/save`)
+      setEventSavedFlag(id, false)
+      savedEvents.value = savedEvents.value.filter(event => String(event.id) !== id)
+    }
+    finally {
+      savingEventIds.value = savingEventIds.value.filter(itemId => itemId !== id)
+    }
+  }
+
+  const toggleSavedEvent = async (eventId: string, shouldSave?: boolean): Promise<void> => {
+    const id = String(eventId)
+    const nextSaveState = typeof shouldSave === 'boolean' ? shouldSave : !isEventSaved(id)
+    if (nextSaveState) {
+      await saveEvent(id)
+      return
+    }
+    await unsaveEvent(id)
   }
 
   const fetchEvent = async (id: string): Promise<Event | null> => {
@@ -310,9 +435,12 @@ export const useEventsStore = defineStore('events', () => {
   return {
     // State
     events,
+    savedEvents,
     currentEvent,
     eventStats,
     loading,
+    loadingSavedEvents,
+    savingEventIds,
     pagination,
     filters,
 
@@ -322,10 +450,17 @@ export const useEventsStore = defineStore('events', () => {
     draftEvents,
     publishedEvents,
     hasMorePages,
+    savedEventIdSet,
 
     // Actions
     fetchEvents,
     fetchMyEvents,
+    fetchMySavedEvents,
+    saveEvent,
+    unsaveEvent,
+    toggleSavedEvent,
+    isEventSaved,
+    isSavingEvent,
     fetchEvent,
     fetchEventStats,
     createEvent,
