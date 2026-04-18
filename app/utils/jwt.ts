@@ -3,6 +3,31 @@ import type { JwtPayload } from '~/types'
 const TOKEN_COOKIE_NAME = 'auth_token'
 const TOKEN_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
+/** Use Secure cookies only over HTTPS so production builds work on http:// staging. */
+function shouldUseSecureCookie(): boolean {
+  if (import.meta.client && typeof window !== 'undefined') {
+    return window.location.protocol === 'https:'
+  }
+  if (import.meta.server) {
+    try {
+      return useRequestURL().protocol === 'https:'
+    }
+    catch {
+      return import.meta.env.PROD
+    }
+  }
+  return import.meta.env.PROD
+}
+
+function authTokenCookieOptions() {
+  return {
+    maxAge: TOKEN_MAX_AGE,
+    secure: shouldUseSecureCookie(),
+    sameSite: 'lax' as const,
+    path: '/'
+  }
+}
+
 export function parseJwt(token: string): JwtPayload | null {
   try {
     const base64Url = token.split('.')[1]
@@ -37,22 +62,17 @@ export function getTokenExpirationTime(token: string): number | null {
 }
 
 export function setAuthCookie(token: string): void {
-  const cookie = useCookie(TOKEN_COOKIE_NAME, {
-    maxAge: TOKEN_MAX_AGE,
-    secure: import.meta.env.PROD,
-    sameSite: 'lax',
-    path: '/'
-  })
+  const cookie = useCookie(TOKEN_COOKIE_NAME, authTokenCookieOptions())
   cookie.value = token
 }
 
 export function getAuthCookie(): string | null {
-  const cookie = useCookie<string | null>(TOKEN_COOKIE_NAME)
+  const cookie = useCookie<string | null>(TOKEN_COOKIE_NAME, authTokenCookieOptions())
   return cookie.value
 }
 
 export function removeAuthCookie(): void {
-  const cookie = useCookie(TOKEN_COOKIE_NAME)
+  const cookie = useCookie(TOKEN_COOKIE_NAME, authTokenCookieOptions())
   cookie.value = null
 }
 

@@ -1,5 +1,5 @@
 import type { ApiRequestOptions, HttpMethod } from '~/types'
-import { getAuthCookie } from '~/utils/jwt'
+import { getEffectiveToken } from '~/utils/jwt'
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -35,7 +35,7 @@ export function useApi(): UseApiReturn {
     endpoint: string,
     options: ApiRequestOptions = {}
   ): Promise<T> {
-    const token = getAuthCookie()
+    const token = getEffectiveToken()
 
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
     const headers: Record<string, string> = {
