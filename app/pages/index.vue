@@ -63,12 +63,12 @@ const featuredEvents = ref([
 ])
 
 const popularCities = [
-  { name: 'New York', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400', eventCount: 320 },
-  { name: 'London', image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400', eventCount: 280 },
-  { name: 'Tokyo', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400', eventCount: 195 },
-  { name: 'Berlin', image: 'https://images.unsplash.com/photo-1560930950-5cc20e80e122?w=400', eventCount: 168 },
-  { name: 'Paris', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400', eventCount: 240 },
-  { name: 'San Francisco', image: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400', eventCount: 156 }
+  { name: 'Dar es salaam', image: '/images/cities/Dar.jpeg', eventCount: 320 },
+  { name: 'Arusha', image: '/images/cities/Arusha.jpeg', eventCount: 280 },
+  { name: 'Dodoma', image: '/images/cities/Dodoma.jpeg', eventCount: 195 },
+  { name: 'Mwanza', image: '/images/cities/Mwanza.jpeg', eventCount: 168 },
+  { name: 'Mbeya', image: '/images/cities/Mbeya.jpg', eventCount: 240 },
+  { name: 'Zanzibar', image: '/images/cities/Zanzibar.jpg', eventCount: 156 }
 ]
 
 const howItWorks = [
@@ -113,7 +113,7 @@ function handleSelectCity(city: string) {
       background-image="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600"
       :show-search="true"
       :show-location-select="true"
-      :locations="['New York, NY', 'Dar es Salaam', 'Arusha', 'Zanzibar', 'London', 'Tokyo']"
+      :locations="[ 'Dar es Salaam', 'Arusha', 'Zanzibar', 'London', 'Morogoro', '']"
       @search="handleSearch"
     />
 
@@ -141,10 +141,7 @@ function handleSelectCity(city: string) {
             <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Featured Events</h2>
             <p class="mt-2 text-slate-500 dark:text-slate-400">Hand-picked experiences you can't miss</p>
           </div>
-          <NuxtLink
-            to="/events"
-            class="text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors shrink-0"
-          >
+          <NuxtLink to="/events" class="text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors shrink-0" >
             View All Events
           </NuxtLink>
         </div>

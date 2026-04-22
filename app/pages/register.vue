@@ -104,7 +104,7 @@ async function handleSocialSignup(provider: string) {
         Create an account
       </h2>
       <p class="text-slate-500 dark:text-slate-400">
-        Join the community and start attending events.
+        Join the community and start attending or organizing your events.
       </p>
     </div>
 
@@ -137,7 +137,7 @@ async function handleSocialSignup(provider: string) {
         v-model="credentials.email"
         type="email"
         label="Email Address"
-        placeholder="john@example.com"
+        placeholder="Your email here"
         icon="i-lucide-mail"
         autocomplete="email"
         required
@@ -149,7 +149,7 @@ async function handleSocialSignup(provider: string) {
         v-model="credentials.phone"
         type="tel"
         label="Phone Number"
-        placeholder="+1 (555) 000-0000"
+        placeholder="+255-XXX-XXX-XXX"
         icon="i-lucide-phone"
         autocomplete="tel"
         required

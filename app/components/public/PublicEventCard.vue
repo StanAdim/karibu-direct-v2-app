@@ -20,7 +20,7 @@ const emit = defineEmits<{
 
 function formatPrice(price: string | number): string {
   if (price === 'Free' || price === 0) return 'Free'
-  if (typeof price === 'number') return `$${price.toFixed(2)}`
+  if (typeof price === 'number') return `TZS ${price.toFixed(2)}`
   return String(price)
 }
 </script>

@@ -20,6 +20,7 @@ withDefaults(defineProps<Props>(), {
     { icon: 'groups', title: '500+ Communities', subtitle: 'Active every weekend' }
   ]
 })
+const imageLogo = computed(() => `/images/logo.png`)
 </script>
 
 <template>
@@ -44,7 +45,16 @@ withDefaults(defineProps<Props>(), {
         <!-- Brand -->
         <div class="flex items-center gap-3 mb-8">
           <div class="bg-white/20 p-2 rounded-lg backdrop-blur-md">
-            <span class="material-symbols-outlined text-white text-3xl">event_upcoming</span>
+<!--            <span class="material-symbols-outlined text-white text-3xl">event_upcoming</span>-->
+            <NuxtLink to="/" class="flex items-center gap-2">
+
+            <img
+                :src="imageLogo"
+                alt="logo"
+                class="h-10 w-10 rounded-lg object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            </NuxtLink>
+
           </div>
           <h2 class="text-white text-2xl font-black tracking-tight">{{ config.public.appName }}</h2>
         </div>

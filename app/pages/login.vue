@@ -160,7 +160,7 @@ async function handleSocialLogin(provider: string) {
       </div>
       <div class="relative flex justify-center text-sm">
 <!--        <span class="px-4 bg-white dark:bg-[var(&#45;&#45;color-background-dark)] text-slate-500">Or sign in with email</span>-->
-        <span class="px-4 bg-white dark:bg-[var(--color-background-dark)] text-slate-500">Sign in now</span>
+        <span class="px-4 bg-white dark:bg-[var(--color-background-dark)] text-slate-500">Login now</span>
       </div>
     </div>
 
@@ -171,7 +171,7 @@ async function handleSocialLogin(provider: string) {
         v-model="form.email"
         type="text"
         label="Email or Phone"
-        placeholder="name@example.com"
+        placeholder="Enter your email here"
         :error="errors.email"
       />
 
@@ -230,7 +230,7 @@ async function handleSocialLogin(provider: string) {
         block
         :disabled="loading"
       >
-        {{ loading ? 'Signing In...' : 'Sign In' }}
+        {{ loading ? 'Signing In...' : 'Login' }}
       </AppButton>
     </form>
 
@@ -241,7 +241,7 @@ async function handleSocialLogin(provider: string) {
         to="/register"
         class="font-bold text-primary-500 hover:text-primary-500/80 transition-colors"
       >
-        Sign up for free
+        Create here for free
       </NuxtLink>
     </p>
 
@@ -296,7 +296,7 @@ async function handleSocialLogin(provider: string) {
             class="mt-1 text-sm font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
             @click="closeForgotPassword"
           >
-            &lt; Back to sign in
+            &lt; Back to Login
           </button>
         </form>
       </div>
@@ -352,7 +352,7 @@ async function handleSocialLogin(provider: string) {
             class="text-xs text-slate-500 underline-offset-2 hover:underline dark:text-slate-400"
             @click="closeForgotPassword"
           >
-            Back to sign in
+            Back to Login
           </button>
         </div>
       </div>

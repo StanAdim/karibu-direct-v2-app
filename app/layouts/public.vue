@@ -68,6 +68,7 @@ const footerSections = [
     ]
   }
 ]
+const imageLogo = computed(() => `/images/logo.png`)
 </script>
 
 <template>
@@ -81,7 +82,11 @@ const footerSections = [
         <!-- Brand: icon + app name (dark) -->
         <NuxtLink to="/" class="flex items-center gap-2">
           <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500 text-white shrink-0">
-            <span class="material-symbols-outlined text-xl">event</span>
+            <img
+                :src="imageLogo"
+                alt="logo"
+                class="h-10 w-10 rounded-l object-cover group-hover:scale-105 transition-transform duration-500"
+            />
           </div>
           <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</h1>
         </NuxtLink>
