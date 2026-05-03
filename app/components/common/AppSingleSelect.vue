@@ -21,6 +21,8 @@ const props = withDefaults(
     showSelectedChip?: boolean
     searchable?: boolean
     searchPlaceholder?: string
+    /** Omit the label row for compact toolbars (hero, inline filters). */
+    hideLabel?: boolean
   }>(),
   {
     label: 'Select item',
@@ -30,7 +32,8 @@ const props = withDefaults(
     placeholder: 'Select an option',
     showSelectedChip: true,
     searchable: false,
-    searchPlaceholder: 'Search options...'
+    searchPlaceholder: 'Search options...',
+    hideLabel: false
   }
 )
 
@@ -81,7 +84,10 @@ function toggleOpen() {
 
 <template>
   <div class="flex flex-col gap-1.5">
-    <label class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1">
+    <label
+      v-if="!hideLabel"
+      class="text-sm font-semibold text-slate-700 dark:text-slate-300 ml-1"
+    >
       {{ label }}
     </label>
     <p
@@ -94,10 +100,11 @@ function toggleOpen() {
     <div
       ref="root"
       class="relative"
+      :class="open ? 'z-[2147483640]' : ''"
     >
       <button
         type="button"
-        class="flex w-full min-h-11 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-900 transition-colors hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600"
+        class="relative z-[1] flex w-full min-h-11 items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-900 transition-colors hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600"
         :disabled="disabled"
         :class="error ? 'border-red-500 dark:border-red-500' : ''"
         @click="toggleOpen"
@@ -122,11 +129,11 @@ function toggleOpen() {
       >
         <div
           v-if="open"
-          class="absolute left-0 right-0 z-40 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+          class="absolute left-0 right-0 z-[2147483641] mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
         >
           <div
             v-if="searchable"
-            class="sticky top-0 z-10 border-b border-slate-200 bg-white px-2 pb-2 pt-1 dark:border-slate-700 dark:bg-slate-800"
+            class="sticky top-0 z-[2147483642] border-b border-slate-200 bg-white px-2 pb-2 pt-1 dark:border-slate-700 dark:bg-slate-800"
           >
             <input
               v-model="searchQuery"

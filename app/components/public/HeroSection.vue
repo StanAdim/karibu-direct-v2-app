@@ -12,11 +12,32 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   showSearch: true,
   showLocationSelect: true,
-  locations: () => ['New York, NY', 'Dar es Salaam', 'Arusha', 'Zanzibar', 'London', 'Tokyo']
+  locations: () => ['Dar es Salaam', 'Arusha', 'Zanzibar', 'Tanga', 'Mwanza'],
 })
 
 const searchQuery = ref('')
-const selectedLocation = ref(props.locations[0] || '')
+const selectedLocation = ref('')
+
+const locationSelectOptions = computed(() =>
+  [...new Set(
+    (props.locations ?? []).filter(
+      (loc): loc is string => typeof loc === 'string' && loc.trim().length > 0
+    )
+  )].map(loc => {
+    const trimmed = loc.trim()
+    return { label: trimmed, value: trimmed }
+  })
+)
+
+const locationSelectModel = computed({
+  get(): string | null {
+    const s = selectedLocation.value.trim()
+    return s.length ? selectedLocation.value : null
+  },
+  set(v: string | null) {
+    selectedLocation.value = typeof v === 'string' ? v : ''
+  },
+})
 
 const emit = defineEmits<{
   search: [query: string, location?: string]
@@ -30,16 +51,16 @@ function handleSearch() {
 <template>
   <section class="relative px-4 py-6 md:py-8">
     <div class="">
-      <div class="relative overflow-hidden rounded-3xl bg-slate-900 min-h-[420px] md:min-h-[600px] flex items-center px-6 py-16 md:px-12 md:py-24">
+      <div class="relative overflow-visible rounded-3xl bg-slate-900 min-h-[420px] md:min-h-[600px] flex items-center px-6 py-16 md:px-12 md:py-24">
         <!-- Background Image -->
         <div
           v-if="backgroundImage"
-          class="absolute inset-0 z-0 bg-cover bg-center scale-105"
+          class="absolute inset-0 z-0 overflow-hidden rounded-3xl bg-cover bg-center scale-105"
           :style="`background-image: url('${backgroundImage}')`"
         />
 
         <!-- Gradient Overlay -->
-        <div class="absolute inset-0 z-10 bg-gradient-to-t from-slate-900/95 via-slate-900/70 to-slate-900/50" />
+        <div class="absolute inset-0 z-10 overflow-hidden rounded-3xl bg-gradient-to-t from-slate-900/95 via-slate-900/70 to-slate-900/50" />
 
         <!-- Content -->
         <div class="relative z-20 w-full mx-auto max-w-4xl text-center">
@@ -54,7 +75,7 @@ function handleSearch() {
           <!-- Search Bar: off-white rounded bar, Search button on right -->
           <div
             v-if="showSearch"
-            class="mt-10 flex flex-col sm:flex-row gap-3 w-full max-w-3xl mx-auto rounded-2xl bg-white/95 dark:bg-slate-800/95 p-2 shadow-xl overflow-hidden"
+            class="mt-10 flex flex-col sm:flex-row gap-3 w-full max-w-3xl mx-auto rounded-2xl bg-white/95 dark:bg-slate-800/95 p-2 shadow-xl"
           >
             <div class="flex flex-1 items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 px-4 py-3 min-w-0">
               <AppLucideIcon name="search" class="text-slate-400 shrink-0" />
@@ -68,18 +89,17 @@ function handleSearch() {
             </div>
 
             <template v-if="showLocationSelect">
-              <div class="flex flex-1 items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 px-4 py-3 min-w-0 sm:max-w-[200px]">
+              <div class="hero-location-select relative z-[200] flex flex-1 min-w-0 items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 px-4 py-3 sm:max-w-[220px]">
                 <AppLucideIcon name="location_on" class="text-slate-400 shrink-0" />
-                <select
-                  v-model="selectedLocation"
-                  class="w-full border-none bg-transparent p-0 text-slate-900 dark:text-white focus:ring-0 outline-none text-sm md:text-base appearance-none"
-                >
-                  <option value="">All Locations</option>
-                  <option v-for="loc in locations" :key="loc" :value="loc">
-                    {{ loc }}
-                  </option>
-                </select>
-                <AppLucideIcon name="expand_more" class="text-slate-400 text-lg shrink-0" />
+                <AppSingleSelect
+                  v-model="locationSelectModel"
+                  hide-label
+                  placeholder="All locations"
+                  aria-label="Location"
+                  :options="locationSelectOptions"
+                  :show-selected-chip="false"
+                  class="min-w-0 flex-1"
+                />
               </div>
             </template>
 
@@ -97,3 +117,33 @@ function handleSearch() {
     </div>
   </section>
 </template>
+
+<style scoped>
+.hero-location-select :deep(.flex.flex-col) {
+  gap: 0;
+}
+
+.hero-location-select :deep(div.relative > button[type="button"]) {
+  border: none;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  min-height: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .hero-location-select :deep(div.relative > button[type="button"]) {
+    font-size: 1rem;
+  }
+}
+
+.hero-location-select :deep(div.relative > button:focus) {
+  box-shadow: none !important;
+  outline: none;
+}
+</style>

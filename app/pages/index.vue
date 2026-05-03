@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import type { EventCategory, EventPublicBrowseItem } from '~/types'
+import { getEventCoverImageUrl } from '~/utils/eventImage'
+import { eventCategoryMaterialIcon } from '~/utils/eventCategoryIcon'
+
 definePageMeta({
   layout: 'public'
 })
@@ -7,61 +11,161 @@ const { isAuthenticated, user } = useAuth()
 const authStore = useAuthStore()
 const router = useRouter()
 const config = useRuntimeConfig()
+const api = useApi()
 
-const activeCategory = ref('all')
+interface LandingCategoryPill {
+  id: 'all' | string
+  label: string
+  icon: string
+}
 
-const categories = [
-  { id: 'all', label: 'All Events', icon: 'grid_view' },
-  { id: 'music', label: 'Music', icon: 'music_note' },
-  { id: 'business', label: 'Business', icon: 'business_center' },
-  { id: 'food', label: 'Food & Drink', icon: 'restaurant' },
-  { id: 'tech', label: 'Technology', icon: 'desktop_windows' },
-  { id: 'arts', label: 'Arts', icon: 'palette' },
-  { id: 'sports', label: 'Sports', icon: 'directions_run' }
-]
+const categoriesLoading = ref(false)
+const categoriesError = ref(false)
+const apiCategories = ref<EventCategory[]>([])
 
-const featuredEvents = ref([
-  {
-    id: '1',
-    title: 'Tech Summit 2024',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
-    date: 'OCT 12',
-    location: 'Downtown Convention Center',
-    price: 99,
-    category: 'Technology',
-    attendees: '1.2k'
-  },
-  {
-    id: '2',
-    title: 'Jazz in the Park',
-    image: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800',
-    date: 'OCT 14',
-    location: 'Central Park Amphitheater',
-    price: 'Free',
-    category: 'Music',
-    attendees: '850'
-  },
-  {
-    id: '3',
-    title: 'Startup Weekend',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800',
-    date: 'OCT 20',
-    location: 'Innovation Hub',
-    price: 50,
-    category: 'Business',
-    attendees: '300'
-  },
-  {
-    id: '4',
-    title: 'Cooking Masterclass',
-    image: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800',
-    date: 'OCT 21',
-    location: 'Culinary Institute',
-    price: 75,
-    category: 'Food & Drink',
-    attendees: '45'
+const activeCategoryId = ref<'all' | string>('all')
+
+const featuredLoading = ref(true)
+const featuredError = ref(false)
+const featuredEvents = ref<EventPublicBrowseItem[]>([])
+
+function normalizeCategoriesList(raw: unknown): EventCategory[] {
+  const items: Record<string, unknown>[] = []
+  if (Array.isArray(raw)) {
+    for (const x of raw) {
+      if (x && typeof x === 'object') items.push(x as Record<string, unknown>)
+    }
   }
-])
+  else if (raw && typeof raw === 'object') {
+    const o = raw as Record<string, unknown>
+    const list = o.data ?? o.results
+    if (Array.isArray(list)) {
+      for (const x of list) {
+        if (x && typeof x === 'object') items.push(x as Record<string, unknown>)
+      }
+    }
+  }
+  const out: EventCategory[] = []
+  for (const rec of items) {
+    const id = rec.id != null ? String(rec.id) : rec.slug != null ? String(rec.slug) : ''
+    if (!id) continue
+    const nameRaw = rec.name ?? rec.title ?? rec.label ?? id
+    out.push({
+      id,
+      name: String(nameRaw),
+      slug: rec.slug != null ? String(rec.slug) : undefined
+    })
+  }
+  return out
+}
+
+function extractPaginatedData<T>(raw: unknown): T[] {
+  if (Array.isArray(raw)) return raw as T[]
+  if (raw && typeof raw === 'object') {
+    const o = raw as Record<string, unknown>
+    if (Array.isArray(o.data)) return o.data as T[]
+    if (Array.isArray(o.results)) return o.results as T[]
+  }
+  return []
+}
+
+const categoryPills = computed((): LandingCategoryPill[] => {
+  const all: LandingCategoryPill = {
+    id: 'all',
+    label: 'All Events',
+    icon: 'grid_view'
+  }
+  const rest = apiCategories.value.map((c): LandingCategoryPill => ({
+    id: c.id,
+    label: c.name,
+    icon: eventCategoryMaterialIcon(c)
+  }))
+  return [all, ...rest]
+})
+
+async function loadLandingCategories(): Promise<void> {
+  categoriesLoading.value = true
+  categoriesError.value = false
+  try {
+    const raw = await api.get<unknown>('/events/categories/?page=1&size=100', {
+      suppressErrorToast: true
+    })
+    apiCategories.value = normalizeCategoriesList(raw)
+    if (
+      activeCategoryId.value !== 'all'
+      && !apiCategories.value.some(c => c.id === activeCategoryId.value)
+    ) {
+      activeCategoryId.value = 'all'
+    }
+  }
+  catch {
+    categoriesError.value = true
+    apiCategories.value = []
+  }
+  finally {
+    categoriesLoading.value = false
+  }
+}
+
+async function loadFeaturedEvents(): Promise<void> {
+  featuredLoading.value = true
+  featuredError.value = false
+  try {
+    const params = new URLSearchParams({
+      page: '1',
+      size: '8',
+      browse_tab: 'popular'
+    })
+    if (activeCategoryId.value !== 'all') {
+      params.append('category_id', activeCategoryId.value)
+    }
+    const raw = await api.get<unknown>(`/events/public/browse?${params.toString()}`, {
+      suppressErrorToast: true
+    })
+    featuredEvents.value = extractPaginatedData<EventPublicBrowseItem>(raw)
+  }
+  catch {
+    featuredError.value = true
+    featuredEvents.value = []
+  }
+  finally {
+    featuredLoading.value = false
+  }
+}
+
+function featuredCardLocation(item: EventPublicBrowseItem): string {
+  const bits = [item.venue_name, item.venue_city].filter(Boolean)
+  return bits.length ? bits.join(', ') : '—'
+}
+
+function featuredDateBadge(iso: string): string {
+  const d = new Date(iso)
+  const month = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()
+  return `${month} ${d.getDate()}`
+}
+
+function featuredPrice(item: EventPublicBrowseItem): number | 'Free' {
+  const p = item.min_ticket_price
+  if (p == null || p === 0) return 'Free'
+  return Number(p)
+}
+
+function featuredCover(item: EventPublicBrowseItem): string {
+  return getEventCoverImageUrl(
+    item.cover_image ?? undefined,
+    String(config.public.apiBase ?? ''),
+    `https://picsum.photos/seed/home-${item.id}/800/500`
+  )
+}
+
+onMounted(() => {
+  void loadLandingCategories()
+  void loadFeaturedEvents()
+})
+
+watch(activeCategoryId, () => {
+  void loadFeaturedEvents()
+})
 
 const popularCities = [
   { name: 'Dar es salaam', image: '/images/cities/Dar.jpeg', eventCount: 320 },
@@ -92,8 +196,8 @@ function handleSearch(query: string, location?: string) {
   })
 }
 
-function handleViewEvent(id: string | number) {
-  router.push(`/events/${id}`)
+function handleViewEvent(slug: string) {
+  router.push(`/events/${slug}`)
 }
 
 function handleSelectCity(city: string) {
@@ -114,21 +218,30 @@ function handleSelectCity(city: string) {
       :background-image="`${config.public.appBase}/images/defaults/events-1.png`"
       :show-search="true"
       :show-location-select="true"
-      :locations="[ 'Dar es Salaam', 'Arusha', 'Zanzibar', 'London', 'Morogoro', '']"
+      :locations="[ 'Dar es Salaam', 'Arusha', 'Zanzibar', 'Tanga', 'Morogoro', 'Mwanza']"
       @search="handleSearch"
     />
 
     <!-- Category pills -->
     <section class="px-4 py-4 md:px-6">
       <div class="mx-auto max-w-7xl">
+        <p
+          v-if="categoriesError"
+          class="mb-2 text-xs text-amber-600 dark:text-amber-400"
+        >
+          Categories could not be loaded. You can still browse featured events.
+        </p>
         <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+          <template v-if="categoriesLoading && categoryPills.length <= 1">
+            <span class="text-sm text-slate-500 dark:text-slate-400 px-2">Loading categories…</span>
+          </template>
           <CategoryButton
-            v-for="cat in categories"
+            v-for="cat in categoryPills"
             :key="cat.id"
             :label="cat.label"
             :icon="cat.icon"
-            :active="activeCategory === cat.id"
-            @click="activeCategory = cat.id"
+            :active="activeCategoryId === cat.id"
+            @click="activeCategoryId = cat.id"
           />
         </div>
       </div>
@@ -147,19 +260,39 @@ function handleSelectCity(city: string) {
           </NuxtLink>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div v-if="featuredLoading" class="py-16 flex justify-center">
+          <LoadingState text="Loading featured events…" />
+        </div>
+
+        <p
+          v-else-if="featuredError"
+          class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-10 text-center text-slate-600 dark:text-slate-400"
+        >
+          Featured events couldn’t load. Try again later or browse the full list.
+        </p>
+
+        <p
+          v-else-if="featuredEvents.length === 0"
+          class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-10 text-center text-slate-600 dark:text-slate-400"
+        >
+          No public events match this filter right now.
+        </p>
+
+        <div
+          v-else
+          class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+        >
           <PublicEventCard
-            v-for="event in featuredEvents"
-            :key="event.id"
-            :id="event.id"
-            :title="event.title"
-            :image="event.image"
-            :date="event.date"
-            :location="event.location"
-            :price="event.price"
-            :category="event.category"
-            :attendees="event.attendees"
-            @click="handleViewEvent(event.id)"
+            v-for="item in featuredEvents"
+            :id="item.id"
+            :key="item.id"
+            :title="item.title"
+            :image="featuredCover(item)"
+            :date="featuredDateBadge(item.start_date)"
+            :location="featuredCardLocation(item)"
+            :price="featuredPrice(item)"
+            :category="item.primary_category_name?.trim() || 'Event'"
+            @click="handleViewEvent(item.slug)"
           />
         </div>
       </div>
