@@ -128,6 +128,8 @@ export interface EventFilters {
   category?: string
   /** Taxonomy category UUID from `GET /events/categories/`. */
   category_id?: string | null
+  /** Multiple taxonomy UUIDs; API uses OR semantics (match any selected category). */
+  category_ids?: string[]
   price_min?: number | null
   price_max?: number | null
   location?: string | null

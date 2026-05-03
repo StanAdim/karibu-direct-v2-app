@@ -5,10 +5,9 @@ const DEBOUNCE_MS = 420
 
 export function useAttendeeExploreEventsFilters() {
   const eventsStore = useEventsStore()
-  const categoryStore = useEventCategoryStore()
 
   const filters = reactive({
-    category_id: null as string | null,
+    category_ids: [] as string[],
     price_min: 0,
     price_max: 500_000 as number | null,
     location: null as string | null,
@@ -18,10 +17,12 @@ export function useAttendeeExploreEventsFilters() {
 
   function buildExploreEventFilters(extra?: Partial<EventFilters>): EventFilters {
     const loc = filters.location?.trim() || undefined
+    const cats =
+      filters.category_ids.length ? [...filters.category_ids] : undefined
     return {
       status: 'published',
       visibility: 'public',
-      ...(filters.category_id ? { category_id: filters.category_id } : {}),
+      ...(cats?.length ? { category_ids: cats } : {}),
       search: filters.search.trim() || undefined,
       sort_by: filters.sort_by,
       price_min: filters.price_min > 0 ? filters.price_min : undefined,
@@ -54,13 +55,6 @@ export function useAttendeeExploreEventsFilters() {
     }, DEBOUNCE_MS)
   }
 
-  function selectCategory(id: string | null): void {
-    categoryStore.setCategory(id)
-    filters.category_id = id
-    clearSchedule()
-    void loadExplore(true)
-  }
-
   watch(
     () => ({
       price_min: filters.price_min,
@@ -71,6 +65,14 @@ export function useAttendeeExploreEventsFilters() {
     }),
     () => scheduleDebouncedLoad(),
     { deep: true }
+  )
+
+  watch(
+    () => filters.category_ids.slice(),
+    () => {
+      clearSchedule()
+      void loadExplore(true)
+    }
   )
 
   onBeforeUnmount(() => clearSchedule())
@@ -84,7 +86,6 @@ export function useAttendeeExploreEventsFilters() {
 
   return {
     filters,
-    selectCategory,
     buildExploreEventFilters,
     loadExplore,
     exploreMore

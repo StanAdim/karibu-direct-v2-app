@@ -10,7 +10,6 @@ definePageMeta({
 })
 
 const config = useRuntimeConfig()
-const categoryStore = useEventCategoryStore()
 const browseStore = usePublicEventBrowseStore()
 
 const pageSize = 6
@@ -21,19 +20,18 @@ const DATE_WEEKEND = 'weekend'
 
 const LOCATION_OPTIONS = [
   '',
-  'New York, NY',
   'Dar es Salaam',
   'Arusha',
   'Zanzibar',
-  'London',
-  'Tokyo'
+  'Mwanza',
+  'Tanga'
 ] as const
 
 const dateOptionLabels = ['Anytime', 'Today', 'This Weekend'] as const
 
 const sidebarDraft = reactive({
   location: '' as string,
-  categoryId: '' as string,
+  categoryIds: [] as string[],
   maxPrice: 500,
   search: '',
   dateKeys: [DATE_ANY] as string[]
@@ -41,10 +39,26 @@ const sidebarDraft = reactive({
 
 const sidebarApplied = reactive({
   location: '',
-  categoryId: '',
+  categoryIds: [] as string[],
   maxPrice: 500,
   search: '',
   dateKeys: [DATE_ANY] as string[]
+})
+
+const locationSelectOptions = LOCATION_OPTIONS.slice(1).map(value => ({
+  label: value,
+  value
+}))
+
+const locationDraftModel = computed({
+  get(): string | null {
+    const raw = sidebarDraft.location
+    const t = raw.trim()
+    return t.length ? raw : null
+  },
+  set(v: string | null) {
+    sidebarDraft.location = typeof v === 'string' ? v : ''
+  }
 })
 
 const browseTab = ref<'popular' | 'upcoming' | 'nearest'>('popular')
@@ -57,7 +71,7 @@ const sortOptions = [
 
 function syncAppliedFromDraft(): void {
   sidebarApplied.location = sidebarDraft.location
-  sidebarApplied.categoryId = sidebarDraft.categoryId
+  sidebarApplied.categoryIds = [...sidebarDraft.categoryIds]
   sidebarApplied.maxPrice = sidebarDraft.maxPrice
   sidebarApplied.search = sidebarDraft.search
   sidebarApplied.dateKeys = [...sidebarDraft.dateKeys]
@@ -97,7 +111,7 @@ function weekendRangeISO(): { start_date: string; end_date: string } {
   const t = startOfLocalDay(new Date())
   const day = t.getDay()
 
-  let fri = new Date(t)
+  const fri = new Date(t)
   if (day === 0) {
     fri.setDate(fri.getDate() - 2)
   }
@@ -153,7 +167,9 @@ async function loadPage(pageNum: number): Promise<void> {
     page: pageNum,
     size: pageSize,
     browse_tab: browseTab.value,
-    category_id: sidebarApplied.categoryId || undefined,
+    ...(sidebarApplied.categoryIds.length
+      ? { category_ids: [...sidebarApplied.categoryIds] }
+      : {}),
     search: sidebarApplied.search,
     ...(dates.start_date ? { start_date: dates.start_date } : {}),
     ...(dates.end_date ? { end_date: dates.end_date } : {}),
@@ -169,7 +185,7 @@ function applySidebar(): void {
 
 function resetFilters(): void {
   sidebarDraft.location = ''
-  sidebarDraft.categoryId = ''
+  sidebarDraft.categoryIds = []
   sidebarDraft.maxPrice = 500
   sidebarDraft.search = ''
   sidebarDraft.dateKeys = [DATE_ANY]
@@ -199,9 +215,10 @@ const visiblePages = computed(() => {
 })
 
 const categoryChipLabel = computed(() => {
-  if (!sidebarApplied.categoryId) return 'All Events'
-  const found = categoryStore.categories.find(c => c.id === sidebarApplied.categoryId)
-  return found?.name ?? 'All Events'
+  const n = sidebarApplied.categoryIds.length
+  if (n === 0) return 'All Events'
+  if (n === 1) return 'One category'
+  return `${n} categories`
 })
 
 function goToPage(nextPage: number): void {
@@ -263,13 +280,8 @@ function categoryBadge(item: EventPublicBrowseItem): string {
 }
 
 onMounted(() => {
-  void Promise.all([
-    categoryStore.fetchCategories(),
-    (async () => {
-      syncAppliedFromDraft()
-      await loadPage(1)
-    })()
-  ])
+  syncAppliedFromDraft()
+  void loadPage(1)
 })
 </script>
 
@@ -315,27 +327,14 @@ onMounted(() => {
 
             <div class="hidden space-y-6 lg:block">
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Location
-                </p>
-                <div class="flex items-center gap-2 rounded-xl bg-primary-50 px-3 py-2 dark:bg-primary-500/10">
-                  <span class="material-symbols-outlined text-primary-500">location_on</span>
-                  <select
-                    v-model="sidebarDraft.location"
-                    class="w-full border-none bg-transparent p-0 text-sm font-medium text-slate-700 outline-none focus:ring-0 dark:text-slate-200"
-                  >
-                    <option value="">
-                      All locations
-                    </option>
-                    <option
-                      v-for="loc in LOCATION_OPTIONS.slice(1)"
-                      :key="loc"
-                      :value="loc"
-                    >
-                      {{ loc }}
-                    </option>
-                  </select>
-                </div>
+                <AppSingleSelect
+                  v-model="locationDraftModel"
+                  label="Location"
+                  hint="Applied with Apply Changes below."
+                  placeholder="All locations"
+                  :options="locationSelectOptions"
+                  :show-selected-chip="false"
+                />
               </div>
 
               <div class="space-y-3">
@@ -360,27 +359,10 @@ onMounted(() => {
               </div>
 
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Category
-                </p>
-                <p v-if="categoryStore.error" class="text-xs text-amber-600 dark:text-amber-400">
-                  Categories unavailable — browse all filters still work.
-                </p>
-                <select
-                  v-model="sidebarDraft.categoryId"
-                  class="w-full rounded-xl border border-primary-100 bg-primary-50 py-2 text-sm font-medium text-slate-700 focus:border-primary-500 focus:ring-primary-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                >
-                  <option value="">
-                    All Categories
-                  </option>
-                  <option
-                    v-for="c in categoryStore.categories"
-                    :key="c.id"
-                    :value="c.id"
-                  >
-                    {{ c.name }}
-                  </option>
-                </select>
+                <EventCategoriesMultiSelect
+                  v-model="sidebarDraft.categoryIds"
+                  hint="Applied with the button below — events matching any selected category."
+                />
               </div>
 
               <div class="space-y-3">
@@ -427,24 +409,14 @@ onMounted(() => {
             <!-- Mobile condensed stack mirrors desktop fields -->
             <div class="space-y-5 lg:hidden">
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Location
-                </p>
-                <select
-                  v-model="sidebarDraft.location"
-                  class="w-full rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
-                >
-                  <option value="">
-                    All locations
-                  </option>
-                  <option
-                    v-for="loc in LOCATION_OPTIONS.slice(1)"
-                    :key="'m-' + loc"
-                    :value="loc"
-                  >
-                    {{ loc }}
-                  </option>
-                </select>
+                <AppSingleSelect
+                  v-model="locationDraftModel"
+                  label="Location"
+                  hint="Apply to refresh results."
+                  placeholder="All locations"
+                  :options="locationSelectOptions"
+                  :show-selected-chip="false"
+                />
               </div>
               <div class="space-y-3">
                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -465,24 +437,10 @@ onMounted(() => {
                 </label>
               </div>
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Category
-                </p>
-                <select
-                  v-model="sidebarDraft.categoryId"
-                  class="w-full rounded-xl border border-primary-100 bg-primary-50 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
-                >
-                  <option value="">
-                    All Categories
-                  </option>
-                  <option
-                    v-for="c in categoryStore.categories"
-                    :key="'mbc-' + c.id"
-                    :value="c.id"
-                  >
-                    {{ c.name }}
-                  </option>
-                </select>
+                <EventCategoriesMultiSelect
+                  v-model="sidebarDraft.categoryIds"
+                  hint="Apply to update results (any selected category matches)."
+                />
               </div>
               <div class="space-y-3">
                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">

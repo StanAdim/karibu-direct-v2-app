@@ -149,7 +149,13 @@ export const useEventsStore = defineStore('events', () => {
 
       if (eventFilters?.status) params.append('status', eventFilters.status)
       if (eventFilters?.visibility) params.append('visibility', eventFilters.visibility)
-      if (eventFilters?.category_id) {
+      const multi = eventFilters?.category_ids?.filter(Boolean) ?? []
+      if (multi.length) {
+        for (const cid of multi) {
+          params.append('category_ids', String(cid))
+        }
+      }
+      else if (eventFilters?.category_id) {
         params.append('category_id', eventFilters.category_id)
       }
       else if (eventFilters?.category) {
@@ -221,7 +227,13 @@ export const useEventsStore = defineStore('events', () => {
 
       if (eventFilters?.status) params.append('status', eventFilters.status)
       if (eventFilters?.visibility) params.append('visibility', eventFilters.visibility)
-      if (eventFilters?.category_id) {
+      const multiMy = eventFilters?.category_ids?.filter(Boolean) ?? []
+      if (multiMy.length) {
+        for (const cid of multiMy) {
+          params.append('category_ids', String(cid))
+        }
+      }
+      else if (eventFilters?.category_id) {
         params.append('category_id', eventFilters.category_id)
       }
       else if (eventFilters?.category) {

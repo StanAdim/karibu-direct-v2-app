@@ -57,6 +57,7 @@ export interface PublicBrowseQuery {
   page: number
   size: number
   browse_tab: 'popular' | 'upcoming' | 'nearest'
+  category_ids?: string[]
   category_id?: string | null
   search?: string
   start_date?: string | undefined
@@ -85,7 +86,15 @@ export const usePublicEventBrowseStore = defineStore('publicEventBrowse', () => 
       params.append('page', String(q.page))
       params.append('size', String(q.size))
       params.append('browse_tab', q.browse_tab)
-      if (q.category_id) params.append('category_id', q.category_id)
+      const browseCats = (q.category_ids ?? []).filter(Boolean)
+      if (browseCats.length) {
+        for (const id of browseCats) {
+          params.append('category_ids', String(id))
+        }
+      }
+      else if (q.category_id) {
+        params.append('category_id', q.category_id)
+      }
       if (q.search?.trim()) params.append('search', q.search.trim())
       if (q.start_date) params.append('start_date', q.start_date)
       if (q.end_date) params.append('end_date', q.end_date)

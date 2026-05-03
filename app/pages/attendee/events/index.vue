@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { Event } from '~/types'
+import type { Event, EventExploreSortBy } from '~/types'
 import { getEventCoverImageUrl } from '~/utils/eventImage'
-import { eventCategoryMaterialIcon } from '~/utils/eventCategoryIcon'
 import AppButton from '~/components/ui/AppButton.vue'
 
 definePageMeta({
@@ -10,11 +9,10 @@ definePageMeta({
 })
 
 const eventsStore = useEventsStore()
-const categoryStore = useEventCategoryStore()
 const router = useRouter()
 const config = useRuntimeConfig()
 
-const { filters, selectCategory, loadExplore, exploreMore } = useAttendeeExploreEventsFilters()
+const { filters, loadExplore, exploreMore } = useAttendeeExploreEventsFilters()
 
 const sortOptions = [
   { value: 'relevancy', label: 'Relevancy' },
@@ -25,10 +23,34 @@ const sortOptions = [
 
 const locationChoices = ['Dar es Salaam', 'Arusha', 'Mwanza'] as const
 
+const locationSelectOptions = locationChoices.map(city => ({
+  label: city,
+  value: city
+}))
+
+const sortSelectOptions = sortOptions.map(o => ({
+  label: o.label,
+  value: o.value
+}))
+
 const locationSelectModel = computed({
-  get: () => filters.location ?? '',
-  set(v: string) {
-    filters.location = v.trim() ? v : null
+  get(): string | null {
+    const loc = filters.location
+    if (loc == null) return null
+    const t = String(loc).trim()
+    return t.length ? t : null
+  },
+  set(v: string | null) {
+    filters.location = v?.trim() ? v : null
+  }
+})
+
+const sortSelectModel = computed({
+  get(): string | null {
+    return filters.sort_by
+  },
+  set(v: string | null) {
+    filters.sort_by = (v ?? 'relevancy') as EventExploreSortBy
   }
 })
 
@@ -94,7 +116,6 @@ async function toggleEventSaved(event: Event): Promise<void> {
 
 onMounted(() => {
   void Promise.all([
-    categoryStore.fetchCategories(),
     loadExplore(true),
     eventsStore.fetchMySavedEvents()
   ])
@@ -106,56 +127,13 @@ onMounted(() => {
     <div class="flex flex-col lg:flex-row gap-4 lg:gap-5">
       <!-- Left sidebar: filters -->
       <aside class="lg:w-72 shrink-0">
-        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden sticky top-24">
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden sticky top-24 h-screen">
           <div class="p-4 border-b border-slate-100 dark:border-slate-800">
-            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
-              Categories
-            </h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Filter by Interest</p>
+            <EventCategoriesMultiSelect
+              v-model="filters.category_ids"
+              hint="Events matching any selected category are shown."
+            />
           </div>
-          <nav class="p-3 space-y-0.5">
-            <button
-              type="button"
-              :class="[
-                'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-colors',
-                categoryStore.selectedCategoryId === null
-                  ? 'bg-primary-500 text-white'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-              ]"
-              @click="selectCategory(null)"
-            >
-              <span class="material-symbols-outlined text-xl">calendar_today</span>
-              <span class="flex-1 text-sm font-medium">ALL EVENTS</span>
-            </button>
-            <p
-              v-if="categoryStore.error"
-              class="px-3 py-2 text-xs text-amber-600 dark:text-amber-400"
-            >
-              Categories could not be loaded. You can still browse all events.
-            </p>
-            <div
-              v-else-if="categoryStore.loading && categoryStore.categories.length === 0"
-              class="px-3 py-2 text-xs text-slate-500 dark:text-slate-400"
-            >
-              Loading categories…
-            </div>
-            <button
-              v-for="cat in categoryStore.categories"
-              :key="cat.id"
-              type="button"
-              :class="[
-                'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-colors',
-                categoryStore.selectedCategoryId === cat.id
-                  ? 'bg-primary-500 text-white'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
-                categoryStore.loading ? 'opacity-60 pointer-events-none' : ''
-              ]"
-              @click="selectCategory(cat.id)"
-            >
-              <span class="material-symbols-outlined text-xl">{{ eventCategoryMaterialIcon(cat) }}</span>
-              <span class="flex-1 text-sm font-medium">{{ cat.name.toUpperCase() }}</span>
-            </button>
-          </nav>
 
           <div class="p-4 border-t border-slate-100 dark:border-slate-800">
             <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
@@ -192,24 +170,14 @@ onMounted(() => {
           </div>
 
           <div class="p-4 border-t border-slate-100 dark:border-slate-800">
-            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide mb-2">
-              Location
-            </h2>
-            <select
+            <AppSingleSelect
               v-model="locationSelectModel"
-              class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
-            >
-              <option value="">
-                All locations
-              </option>
-              <option
-                v-for="city in locationChoices"
-                :key="city"
-                :value="city"
-              >
-                {{ city }}
-              </option>
-            </select>
+              label="Location"
+              hint="City filter on event venue."
+              placeholder="All locations"
+              :options="locationSelectOptions"
+              :show-selected-chip="false"
+            />
           </div>
         </div>
       </aside>
@@ -228,16 +196,14 @@ onMounted(() => {
                 class="w-full rounded-xl bg-slate-100 dark:bg-slate-800 border-0 py-2 pl-10 pr-3 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
               >
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Sort by:</span>
-              <select
-                v-model="filters.sort_by"
-                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-primary-500/20 outline-none"
-              >
-                <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
+            <div class="w-full shrink-0 sm:w-56">
+              <AppSingleSelect
+                v-model="sortSelectModel"
+                label="Sort by"
+                placeholder="Relevancy"
+                :options="sortSelectOptions"
+                :show-selected-chip="false"
+              />
             </div>
           </div>
         </div>
