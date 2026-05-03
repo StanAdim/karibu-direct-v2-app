@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import AppAvatar from '~/components/common/AppAvatar.vue'
+import AppLucideIcon from '~/components/common/AppLucideIcon.vue'
+import AppButton from '~/components/ui/AppButton.vue'
 import type { Session } from '~/types'
 import { formatSessionTime, getSessionDuration } from '~/types'
 
@@ -124,8 +127,9 @@ const sessionTypeIcons: Record<string, string> = {
 }
 
 onMounted(() => {
-  if (uniqueDates.value.length > 0) {
-    selectedDate.value = uniqueDates.value[0]
+  const first = uniqueDates.value[0]
+  if (first !== undefined) {
+    selectedDate.value = first
   }
 })
 </script>
@@ -141,29 +145,30 @@ onMounted(() => {
           Your personalized event schedule
         </p>
       </div>
-      <UButton
-        variant="outline"
-        icon="i-lucide-download"
-        class="self-start sm:self-center"
+      <AppButton
+        color="neutral"
+        icon="download"
+        type="button"
+        class="self-start border border-slate-200 shadow-sm! dark:border-slate-600 sm:self-center"
       >
         Export to Calendar
-      </UButton>
+      </AppButton>
     </div>
 
-    <!-- Date Tabs -->
+    <!-- Date tabs -->
     <div class="flex flex-wrap gap-2">
-      <UButton
+      <AppButton
         v-for="date in uniqueDates"
         :key="date"
+        type="button"
+        size="sm"
         :color="selectedDate === date ? 'primary' : 'neutral'"
-        :variant="selectedDate === date ? 'solid' : 'outline'"
         @click="selectedDate = date"
       >
         {{ formatDateLabel(date) }}
-      </UButton>
+      </AppButton>
     </div>
 
-    <!-- Empty State -->
     <EmptyState
       v-if="filteredSessions.length === 0"
       icon="i-lucide-calendar"
@@ -171,24 +176,27 @@ onMounted(() => {
       description="Browse events and add sessions to your schedule"
     >
       <template #actions>
-        <UButton
-          icon="i-lucide-search"
+        <AppButton
           to="/attendee/events"
+          icon="search"
         >
           Browse Events
-        </UButton>
+        </AppButton>
       </template>
     </EmptyState>
 
-    <!-- Schedule Timeline -->
+    <!-- Schedule timeline -->
     <div
       v-else
       class="space-y-4"
     >
-      <UCard
+      <div
         v-for="session in filteredSessions"
         :key="session.id"
-        :class="{ 'bg-gray-50 dark:bg-gray-900': session.is_break }"
+        :class="[
+          'rounded-xl border border-slate-200 p-4 shadow-sm dark:border-slate-800 sm:p-5',
+          session.is_break ? 'bg-gray-50 dark:bg-gray-950' : 'bg-white dark:bg-slate-900'
+        ]"
       >
         <div class="flex items-start gap-4">
           <!-- Time -->
@@ -199,12 +207,10 @@ onMounted(() => {
                 session.is_break ? 'bg-gray-100 dark:bg-gray-800' : 'bg-primary-100 dark:bg-primary-950'
               ]"
             >
-              <UIcon
+              <AppLucideIcon
                 :name="session.is_break ? 'i-lucide-coffee' : (sessionTypeIcons[session.session_type] || 'i-lucide-calendar')"
-                :class="[
-                  'h-6 w-6',
-                  session.is_break ? 'text-gray-600' : 'text-primary-600'
-                ]"
+                :size="24"
+                :class="session.is_break ? 'text-gray-600' : 'text-primary-600'"
               />
             </div>
             <span class="mt-2 text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -213,7 +219,7 @@ onMounted(() => {
           </div>
 
           <!-- Content -->
-          <div class="flex-1 min-w-0">
+          <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-2">
               <div>
                 <h3
@@ -227,9 +233,10 @@ onMounted(() => {
 
                 <div class="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                   <span class="flex items-center gap-1">
-                    <UIcon
+                    <AppLucideIcon
                       name="i-lucide-clock"
-                      class="h-4 w-4"
+                      :size="16"
+                      class="text-gray-500"
                     />
                     {{ formatSessionTime(session) }}
                   </span>
@@ -238,9 +245,10 @@ onMounted(() => {
                     v-if="session.room"
                     class="flex items-center gap-1"
                   >
-                    <UIcon
+                    <AppLucideIcon
                       name="i-lucide-map-pin"
-                      class="h-4 w-4"
+                      :size="16"
+                      class="text-gray-500"
                     />
                     {{ session.room }}
                   </span>
@@ -248,24 +256,22 @@ onMounted(() => {
 
                 <p
                   v-if="session.description && !session.is_break"
-                  class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2"
+                  class="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400"
                 >
                   {{ session.description }}
                 </p>
 
-                <!-- Speakers -->
                 <div
                   v-if="session.speakers?.length"
                   class="mt-3 flex items-center gap-2"
                 >
                   <div class="flex -space-x-2">
-                    <UAvatar
+                    <AppAvatar
                       v-for="speaker in session.speakers.slice(0, 3)"
                       :key="speaker.id"
                       :src="speaker.avatar"
                       :alt="speaker.name"
                       size="xs"
-                      class="ring-2 ring-white dark:ring-gray-900"
                     />
                   </div>
                   <span class="text-sm text-gray-600 dark:text-gray-400">
@@ -278,26 +284,22 @@ onMounted(() => {
                 v-if="!session.is_break"
                 class="flex flex-wrap gap-2"
               >
-                <UBadge
-                  color="neutral"
-                  variant="soft"
-                  size="xs"
+                <span
+                  class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                 >
                   {{ session.session_type }}
-                </UBadge>
-                <UBadge
+                </span>
+                <span
                   v-if="session.level"
-                  color="primary"
-                  variant="soft"
-                  size="xs"
+                  class="inline-flex rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-800 dark:bg-primary-900/40 dark:text-primary-300"
                 >
                   {{ session.level }}
-                </UBadge>
+                </span>
               </div>
             </div>
           </div>
         </div>
-      </UCard>
+      </div>
     </div>
   </div>
 </template>

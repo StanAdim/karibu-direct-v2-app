@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppAvatar from '~/components/common/AppAvatar.vue'
 import AppButton from '~/components/ui/AppButton.vue'
+import ProfileChangePasswordModal from '~/components/attendee/ProfileChangePasswordModal.vue'
 import ProfileGeoModal from '~/components/attendee/ProfileGeoModal.vue'
 import { getFullName } from '~/types'
 import { resolveApiUploadUrl } from '~/utils/mediaUrl'
@@ -51,6 +52,7 @@ const accountStatusLabel = computed(() => {
 })
 
 const geoModalOpen = ref(false)
+const passwordModalOpen = ref(false)
 
 const geoLabel = ref('—')
 
@@ -398,9 +400,13 @@ onUnmounted(() => {
                   Update your password with your current password for verification.
                 </p>
               </div>
-              <NuxtLink to="/attendee/settings" class="text-sm font-medium text-primary-500 hover:text-primary-600">
+              <button
+                type="button"
+                class="text-sm font-medium text-primary-500 hover:text-primary-600"
+                @click="passwordModalOpen = true"
+              >
                 Change Password
-              </NuxtLink>
+              </button>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <div>
@@ -441,6 +447,7 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <ProfileChangePasswordModal v-model:open="passwordModalOpen" />
     <ProfileGeoModal v-model:open="geoModalOpen" />
   </div>
 </template>
