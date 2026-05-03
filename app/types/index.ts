@@ -1,4 +1,5 @@
 export * from './user'
+export * from './accountProfile'
 export * from './auth'
 export * from './api'
 export * from './event'

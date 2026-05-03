@@ -1,59 +1,137 @@
 <script setup lang="ts">
 import { getFullName } from '~/types'
+import { resolveApiUploadUrl } from '~/utils/mediaUrl'
 
 definePageMeta({
   layout: 'attendee',
   middleware: 'attendee'
 })
 
+const config = useRuntimeConfig()
 const { user } = useAuth()
 const notifications = useNotifications()
+const authStore = useAuthStore()
+const profileStore = useUserProfileStore()
 
-const loading = ref(false)
-const eventReminders = ref(true)
-const marketingPromotions = ref(false)
-const passwordLastChanged = '4 months ago'
+const fileInputRef = ref<HTMLInputElement | null>(null)
+/** Local blob preview immediately after picking a file (revoked after upload completes). */
+const avatarPreviewBlobUrl = ref<string | null>(null)
 
-const profile = reactive({
-  fullName: '',
-  email: '',
-  phone: ''
+const apiBaseStr = computed(() => String(config.public.apiBase ?? ''))
+
+const displayName = computed(() =>
+  getFullName({
+    first_name: profileStore.profile.first_name,
+    last_name: profileStore.profile.last_name
+  })
+)
+
+const displayAvatarUrl = computed(() => {
+  if (avatarPreviewBlobUrl.value) return avatarPreviewBlobUrl.value
+
+  const fromProfile = resolveApiUploadUrl(profileStore.profile.avatar_url, apiBaseStr.value)
+  if (fromProfile) return fromProfile
+
+  return resolveApiUploadUrl(user.value?.avatar, apiBaseStr.value)
 })
-
-watch(user, (newUser) => {
-  if (newUser) {
-    profile.fullName = getFullName(newUser)
-    profile.email = newUser.email || ''
-    profile.phone = newUser.phone || '+1 (555) 000-1234'
-  }
-}, { immediate: true })
 
 const memberSince = computed(() => {
   if (!user.value?.created_at) return '—'
   return new Date(user.value.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 })
 
-async function saveProfile() {
-  loading.value = true
+const accountStatusLabel = computed(() => {
+  const s = user.value?.status
+  // Auth payloads sometimes omit ``status``; authenticated users behave as active.
+  if (!s || s === 'active') return 'Verified'
+  return s.charAt(0).toUpperCase() + s.slice(1).replace('_', ' ')
+})
+
+const locationLine = computed(() => {
+  const loc = profileStore.profile.location?.trim()
+  if (loc) return loc
+  const extra = profileStore.additional_info.location
+  if (typeof extra === 'string' && extra.trim()) return extra.trim()
+  return '—'
+})
+
+const eventsAttended = computed(() => profileStore.stats.events_attended ?? 0)
+
+async function saveProfile(): Promise<void> {
+  await profileStore.updateProfile()
+}
+
+function triggerAvatarPick(): void {
+  fileInputRevoke()
+  fileInputRef.value?.click()
+}
+
+function fileInputRevoke(): void {
+  if (avatarPreviewBlobUrl.value) {
+    URL.revokeObjectURL(avatarPreviewBlobUrl.value)
+    avatarPreviewBlobUrl.value = null
+  }
+}
+
+async function onAvatarFileChange(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file || !file.type.startsWith('image/')) return
+  avatarPreviewBlobUrl.value = URL.createObjectURL(file)
+  const ok = await profileStore.uploadAvatar(file)
+  fileInputRevoke()
+  if (!ok) {
+    notifications.error({
+      title: 'Upload failed',
+      description: profileStore.error ?? 'Could not upload your photo.'
+    })
+  }
+}
+
+function onReminderToggle(next: boolean): void {
+  profileStore.preferences.event_reminders = next
+  profileStore.onPreferenceFieldChange()
+}
+
+function onMarketingToggle(next: boolean): void {
+  profileStore.preferences.marketing_notifications = next
+  profileStore.onPreferenceFieldChange()
+}
+
+function enable2FA(): void {
+  notifications.info({
+    title: 'Coming soon',
+    description: 'Two-factor authentication setup will be available in a future update.'
+  })
+}
+
+async function deleteAccount(): Promise<void> {
+  if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) {
+    return
+  }
+  const uid = authStore.user?.id
+  if (!uid) return
+  const api = useApi()
   try {
-    await new Promise(resolve => setTimeout(resolve, 800))
-    notifications.success('Profile updated successfully')
-  } catch {
-    notifications.error('Failed to update profile')
-  } finally {
-    loading.value = false
+    await api.delete(`/users/${uid}`)
+    notifications.success({
+      title: 'Account deleted',
+      description: 'Your account has been permanently removed.'
+    })
+    authStore.clearAuth()
+    await navigateTo('/login')
+  }
+  catch {
+    // useApi surfaced the error toast
   }
 }
 
-function enable2FA() {
-  notifications.info('Two-factor authentication setup coming soon.')
-}
+onMounted(() => void profileStore.fetchProfile())
 
-function deleteAccount() {
-  if (confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) {
-    notifications.error('Account deletion is disabled in this demo.')
-  }
-}
+onUnmounted(() => {
+  fileInputRevoke()
+})
 </script>
 
 <template>
@@ -73,35 +151,45 @@ function deleteAccount() {
       <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6 h-fit">
         <div class="relative inline-block">
           <UAvatar
-            :src="user?.avatar"
-            :alt="profile.fullName"
+            :src="displayAvatarUrl"
+            :alt="displayName"
             size="2xl"
             class="ring-4 ring-slate-100 dark:ring-slate-800"
           />
+          <input
+            ref="fileInputRef"
+            type="file"
+            class="hidden"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            aria-hidden="true"
+            @change="onAvatarFileChange"
+          >
           <button
             type="button"
-            class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 text-white shadow-md hover:bg-primary-600 transition-colors"
+            class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 text-white shadow-md hover:bg-primary-600 transition-colors disabled:opacity-50"
+            :disabled="profileStore.saving || profileStore.loading"
             aria-label="Change photo"
+            @click="triggerAvatarPick"
           >
             <span class="material-symbols-outlined text-lg">photo_camera</span>
           </button>
         </div>
         <h2 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">
-          {{ profile.fullName || 'Attendee' }}
+          {{ displayName }}
         </h2>
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Member since {{ memberSince }}
         </p>
         <p class="mt-2 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
           <span class="material-symbols-outlined text-base">location_on</span>
-          San Francisco, CA
+          {{ locationLine }}
         </p>
         <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
           <p class="text-sm text-slate-600 dark:text-slate-400">
-            Account Status: <span class="font-medium text-emerald-600 dark:text-emerald-400">Verified</span>
+            Account Status: <span class="font-medium text-emerald-600 dark:text-emerald-400">{{ accountStatusLabel }}</span>
           </p>
           <p class="text-sm text-slate-600 dark:text-slate-400">
-            Events Attended: <span class="font-semibold text-slate-900 dark:text-white">12</span>
+            Events Attended: <span class="font-semibold text-slate-900 dark:text-white">{{ eventsAttended }}</span>
           </p>
         </div>
       </div>
@@ -117,36 +205,62 @@ function deleteAccount() {
             </h3>
           </div>
           <form class="p-6 space-y-4" @submit.prevent="saveProfile">
-            <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
-              <input
-                v-model="profile.fullName"
-                type="text"
-                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none"
-                placeholder="Alex Johnson"
-              >
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <AppInput
+                v-model="profileStore.profile.first_name"
+                label="First Name"
+                placeholder="John"
+                icon="i-lucide-user"
+                required
+                :disabled="profileStore.loading"
+              />
+              <AppInput
+                v-model="profileStore.profile.last_name"
+                label="Last Name"
+                placeholder="Doe"
+                icon="i-lucide-user"
+                required
+                :disabled="profileStore.loading"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
               <input
-                v-model="profile.email"
+                :value="profileStore.profile.email"
                 type="email"
                 class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-2.5 text-sm outline-none cursor-not-allowed"
                 placeholder="alex.j@example.com"
                 disabled
+                readonly
               >
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Phone Number</label>
               <input
-                v-model="profile.phone"
+                v-model="profileStore.profile.phone_number"
                 type="tel"
-                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none"
+                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="+1 (555) 000-1234"
+                :disabled="profileStore.loading"
+              >
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
+              <input
+                v-model="profileStore.profile.location"
+                type="text"
+                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="City, State / Region"
+                :disabled="profileStore.loading"
               >
             </div>
             <div class="flex justify-end">
-              <UButton type="submit" color="primary" :loading="loading">
+              <UButton
+                type="submit"
+                color="primary"
+                :loading="profileStore.saving"
+                :disabled="profileStore.loading"
+              >
                 Save Changes
               </UButton>
             </div>
@@ -164,17 +278,33 @@ function deleteAccount() {
           <div class="p-6 space-y-6">
             <label class="flex items-center justify-between gap-4">
               <div>
-                <p class="font-medium text-slate-900 dark:text-white">Event Reminders</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Get notified about upcoming events you're attending.</p>
+                <p class="font-medium text-slate-900 dark:text-white">
+                  Event Reminders
+                </p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  Get notified about upcoming events you're attending.
+                </p>
               </div>
-              <USwitch v-model="eventReminders" />
+              <USwitch
+                :model-value="profileStore.preferences.event_reminders"
+                :disabled="profileStore.loading || profileStore.savingPreferences"
+                @update:model-value="onReminderToggle($event)"
+              />
             </label>
             <label class="flex items-center justify-between gap-4">
               <div>
-                <p class="font-medium text-slate-900 dark:text-white">Marketing & Promotions</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Receive offers and newsletters about new events.</p>
+                <p class="font-medium text-slate-900 dark:text-white">
+                  Marketing &amp; Promotions
+                </p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  Receive offers and newsletters about new events.
+                </p>
               </div>
-              <USwitch v-model="marketingPromotions" />
+              <USwitch
+                :model-value="profileStore.preferences.marketing_notifications"
+                :disabled="profileStore.loading || profileStore.savingPreferences"
+                @update:model-value="onMarketingToggle($event)"
+              />
             </label>
           </div>
         </div>
@@ -184,14 +314,18 @@ function deleteAccount() {
           <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
             <span class="material-symbols-outlined text-primary-500">shield</span>
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
-              Security & Privacy
+              Security &amp; Privacy
             </h3>
           </div>
           <div class="p-6 space-y-5">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p class="font-medium text-slate-900 dark:text-white">Password</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Last changed {{ passwordLastChanged }}.</p>
+                <p class="font-medium text-slate-900 dark:text-white">
+                  Password
+                </p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  Update your password with your current password for verification.
+                </p>
               </div>
               <NuxtLink to="/attendee/settings" class="text-sm font-medium text-primary-500 hover:text-primary-600">
                 Change Password
@@ -199,8 +333,12 @@ function deleteAccount() {
             </div>
             <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
               <div>
-                <p class="font-medium text-slate-900 dark:text-white">Two-Factor Authentication</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Add an extra layer of security to your account.</p>
+                <p class="font-medium text-slate-900 dark:text-white">
+                  Two-Factor Authentication
+                </p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  Add an extra layer of security to your account.
+                </p>
               </div>
               <UButton color="primary" size="sm" @click="enable2FA">
                 Enable 2FA
