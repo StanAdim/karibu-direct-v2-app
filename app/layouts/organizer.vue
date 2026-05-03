@@ -15,8 +15,7 @@ const navigationItems = [
   { id: 'events', label: 'My Events', icon: 'calendar_today', to: '/organizer/events' },
   { id: 'ticket-sales', label: 'Ticket Sales', icon: 'point_of_sale', to: '/organizer/ticket-sales' },
   { id: 'participants', label: 'Attendees', icon: 'group', to: '/organizer/participants' },
-  { id: 'payments', label: 'Payments', icon: 'payments', to: '/organizer/payments' },
-  { id: 'settings', label: 'Settings', icon: 'settings', to: '/organizer/settings' }
+  { id: 'payments', label: 'Payments', icon: 'payments', to: '/organizer/payments' }
 ]
 
 const userMenuItems = computed(() => [
@@ -33,10 +32,6 @@ const userMenuItems = computed(() => [
     label: 'Organization',
     icon: 'i-lucide-building',
     to: '/organizer/organization'
-  }, {
-    label: 'Settings',
-    icon: 'i-lucide-settings',
-    to: '/organizer/settings'
   }],
   [{
     label: 'Sign out',

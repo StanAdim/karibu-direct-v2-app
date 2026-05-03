@@ -42,6 +42,10 @@ export const useSessionsStore = defineStore('sessions', () => {
   const eventSessionIds = ref<Record<string, string[]>>({})
   const currentSession = ref<Session | null>(null)
 
+  /** Sessions the current user registered for (see GET /sessions/me/schedule). */
+  const myScheduleSessions = ref<Session[]>([])
+  const loadingMySchedule = ref(false)
+
   const loadingList = ref(false)
   const loadingDetail = ref(false)
   const loadingWrite = ref(false)
@@ -412,6 +416,18 @@ export const useSessionsStore = defineStore('sessions', () => {
     sessions.value = []
   }
 
+  const fetchMyScheduleSessions = async (): Promise<void> => {
+    loadingMySchedule.value = true
+    try {
+      const raw = await api.get<unknown>('/sessions/me/schedule')
+      const { data: rawRows } = unwrapList<SessionApiPayload>(raw)
+      myScheduleSessions.value = mapSessionList(rawRows)
+    }
+    finally {
+      loadingMySchedule.value = false
+    }
+  }
+
   return {
     sessions,
     sessionById,
@@ -438,6 +454,9 @@ export const useSessionsStore = defineStore('sessions', () => {
     setPage,
     clearCurrentSession,
     clearFilters,
-    clearSessionsList
+    clearSessionsList,
+    myScheduleSessions,
+    loadingMySchedule,
+    fetchMyScheduleSessions
   }
 })

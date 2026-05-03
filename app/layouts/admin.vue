@@ -19,8 +19,8 @@ watch(
     const keepSearch =
       path.startsWith('/admin/events')
       || path.startsWith('/admin/users')
-        || path.startsWith('/admin/analytics')
-        || path.startsWith('/admin/roles')
+      || path.startsWith('/admin/analytics')
+      || path.startsWith('/admin/roles')
       || path.startsWith('/admin/settings')
     if (!keepSearch) {
       adminHeaderSearch.value = ''
@@ -74,7 +74,7 @@ const userMenuItems = computed(() => [
   [{
     label: 'Sign out',
     icon: 'i-lucide-log-out',
-    click: logout
+    click: () => logout()
   }]
 ])
 

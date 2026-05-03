@@ -122,16 +122,45 @@ export type SessionApiPayload = Partial<Session> &
   Pick<Session, 'id' | 'event_id' | 'title' | 'start_time' | 'end_time'> & {
     type?: SessionType
     session_type?: SessionType
+    track_name?: string
+    confirmed_registration_count?: number
+    waitlist_count?: number
   }
 
+function normalizeSpeakersFromApi(raw: unknown): SessionSpeaker[] {
+  if (!Array.isArray(raw)) return []
+  return raw.map((item, index) => {
+    const s = item as Record<string, unknown>
+    const id = String(s.id ?? s.user_id ?? `speaker-${index}`)
+    const name = String(s.name ?? s.full_name ?? s.email ?? 'Speaker')
+    return {
+      id,
+      name,
+      email: s.email != null ? String(s.email) : undefined,
+      title: s.title != null ? String(s.title) : undefined,
+      role: s.role != null ? String(s.role) : undefined,
+      company: s.company != null ? String(s.company) : undefined,
+      avatar: s.avatar != null ? String(s.avatar) : undefined
+    }
+  })
+}
+
 export function normalizeSessionFromApi(raw: SessionApiPayload): Session {
-  const { type: legacyType, session_type: st0, ...rest } = raw
+  const {
+    type: legacyType,
+    session_type: st0,
+    track_name,
+    speakers: spRaw,
+    confirmed_registration_count,
+    ...rest
+  } = raw
   const session_type = coerceSessionType(st0 ?? legacyType)
   return {
     ...rest,
     session_type,
-    attendee_count: rest.attendee_count ?? 0,
-    speakers: rest.speakers ?? [],
+    track: rest.track ?? track_name,
+    attendee_count: rest.attendee_count ?? confirmed_registration_count ?? 0,
+    speakers: normalizeSpeakersFromApi(spRaw),
     status: rest.status ?? 'scheduled',
     is_break: rest.is_break ?? false,
     created_at: rest.created_at ?? '',

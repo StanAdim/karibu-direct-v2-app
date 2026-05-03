@@ -119,35 +119,62 @@ function handleItemClick(item: MenuItem) {
           <div class="h-px bg-slate-100 dark:bg-slate-800" />
 
           <nav class="py-2">
-            <component
-              :is="item.to ? 'NuxtLink' : 'button'"
-              v-for="(item, index) in modalMenuItems"
-              :key="index"
-              :to="item.to"
-              v-bind="item.to ? {} : { type: 'button' }"
-              class="flex w-full items-center gap-3 px-5 py-2.5 text-left text-[15px] transition-colors"
-              :class="[
-                isSignOutItem(item)
-                  ? 'mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50 dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-950/40'
-                  : 'text-slate-900 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800/80'
-              ]"
-              @click="handleItemClick(item)"
-            >
-              <AppLucideIcon
-                v-if="item.icon"
-                :name="item.icon"
-                :size="20"
+            <template v-for="(item, index) in modalMenuItems">
+              <NuxtLink
+                v-if="item.to"
+                :key="item.to"
+                :to="item.to"
+                class="flex w-full items-center gap-3 px-5 py-2.5 text-left text-[15px] transition-colors"
                 :class="[
-                  'shrink-0',
                   isSignOutItem(item)
-                    ? 'text-red-600 dark:text-red-400'
-                    : 'text-slate-500 dark:text-slate-400'
+                    ? 'mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50 dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-950/40'
+                    : 'text-slate-900 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800/80'
                 ]"
-              />
-              <span class="truncate font-medium">
-                {{ item.label }}
-              </span>
-            </component>
+                @click="handleItemClick(item)"
+              >
+                <AppLucideIcon
+                  v-if="item.icon"
+                  :name="item.icon"
+                  :size="20"
+                  :class="[
+                    'shrink-0',
+                    isSignOutItem(item)
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  ]"
+                />
+                <span class="truncate font-medium">
+                  {{ item.label }}
+                </span>
+              </NuxtLink>
+              <button
+                v-else
+                :key="`mi-${index}-${item.label}`"
+                type="button"
+                class="flex w-full items-center gap-3 px-5 py-2.5 text-left text-[15px] transition-colors"
+                :class="[
+                  isSignOutItem(item)
+                    ? 'mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50 dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-950/40'
+                    : 'text-slate-900 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800/80'
+                ]"
+                @click="handleItemClick(item)"
+              >
+                <AppLucideIcon
+                  v-if="item.icon"
+                  :name="item.icon"
+                  :size="20"
+                  :class="[
+                    'shrink-0',
+                    isSignOutItem(item)
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  ]"
+                />
+                <span class="truncate font-medium">
+                  {{ item.label }}
+                </span>
+              </button>
+            </template>
           </nav>
         </div>
       </Transition>
@@ -191,28 +218,48 @@ function handleItemClick(item: MenuItem) {
         <div class="h-px bg-slate-100 dark:bg-slate-800" />
 
         <nav class="flex flex-col py-2">
-          <component
-            :is="item.to ? 'NuxtLink' : 'button'"
-            v-for="(item, index) in modalMenuItems"
-            :key="index"
-            :to="item.to"
-            v-bind="item.to ? {} : { type: 'button' }"
-            class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-base transition-colors"
-            :class="[
-              isSignOutItem(item)
-                ? 'mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50 dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-950/40'
-                : 'text-slate-900 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800/70'
-            ]"
-            @click="handleItemClick(item)"
-          >
-            <AppLucideIcon
-              v-if="item.icon"
-              :name="item.icon"
-              :size="20"
-              :class="isSignOutItem(item) ? 'shrink-0 text-red-600 dark:text-red-400' : 'shrink-0 text-slate-600 dark:text-slate-400'"
-            />
-            <span class="truncate font-medium">{{ item.label }}</span>
-          </component>
+          <template v-for="(item, index) in modalMenuItems">
+            <NuxtLink
+              v-if="item.to"
+              :key="item.to"
+              :to="item.to"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-base transition-colors"
+              :class="[
+                isSignOutItem(item)
+                  ? 'mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50 dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-950/40'
+                  : 'text-slate-900 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800/70'
+              ]"
+              @click="handleItemClick(item)"
+            >
+              <AppLucideIcon
+                v-if="item.icon"
+                :name="item.icon"
+                :size="20"
+                :class="isSignOutItem(item) ? 'shrink-0 text-red-600 dark:text-red-400' : 'shrink-0 text-slate-600 dark:text-slate-400'"
+              />
+              <span class="truncate font-medium">{{ item.label }}</span>
+            </NuxtLink>
+            <button
+              v-else
+              :key="`mm-${index}-${item.label}`"
+              type="button"
+              class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-base transition-colors"
+              :class="[
+                isSignOutItem(item)
+                  ? 'mt-1 border-t border-slate-100 text-red-600 hover:bg-red-50 dark:border-slate-800/80 dark:text-red-400 dark:hover:bg-red-950/40'
+                  : 'text-slate-900 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800/70'
+              ]"
+              @click="handleItemClick(item)"
+            >
+              <AppLucideIcon
+                v-if="item.icon"
+                :name="item.icon"
+                :size="20"
+                :class="isSignOutItem(item) ? 'shrink-0 text-red-600 dark:text-red-400' : 'shrink-0 text-slate-600 dark:text-slate-400'"
+              />
+              <span class="truncate font-medium">{{ item.label }}</span>
+            </button>
+          </template>
         </nav>
       </div>
     </AppModal>

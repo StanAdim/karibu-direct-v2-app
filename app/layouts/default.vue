@@ -6,8 +6,7 @@ const config = useRuntimeConfig()
 const { user, logout } = useAuth()
 
 const navItems = [
-  { label: 'Dashboard', to: '/dashboard', icon: 'i-lucide-layout-dashboard' },
-  { label: 'Settings', to: '/settings', icon: 'i-lucide-settings' }
+  { label: 'Dashboard', to: '/dashboard', icon: 'i-lucide-layout-dashboard' }
 ]
 </script>
 
@@ -47,8 +46,7 @@ const navItems = [
                 { label: user?.name || 'User', type: 'label' }
               ],
               [
-                { label: 'Profile', icon: 'i-lucide-user', to: '/profile' },
-                { label: 'Settings', icon: 'i-lucide-settings', to: '/settings' }
+                { label: 'Profile', icon: 'i-lucide-user', to: '/profile' }
               ],
               [
                 { label: 'Logout', icon: 'i-lucide-log-out', click: logout }

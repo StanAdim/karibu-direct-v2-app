@@ -1,6 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { getFullName } from '~/types'
 import UserAccountMenu from '~/components/common/UserAccountMenu.vue'
+
+type AccountMenuItem = {
+  label: string
+  icon?: string
+  to?: string
+  click?: () => void
+  disabled?: boolean
+  slot?: string
+  type?: 'label'
+}
 
 const config = useRuntimeConfig()
 const { user, logout } = useAuth()
@@ -18,11 +29,10 @@ const mainNavItems = [
 ]
 
 const accountNavItems = [
-  { id: 'profile', label: 'Profile', icon: 'person', to: '/attendee/profile' },
-  { id: 'settings', label: 'Settings', icon: 'settings', to: '/attendee/settings' }
+  { id: 'profile', label: 'Profile', icon: 'person', to: '/attendee/profile' }
 ]
 
-const userMenuItems = computed(() => [
+const userMenuItems = computed((): AccountMenuItem[][] => [
   [{
     label: user.value ? getFullName(user.value) : 'Attendee',
     slot: 'account',
@@ -36,15 +46,11 @@ const userMenuItems = computed(() => [
     label: 'My Tickets',
     icon: 'i-lucide-ticket',
     to: '/attendee/tickets'
-  }, {
-    label: 'Settings',
-    icon: 'i-lucide-settings',
-    to: '/attendee/settings'
   }],
   [{
     label: 'Sign out',
     icon: 'i-lucide-log-out',
-    click: logout
+    click: () => logout()
   }]
 ])
 
