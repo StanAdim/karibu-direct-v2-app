@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 type ColorVariant = 'blue' | 'emerald' | 'amber'
 
 interface RecentActivityItem {
@@ -17,6 +19,8 @@ interface RecentActivityItem {
 const props = withDefaults(defineProps<{
   title?: string
   items: RecentActivityItem[]
+  /** When set, only this many items are rendered (most recent first). */
+  maxItems?: number
   viewAllTo?: string
   viewAllLabel?: string
   emptyLabel?: string
@@ -24,6 +28,14 @@ const props = withDefaults(defineProps<{
   title: 'Recent Activity',
   viewAllLabel: 'View All',
   emptyLabel: 'No recent activity yet.'
+})
+
+const displayItems = computed(() => {
+  const cap = props.maxItems
+  if (typeof cap === 'number' && cap > 0) {
+    return props.items.slice(0, cap)
+  }
+  return props.items
 })
 
 function formatDateTime(dateString?: string): string {
@@ -110,7 +122,7 @@ function itemTimeAgo(item: RecentActivityItem): string | undefined {
       </div>
     </div>
 
-    <div v-if="items.length === 0" class="py-8 px-5 text-center text-slate-400 dark:text-slate-500 text-sm">
+    <div v-if="displayItems.length === 0" class="py-8 px-5 text-center text-slate-400 dark:text-slate-500 text-sm">
       <p>{{ emptyLabel }}</p>
     </div>
 
@@ -119,7 +131,7 @@ function itemTimeAgo(item: RecentActivityItem): string | undefined {
       class="divide-y divide-slate-100 dark:divide-slate-800 flex-1 overflow-y-auto"
     >
       <li
-        v-for="item in items"
+        v-for="item in displayItems"
         :key="item.id"
         class="flex items-start gap-4 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
       >

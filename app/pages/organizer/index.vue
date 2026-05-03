@@ -282,7 +282,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
       <RecentActivityCard
         :items="recentActivity"
         title="Recent Activity"
-        view-all-to="/organizer/events"
+        view-all-to="/organizer/profile/activity"
         view-all-label="View All Logs"
         empty-label="No recent activity for your events yet."
       />

@@ -150,7 +150,7 @@ async function loadRecentActivity(): Promise<void> {
 
   try {
     const logs = await usersStore.fetchUserActivityLogs(userId)
-    recentActivity.value = logs.slice(0, 10).map((log, index) => {
+    recentActivity.value = logs.slice(0, 4).map((log, index) => {
       const baseId = log.id ?? log.timestamp ?? log.created_at ?? index
       const status = (log.status as string | undefined)?.toLowerCase()
 
@@ -324,8 +324,9 @@ onNuxtReady(() => {
         <!-- Recent Activity -->
         <RecentActivityCard
           :items="recentActivity"
+          :max-items="4"
           title="Recent Activity"
-          view-all-to="/attendee"
+          view-all-to="/attendee/profile/activity"
           view-all-label="View all activity"
           empty-label="No recent activity yet."
         />

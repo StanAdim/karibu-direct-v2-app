@@ -29,6 +29,15 @@ interface UsersState {
   }
 }
 
+export type UserActivityLogsPagination = {
+  total: number
+  page: number
+  size: number
+  total_pages: number
+  has_next: boolean
+  has_prev: boolean
+}
+
 export const useUsersStore = defineStore('users', () => {
   // States
   const users = ref<User[]>([])
@@ -120,6 +129,68 @@ export const useUsersStore = defineStore('users', () => {
     }
     finally {
       loading.value = false
+    }
+  }
+
+  /**
+   * GET `/activity-logs/user/{user_id}?page=&size=` — paginated stream (server meta in `meta.pagination`).
+   */
+  const fetchUserActivityLogsPaginated = async (
+    userId: string,
+    opts: { page: number; size: number }
+  ): Promise<{ items: ActivityLog[]; pagination: UserActivityLogsPagination }> => {
+    if (!userId) {
+      return {
+        items: [],
+        pagination: {
+          total: 0,
+          page: 1,
+          size: opts.size,
+          total_pages: 1,
+          has_next: false,
+          has_prev: false
+        }
+      }
+    }
+
+    type Envelope = {
+      data?: ActivityLog[]
+      meta?: {
+        pagination?: {
+          total?: number
+          page?: number
+          size?: number
+          total_pages?: number
+          has_next?: boolean
+          has_prev?: boolean
+        }
+      }
+    }
+
+    const raw = await api.get<Envelope>(`/activity-logs/user/${encodeURIComponent(userId)}`, {
+      params: { page: opts.page, size: opts.size }
+    })
+
+    const items = Array.isArray(raw?.data) ? raw.data : []
+    const p = raw?.meta?.pagination
+    const total = Number(p?.total ?? 0)
+    const size = Number(p?.size ?? opts.size)
+    const pageNum = Number(p?.page ?? opts.page)
+    const totalPages = Math.max(
+      1,
+      Number(p?.total_pages ?? (size > 0 ? Math.ceil(total / size) || 1 : 1))
+    )
+
+    return {
+      items,
+      pagination: {
+        total,
+        page: pageNum,
+        size,
+        total_pages: totalPages,
+        has_next: p?.has_next ?? pageNum < totalPages,
+        has_prev: p?.has_prev ?? pageNum > 1
+      }
     }
   }
 
@@ -293,6 +364,7 @@ export const useUsersStore = defineStore('users', () => {
     fetchUsers,
     fetchUser,
     fetchUserActivityLogs,
+    fetchUserActivityLogsPaginated,
     createUser,
     updateUser,
     deleteUser,

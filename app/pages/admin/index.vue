@@ -432,8 +432,8 @@ const platformActivityItems = computed(() =>
       <RecentActivityCard
         :items="platformActivityItems"
         title="Platform activity"
-        view-all-to="/admin/analytics"
-        view-all-label="View audit logs"
+        view-all-to="/admin/profile/activity"
+        view-all-label="Your activity log"
         empty-label="No recent platform activity yet."
       />
     </div>

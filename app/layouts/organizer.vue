@@ -29,6 +29,10 @@ const userMenuItems = computed(() => [
     icon: 'i-lucide-user',
     to: '/organizer/profile'
   }, {
+    label: 'Activity',
+    icon: 'i-lucide-history',
+    to: '/organizer/profile/activity'
+  }, {
     label: 'Organization',
     icon: 'i-lucide-building',
     to: '/organizer/organization'
@@ -52,6 +56,7 @@ function closeMobileSidebar() {
 }
 
 const pageTitle = computed(() => {
+  if (route.path.startsWith('/organizer/profile')) return 'Profile'
   const currentItem = navigationItems.find(item => isActiveRoute(item.to))
   return currentItem?.label || 'Overview'
 })

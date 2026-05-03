@@ -29,7 +29,8 @@ const mainNavItems = [
 ]
 
 const accountNavItems = [
-  { id: 'profile', label: 'Profile', icon: 'person', to: '/attendee/profile' }
+  { id: 'profile', label: 'Profile', icon: 'person', to: '/attendee/profile' },
+  // { id: 'activity', label: 'Activity', icon: 'activity_history', to: '/attendee/profile/activity' }
 ]
 
 const userMenuItems = computed((): AccountMenuItem[][] => [
@@ -42,6 +43,14 @@ const userMenuItems = computed((): AccountMenuItem[][] => [
     label: 'Profile',
     icon: 'i-lucide-user',
     to: '/attendee/profile'
+  }, {
+    label: 'Settings',
+    icon: 'i-lucide-settings',
+    to: '/attendee/profile/setting'
+  }, {
+    label: 'Activity',
+    icon: 'i-lucide-history',
+    to: '/attendee/profile/activity'
   }, {
     label: 'My Tickets',
     icon: 'i-lucide-ticket',
@@ -59,6 +68,17 @@ function isActiveRoute(path: string): boolean {
     return route.path === '/attendee'
   }
   return route.path.startsWith(path)
+}
+
+function isAccountNavActive(item: (typeof accountNavItems)[number]): boolean {
+  const p = route.path.replace(/\/$/, '') || '/'
+  if (item.id === 'profile') {
+    return p === '/attendee/profile' || p.startsWith('/attendee/profile/setting')
+  }
+  if (item.id === 'activity') {
+    return p.startsWith('/attendee/profile/activity')
+  }
+  return isActiveRoute(item.to)
 }
 
 function closeMobileSidebar() {
@@ -147,7 +167,7 @@ function closeMobileSidebar() {
           :to="item.to"
           :class="[
             'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors',
-            isActiveRoute(item.to)
+            isAccountNavActive(item)
               ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"

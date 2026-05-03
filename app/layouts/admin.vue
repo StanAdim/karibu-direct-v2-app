@@ -22,6 +22,7 @@ watch(
       || path.startsWith('/admin/analytics')
       || path.startsWith('/admin/roles')
       || path.startsWith('/admin/settings')
+      || path.startsWith('/admin/profile')
     if (!keepSearch) {
       adminHeaderSearch.value = ''
     }
@@ -66,6 +67,10 @@ const userMenuItems = computed(() => [
     label: 'Profile',
     icon: 'i-lucide-user',
     to: '/admin/profile'
+  }, {
+    label: 'Activity',
+    icon: 'i-lucide-history',
+    to: '/admin/profile/activity'
   }, {
     label: 'Settings',
     icon: 'i-lucide-settings',
