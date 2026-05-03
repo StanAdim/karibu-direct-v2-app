@@ -76,7 +76,7 @@ const upcomingEvents = computed(() => {
   return eventsStore.upcomingEvents.slice(0, 4).map((event) => {
     const startDate = new Date(event.start_date)
     const endDate = new Date(event.end_date)
-    const category = event.categories?.[0] || 'EVENT'
+    // const category = event.categories?.[0] || 'EVENT'
     const location = event.venue?.type === 'virtual'
       ? 'Online'
       : [event.venue?.name, event.venue?.city].filter(Boolean).join(', ')
@@ -85,14 +85,14 @@ const upcomingEvents = computed(() => {
       id: event.id,
       title: event.title,
       date: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase(),
-      category: String(category).toUpperCase(),
+      categories: event.categories,
       location: location || '—',
       time: `${startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} - ${endDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}`,
       isSaved: Boolean(event.is_saved) || eventsStore.isEventSaved(event.id),
       image: getEventCoverImageUrl(
         event.cover_image,
         String(config.public.apiBase ?? ''),
-        `https://picsum.photos/seed/event-${event.id}/800/500`
+        `${config.public.appBase}/images/defaults/events-0.png`
       )
     }
   })
@@ -283,7 +283,7 @@ onNuxtReady(() => {
               </div>
               <div class="p-4">
                 <p class="text-xs font-semibold text-primary-500 uppercase tracking-wide mb-1">
-                  {{ event.category }}
+                  <span v-for="item in event.categories" :key="item?.id">{{ item?.name }}</span>
                 </p>
                 <h3 class="text-base font-bold text-slate-900 dark:text-white line-clamp-1 mb-2">
                   {{ event.title }}

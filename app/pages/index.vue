@@ -6,6 +6,7 @@ definePageMeta({
 const { isAuthenticated, user } = useAuth()
 const authStore = useAuthStore()
 const router = useRouter()
+const config = useRuntimeConfig()
 
 const activeCategory = ref('all')
 
@@ -110,7 +111,7 @@ function handleSelectCity(city: string) {
       title="Discover Amazing Events "
       highlight=" Near You"
       subtitle="Find concerts, workshops, and meetups happening in your city."
-      background-image="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600"
+      :background-image="`${config.public.appBase}/images/defaults/events-1.png`"
       :show-search="true"
       :show-location-select="true"
       :locations="[ 'Dar es Salaam', 'Arusha', 'Zanzibar', 'London', 'Morogoro', '']"

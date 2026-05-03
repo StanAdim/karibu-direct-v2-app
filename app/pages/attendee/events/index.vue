@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Event, EventFilters } from '~/types'
+import type { Event } from '~/types'
 import { getEventCoverImageUrl } from '~/utils/eventImage'
+import { eventCategoryMaterialIcon } from '~/utils/eventCategoryIcon'
 import AppButton from '~/components/ui/AppButton.vue'
 
 definePageMeta({
@@ -9,116 +10,33 @@ definePageMeta({
 })
 
 const eventsStore = useEventsStore()
+const categoryStore = useEventCategoryStore()
 const router = useRouter()
 const config = useRuntimeConfig()
 
-const searchQuery = ref('')
-const selectedCategoryId = ref('all')
-const sortBy = ref('relevancy')
-const priceMin = ref(0)
-const priceMax = ref(500000)
-const locationOption = ref('All')
-
-/** Maps sidebar ids to strings the API `category` query likely matches against event.categories */
-const categoryIdToApi: Record<string, string | undefined> = {
-  all: undefined,
-  music: 'Music',
-  food: 'Food',
-  business: 'Business',
-  arts: 'Art'
-}
-
-const categories = [
-  { id: 'all', label: 'ALL EVENTS', icon: 'calendar_today' },
-  { id: 'music', label: 'MUSIC', icon: 'music_note' },
-  { id: 'food', label: 'FOOD & DRINK', icon: 'restaurant' },
-  { id: 'business', label: 'BUSINESS', icon: 'business_center' },
-  { id: 'arts', label: 'ARTS', icon: 'palette' }
-]
+const { filters, selectCategory, loadExplore, exploreMore } = useAttendeeExploreEventsFilters()
 
 const sortOptions = [
   { value: 'relevancy', label: 'Relevancy' },
   { value: 'date', label: 'Date' },
-  { value: 'price', label: 'Price' }
-]
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' }
+] as const
 
-function buildApiFilters(): EventFilters {
-  return {
-    status: 'published',
-    visibility: 'public',
-    search: searchQuery.value.trim() || undefined,
-    category: categoryIdToApi[selectedCategoryId.value]
+const locationChoices = ['Dar es Salaam', 'Arusha', 'Mwanza'] as const
+
+const locationSelectModel = computed({
+  get: () => filters.location ?? '',
+  set(v: string) {
+    filters.location = v.trim() ? v : null
   }
-}
-
-function minTicketPrice(event: Event): number | null {
-  const types = event.ticket_types?.filter(t => t.price >= 0) ?? []
-  if (types.length === 0) return null
-  return Math.min(...types.map(t => t.price))
-}
-
-function passesClientFilters(event: Event): boolean {
-  const min = minTicketPrice(event)
-  const from = min ?? 0
-  if (from < priceMin.value || from > priceMax.value) return false
-
-  if (locationOption.value && locationOption.value !== 'All') {
-    const city = (event.venue?.city ?? '').trim()
-    if (!city || city.toLowerCase() !== locationOption.value.toLowerCase()) return false
-  }
-
-  return true
-}
-
-function sortEvents(list: Event[]): Event[] {
-  const out = [...list]
-  if (sortBy.value === 'date') {
-    out.sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime())
-  }
-  else if (sortBy.value === 'price') {
-    out.sort((a, b) => {
-      const ma = minTicketPrice(a)
-      const mb = minTicketPrice(b)
-      const na = ma ?? 0
-      const nb = mb ?? 0
-      return na - nb
-    })
-  }
-  return out
-}
-
-const displayEvents = computed(() => {
-  return sortEvents(eventsStore.events.filter(passesClientFilters))
 })
+
+const displayEvents = computed(() => eventsStore.events)
 
 const totalCount = computed(() => eventsStore.pagination.total)
 
 const showingCount = computed(() => displayEvents.value.length)
-
-let searchDebounce: ReturnType<typeof setTimeout> | null = null
-
-async function loadEvents(resetPage = true) {
-  if (resetPage) {
-    eventsStore.setPage(1)
-    eventsStore.setPerPage(12)
-  }
-  await eventsStore.fetchEvents(buildApiFilters())
-}
-
-function scheduleLoadEvents() {
-  if (searchDebounce) clearTimeout(searchDebounce)
-  searchDebounce = setTimeout(() => {
-    searchDebounce = null
-    void loadEvents(true)
-  }, 350)
-}
-
-async function exploreMore() {
-  if (!eventsStore.hasMorePages) return
-  const next = eventsStore.pagination.per_page + 12
-  eventsStore.setPerPage(next)
-  await eventsStore.fetchEvents(buildApiFilters())
-}
 
 function handleViewEvent(event: Event) {
   router.push(`/attendee/events/${event.id}`)
@@ -174,23 +92,12 @@ async function toggleEventSaved(event: Event): Promise<void> {
   await eventsStore.toggleSavedEvent(event.id, !isEventSaved(event))
 }
 
-watch(selectedCategoryId, () => {
-  void loadEvents(true)
-})
-
-watch(searchQuery, () => {
-  scheduleLoadEvents()
-})
-
 onMounted(() => {
   void Promise.all([
-    loadEvents(true),
+    categoryStore.fetchCategories(),
+    loadExplore(true),
     eventsStore.fetchMySavedEvents()
   ])
-})
-
-onBeforeUnmount(() => {
-  if (searchDebounce) clearTimeout(searchDebounce)
 })
 </script>
 
@@ -208,19 +115,45 @@ onBeforeUnmount(() => {
           </div>
           <nav class="p-3 space-y-0.5">
             <button
-              v-for="cat in categories"
+              type="button"
+              :class="[
+                'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-colors',
+                categoryStore.selectedCategoryId === null
+                  ? 'bg-primary-500 text-white'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ]"
+              @click="selectCategory(null)"
+            >
+              <span class="material-symbols-outlined text-xl">calendar_today</span>
+              <span class="flex-1 text-sm font-medium">ALL EVENTS</span>
+            </button>
+            <p
+              v-if="categoryStore.error"
+              class="px-3 py-2 text-xs text-amber-600 dark:text-amber-400"
+            >
+              Categories could not be loaded. You can still browse all events.
+            </p>
+            <div
+              v-else-if="categoryStore.loading && categoryStore.categories.length === 0"
+              class="px-3 py-2 text-xs text-slate-500 dark:text-slate-400"
+            >
+              Loading categories…
+            </div>
+            <button
+              v-for="cat in categoryStore.categories"
               :key="cat.id"
               type="button"
               :class="[
                 'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-colors',
-                selectedCategoryId === cat.id
+                categoryStore.selectedCategoryId === cat.id
                   ? 'bg-primary-500 text-white'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
+                categoryStore.loading ? 'opacity-60 pointer-events-none' : ''
               ]"
-              @click="selectedCategoryId = cat.id"
+              @click="selectCategory(cat.id)"
             >
-              <span class="material-symbols-outlined text-xl">{{ cat.icon }}</span>
-              <span class="flex-1 text-sm font-medium">{{ cat.label }}</span>
+              <span class="material-symbols-outlined text-xl">{{ eventCategoryMaterialIcon(cat) }}</span>
+              <span class="flex-1 text-sm font-medium">{{ cat.name.toUpperCase() }}</span>
             </button>
           </nav>
 
@@ -228,18 +161,32 @@ onBeforeUnmount(() => {
             <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
               Price Range
             </h2>
-            <div class="mt-3 space-y-2">
-              <input
-                v-model.number="priceMin"
-                type="range"
-                min="0"
-                max="500000"
-                step="10000"
-                class="w-full accent-primary-500"
-              >
-              <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span>{{ priceMin.toLocaleString() }} TSh</span>
-                <span>500,000+ TSh</span>
+            <div class="mt-3 space-y-3">
+              <div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                  Minimum ticket price · {{ filters.price_min.toLocaleString() }} TSh
+                </p>
+                <input
+                  v-model.number="filters.price_min"
+                  type="range"
+                  min="0"
+                  max="500000"
+                  step="10000"
+                  class="w-full accent-primary-500"
+                >
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                  Maximum ticket price · {{ (filters.price_max ?? 500000).toLocaleString() }} TSh
+                </p>
+                <input
+                  v-model.number="filters.price_max"
+                  type="range"
+                  min="0"
+                  max="500000"
+                  step="10000"
+                  class="w-full accent-primary-500"
+                >
               </div>
             </div>
           </div>
@@ -249,13 +196,19 @@ onBeforeUnmount(() => {
               Location
             </h2>
             <select
-              v-model="locationOption"
+              v-model="locationSelectModel"
               class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500/20 outline-none"
             >
-              <option value="Dar es Salaam">Dar es Salaam</option>
-              <option value="Arusha">Arusha</option>
-              <option value="Mwanza">Mwanza</option>
-              <option value="All">All locations</option>
+              <option value="">
+                All locations
+              </option>
+              <option
+                v-for="city in locationChoices"
+                :key="city"
+                :value="city"
+              >
+                {{ city }}
+              </option>
             </select>
           </div>
         </div>
@@ -269,7 +222,7 @@ onBeforeUnmount(() => {
             <div class="relative flex-1 min-w-0">
               <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
               <input
-                v-model="searchQuery"
+                v-model="filters.search"
                 type="search"
                 placeholder="Search events, organizers, or cities..."
                 class="w-full rounded-xl bg-slate-100 dark:bg-slate-800 border-0 py-2 pl-10 pr-3 text-sm placeholder:text-slate-400 focus:ring-2 focus:ring-primary-500/20 outline-none"
@@ -278,7 +231,7 @@ onBeforeUnmount(() => {
             <div class="flex items-center gap-2 shrink-0">
               <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Sort by:</span>
               <select
-                v-model="sortBy"
+                v-model="filters.sort_by"
                 class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-primary-500/20 outline-none"
               >
                 <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">

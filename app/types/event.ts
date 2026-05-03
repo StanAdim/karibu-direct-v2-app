@@ -79,6 +79,25 @@ export interface EventCustomField {
 export interface EventCategory {
   id: string
   name: string
+  slug?: string
+}
+
+export type EventExploreSortBy = 'relevancy' | 'date' | 'price_asc' | 'price_desc'
+
+/** Row from anonymous `GET /events/public/browse` (published + public only). */
+export interface EventPublicBrowseItem {
+  id: string
+  title: string
+  slug: string
+  cover_image?: string | null
+  start_date: string
+  end_date: string
+  timezone: string
+  venue_city?: string | null
+  venue_name?: string | null
+  primary_category_name?: string | null
+  min_ticket_price?: number | null
+  currency?: string | null
 }
 
 export interface EventCreateInput {
@@ -105,7 +124,14 @@ export interface EventUpdateInput extends Partial<EventCreateInput> {
 export interface EventFilters {
   status?: EventStatus
   visibility?: EventVisibility
+  /** Legacy: category id or label used by older clients; prefer `category_id`. */
   category?: string
+  /** Taxonomy category UUID from `GET /events/categories/`. */
+  category_id?: string | null
+  price_min?: number | null
+  price_max?: number | null
+  location?: string | null
+  sort_by?: EventExploreSortBy
   search?: string
   start_date?: string
   end_date?: string

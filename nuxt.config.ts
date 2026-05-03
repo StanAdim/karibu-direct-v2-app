@@ -28,6 +28,7 @@ export default defineNuxtConfig({
     jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api/v1',
+      appBase: process.env.NUXT_PUBLIC_APP_BASE || 'http://localhost:3000',
       appName: process.env.NUXT_APP_NAME || 'KaribCon',
       appDescription,
       /** Backend role IDs for `POST /users/{id}/roles/{role_id}` */

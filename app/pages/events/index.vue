@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import type { EventPublicBrowseItem } from '~/types'
+import { getEventCoverImageUrl } from '~/utils/eventImage'
 
 declare const definePageMeta: (meta: Record<string, unknown>) => void
 
@@ -7,144 +9,185 @@ definePageMeta({
   layout: 'public'
 })
 
-interface EventItem {
-  id: string
-  title: string
-  image: string
-  type: string
-  dateLabel: string
-  location: string
-  priceLabel: string
-  sortGroup: 'popular' | 'upcoming' | 'nearest'
-}
+const config = useRuntimeConfig()
+const categoryStore = useEventCategoryStore()
+const browseStore = usePublicEventBrowseStore()
 
-const searchQuery = ref('')
-const selectedLocation = ref('New York, NY')
-const selectedCategory = ref('All Categories')
-const selectedSort = ref<'popular' | 'upcoming' | 'nearest'>('popular')
-const selectedDateFilters = ref<string[]>(['Anytime'])
-const maxPrice = ref(500)
-const page = ref(1)
 const pageSize = 6
 
-const locations = ['New York, NY', 'Dar es Salaam', 'Arusha', 'Zanzibar', 'London', 'Tokyo']
-const categories = ['All Categories', 'Music', 'Exhibit', 'Tech', 'Nightlife', 'Theatre', 'Conference']
-const dateOptions = ['Anytime', 'Today', 'This Weekend']
-const sortOptions: Array<{ key: 'popular' | 'upcoming' | 'nearest'; label: string }> = [
-  { key: 'popular', label: 'Popular' },
-  { key: 'upcoming', label: 'Upcoming' },
-  { key: 'nearest', label: 'Nearest' }
+const DATE_ANY = 'anytime'
+const DATE_TODAY = 'today'
+const DATE_WEEKEND = 'weekend'
+
+const LOCATION_OPTIONS = [
+  '',
+  'New York, NY',
+  'Dar es Salaam',
+  'Arusha',
+  'Zanzibar',
+  'London',
+  'Tokyo'
+] as const
+
+const dateOptionLabels = ['Anytime', 'Today', 'This Weekend'] as const
+
+const sidebarDraft = reactive({
+  location: '' as string,
+  categoryId: '' as string,
+  maxPrice: 500,
+  search: '',
+  dateKeys: [DATE_ANY] as string[]
+})
+
+const sidebarApplied = reactive({
+  location: '',
+  categoryId: '',
+  maxPrice: 500,
+  search: '',
+  dateKeys: [DATE_ANY] as string[]
+})
+
+const browseTab = ref<'popular' | 'upcoming' | 'nearest'>('popular')
+
+const sortOptions = [
+  { key: 'popular' as const, label: 'Popular' },
+  { key: 'upcoming' as const, label: 'Upcoming' },
+  { key: 'nearest' as const, label: 'Nearest' }
 ]
 
-const allEvents = ref<EventItem[]>([
-  {
-    id: 'neon-pulse-music-festival',
-    title: 'Neon Pulse Music Festival',
-    image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1200',
-    type: 'Music',
-    dateLabel: 'Sat, Oct 12 • 7:00 PM',
-    location: 'Brooklyn Mirage, NY',
-    priceLabel: '$45.00+',
-    sortGroup: 'popular'
-  },
-  {
-    id: 'future-forms-digital-art-expo',
-    title: 'Future Forms: Digital Art Expo',
-    image: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=1200',
-    type: 'Exhibit',
-    dateLabel: 'Oct 15 - Oct 20',
-    location: 'MoMA, New York',
-    priceLabel: 'FREE',
-    sortGroup: 'popular'
-  },
-  {
-    id: 'innovate-nyc-2024',
-    title: 'Innovate NYC 2024',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200',
-    type: 'Tech',
-    dateLabel: 'Tue, Nov 05 • 9:00 AM',
-    location: 'Javits Center, NY',
-    priceLabel: '$299.00',
-    sortGroup: 'popular'
-  },
-  {
-    id: 'midnight-groove-sessions',
-    title: 'Midnight Groove Sessions',
-    image: 'https://images.unsplash.com/photo-1571266028243-d220c9c3b3f4?w=1200',
-    type: 'Nightlife',
-    dateLabel: 'Fri, Oct 11 • 10:00 PM',
-    location: 'Blue Note Jazz Club, NY',
-    priceLabel: '$20.00',
-    sortGroup: 'upcoming'
-  },
-  {
-    id: 'shakespeare-in-the-park',
-    title: 'Shakespeare in the Park',
-    image: 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=1200',
-    type: 'Theatre',
-    dateLabel: 'Thu, Oct 17 • 8:00 PM',
-    location: 'Central Park, NY',
-    priceLabel: '$85.00+',
-    sortGroup: 'upcoming'
-  },
-  {
-    id: 'design-matters-summit',
-    title: 'Design Matters Summit',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200',
-    type: 'Conference',
-    dateLabel: 'Wed, Dec 11 • 10:00 AM',
-    location: 'Chelsea Piers, NY',
-    priceLabel: '$150.00',
-    sortGroup: 'nearest'
-  },
-  {
-    id: 'brooklyn-house-vibes',
-    title: 'Brooklyn House Vibes',
-    image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200',
-    type: 'Music',
-    dateLabel: 'Sat, Oct 19 • 11:00 PM',
-    location: 'Elsewhere, NY',
-    priceLabel: '$35.00',
-    sortGroup: 'nearest'
-  },
-  {
-    id: 'product-design-week',
-    title: 'Product Design Week',
-    image: 'https://images.unsplash.com/photo-1551818255-e6e10975bc17?w=1200',
-    type: 'Conference',
-    dateLabel: 'Mon, Nov 18 • 9:30 AM',
-    location: 'Manhattan Center, NY',
-    priceLabel: '$89.00+',
-    sortGroup: 'upcoming'
+function syncAppliedFromDraft(): void {
+  sidebarApplied.location = sidebarDraft.location
+  sidebarApplied.categoryId = sidebarDraft.categoryId
+  sidebarApplied.maxPrice = sidebarDraft.maxPrice
+  sidebarApplied.search = sidebarDraft.search
+  sidebarApplied.dateKeys = [...sidebarDraft.dateKeys]
+}
+
+function toggleDateFilter(label: typeof dateOptionLabels[number]): void {
+  if (label === 'Anytime') {
+    sidebarDraft.dateKeys = [DATE_ANY]
+    return
   }
-])
+  const key = label === 'Today' ? DATE_TODAY : DATE_WEEKEND
+  const sel = new Set(sidebarDraft.dateKeys.filter(k => k !== DATE_ANY))
+  if (sel.has(key)) sel.delete(key)
+  else sel.add(key)
+  sidebarDraft.dateKeys = sel.size ? Array.from(sel) : [DATE_ANY]
+}
 
-const normalizedQuery = computed(() => searchQuery.value.trim().toLowerCase())
+function dateCheckboxChecked(label: typeof dateOptionLabels[number]): boolean {
+  if (label === 'Anytime') return sidebarDraft.dateKeys.includes(DATE_ANY)
+  const key = label === 'Today' ? DATE_TODAY : DATE_WEEKEND
+  return sidebarDraft.dateKeys.includes(key)
+}
 
-const filteredEvents = computed(() => {
-  return allEvents.value.filter((event) => {
-    const matchesSearch = !normalizedQuery.value
-      || event.title.toLowerCase().includes(normalizedQuery.value)
-      || event.location.toLowerCase().includes(normalizedQuery.value)
-      || event.type.toLowerCase().includes(normalizedQuery.value)
+function startOfLocalDay(d: Date): Date {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  return x
+}
 
-    const matchesCategory = selectedCategory.value === 'All Categories'
-      || event.type.toLowerCase() === selectedCategory.value.toLowerCase()
+function endOfLocalDay(d: Date): Date {
+  const x = new Date(d)
+  x.setHours(23, 59, 59, 999)
+  return x
+}
 
-    const matchesSort = event.sortGroup === selectedSort.value
-    return matchesSearch && matchesCategory && matchesSort
+function weekendRangeISO(): { start_date: string; end_date: string } {
+  const t = startOfLocalDay(new Date())
+  const day = t.getDay()
+
+  let fri = new Date(t)
+  if (day === 0) {
+    fri.setDate(fri.getDate() - 2)
+  }
+  else if (day === 6) {
+    fri.setDate(fri.getDate() - 1)
+  }
+  else {
+    const delta = (5 - day + 7) % 7
+    fri.setDate(fri.getDate() + delta)
+  }
+
+  const sunday = startOfLocalDay(fri)
+  sunday.setDate(fri.getDate() + 2)
+  sunday.setHours(23, 59, 59, 999)
+
+  return {
+    start_date: startOfLocalDay(fri).toISOString(),
+    end_date: sunday.toISOString()
+  }
+}
+
+function appliedDateIsoRange(): { start_date?: string; end_date?: string } {
+  const keys = sidebarApplied.dateKeys
+  if (!keys.length || keys.includes(DATE_ANY)) return {}
+
+  const buckets: Array<{ start: Date; end: Date }> = []
+  if (keys.includes(DATE_TODAY)) {
+    buckets.push({
+      start: startOfLocalDay(new Date()),
+      end: endOfLocalDay(new Date())
+    })
+  }
+  if (keys.includes(DATE_WEEKEND)) {
+    const w = weekendRangeISO()
+    buckets.push({ start: new Date(w.start_date), end: new Date(w.end_date) })
+  }
+
+  if (!buckets.length) return {}
+
+  let s = buckets[0]!.start
+  let e = buckets[0]!.end
+  for (const x of buckets) {
+    if (x.start < s) s = x.start
+    if (x.end > e) e = x.end
+  }
+  return { start_date: s.toISOString(), end_date: e.toISOString() }
+}
+
+async function loadPage(pageNum: number): Promise<void> {
+  const dates = appliedDateIsoRange()
+
+  await browseStore.fetchBrowse({
+    page: pageNum,
+    size: pageSize,
+    browse_tab: browseTab.value,
+    category_id: sidebarApplied.categoryId || undefined,
+    search: sidebarApplied.search,
+    ...(dates.start_date ? { start_date: dates.start_date } : {}),
+    ...(dates.end_date ? { end_date: dates.end_date } : {}),
+    price_max: sidebarApplied.maxPrice < 500 ? sidebarApplied.maxPrice : null,
+    location: sidebarApplied.location || undefined
   })
+}
+
+function applySidebar(): void {
+  syncAppliedFromDraft()
+  void loadPage(1)
+}
+
+function resetFilters(): void {
+  sidebarDraft.location = ''
+  sidebarDraft.categoryId = ''
+  sidebarDraft.maxPrice = 500
+  sidebarDraft.search = ''
+  sidebarDraft.dateKeys = [DATE_ANY]
+  browseTab.value = 'popular'
+  syncAppliedFromDraft()
+  void loadPage(1)
+}
+
+watch(browseTab, () => {
+  void loadPage(1)
 })
 
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredEvents.value.length / pageSize)))
-
-const paginatedEvents = computed(() => {
-  const start = (page.value - 1) * pageSize
-  return filteredEvents.value.slice(start, start + pageSize)
-})
+const totalPages = computed(() =>
+  Math.max(1, browseStore.pagination.last_page)
+)
 
 const visiblePages = computed(() => {
-  const current = page.value
+  const current = browseStore.pagination.page
   const total = totalPages.value
   if (total <= 5) {
     return Array.from({ length: total }, (_, i) => i + 1)
@@ -155,37 +198,79 @@ const visiblePages = computed(() => {
   return [1, current - 1, current, current + 1, total]
 })
 
-watch([selectedSort, selectedCategory, searchQuery], () => {
-  page.value = 1
+const categoryChipLabel = computed(() => {
+  if (!sidebarApplied.categoryId) return 'All Events'
+  const found = categoryStore.categories.find(c => c.id === sidebarApplied.categoryId)
+  return found?.name ?? 'All Events'
 })
 
-function toggleDateFilter(option: string) {
-  if (option === 'Anytime') {
-    selectedDateFilters.value = ['Anytime']
-    return
-  }
-
-  const current = new Set(selectedDateFilters.value.filter(item => item !== 'Anytime'))
-  if (current.has(option)) current.delete(option)
-  else current.add(option)
-
-  selectedDateFilters.value = current.size ? Array.from(current) : ['Anytime']
-}
-
-function resetFilters() {
-  searchQuery.value = ''
-  selectedLocation.value = 'New York, NY'
-  selectedCategory.value = 'All Categories'
-  selectedSort.value = 'popular'
-  selectedDateFilters.value = ['Anytime']
-  maxPrice.value = 500
-  page.value = 1
-}
-
-function goToPage(nextPage: number) {
+function goToPage(nextPage: number): void {
   if (nextPage < 1 || nextPage > totalPages.value) return
-  page.value = nextPage
+  void loadPage(nextPage)
 }
+
+function browseImage(item: EventPublicBrowseItem): string {
+  return getEventCoverImageUrl(
+    item.cover_image ?? undefined,
+    String(config.public.apiBase ?? ''),
+    `https://picsum.photos/seed/browse-${item.id}/1200/800`
+  )
+}
+
+function browseVenueLine(item: EventPublicBrowseItem): string {
+  const bits = [item.venue_name, item.venue_city].filter(Boolean)
+  return bits.length ? bits.join(', ') : '—'
+}
+
+function browseRowDate(evt: EventPublicBrowseItem): string {
+  const sd = new Date(evt.start_date)
+  const ed = new Date(evt.end_date)
+  const sameCalendar =
+    sd.getFullYear() === ed.getFullYear()
+    && sd.getMonth() === ed.getMonth()
+    && sd.getDate() === ed.getDate()
+  if (!sameCalendar) {
+    const a = sd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    const b = ed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    return `${a} - ${b}`
+  }
+  return sd.toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  })
+}
+
+function browsePriceLabel(item: EventPublicBrowseItem): string {
+  const p = item.min_ticket_price
+  if (p == null || p === 0) return 'FREE'
+  const curRaw = item.currency ?? 'USD'
+  const currency = /^[A-Z]{3}$/i.test(curRaw) ? curRaw.toUpperCase() : 'USD'
+  try {
+    return `${new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(Number(p))}+`
+  }
+  catch {
+    return `$${Number(p).toFixed(2)}+`
+  }
+}
+
+function categoryBadge(item: EventPublicBrowseItem): string {
+  const n = item.primary_category_name?.trim()
+  return n ? n.toUpperCase() : 'EVENT'
+}
+
+onMounted(() => {
+  void Promise.all([
+    categoryStore.fetchCategories(),
+    (async () => {
+      syncAppliedFromDraft()
+      await loadPage(1)
+    })()
+  ])
+})
 </script>
 
 <template>
@@ -204,7 +289,7 @@ function goToPage(nextPage: number) {
         <div class="flex items-center gap-2 rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
           <span class="material-symbols-outlined text-primary-500">search</span>
           <input
-            v-model="searchQuery"
+            v-model="sidebarDraft.search"
             type="text"
             placeholder="Search events, artists, or venues"
             class="w-full border-none bg-transparent p-0 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:ring-0 dark:text-slate-100"
@@ -216,7 +301,9 @@ function goToPage(nextPage: number) {
         <aside class="w-full shrink-0 lg:w-72">
           <div class="sticky top-24 rounded-2xl border border-primary-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div class="mb-5 flex items-center justify-between border-b border-primary-50 pb-4 dark:border-slate-800">
-              <h2 class="text-base font-bold text-slate-900 dark:text-white">Filters</h2>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white">
+                Filters
+              </h2>
               <button
                 class="text-xs font-semibold text-primary-500 hover:underline"
                 type="button"
@@ -226,31 +313,42 @@ function goToPage(nextPage: number) {
               </button>
             </div>
 
-            <div class="space-y-6">
+            <div class="hidden space-y-6 lg:block">
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Location</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Location
+                </p>
                 <div class="flex items-center gap-2 rounded-xl bg-primary-50 px-3 py-2 dark:bg-primary-500/10">
                   <span class="material-symbols-outlined text-primary-500">location_on</span>
                   <select
-                    v-model="selectedLocation"
+                    v-model="sidebarDraft.location"
                     class="w-full border-none bg-transparent p-0 text-sm font-medium text-slate-700 outline-none focus:ring-0 dark:text-slate-200"
                   >
-                    <option v-for="location in locations" :key="location" :value="location">
-                      {{ location }}
+                    <option value="">
+                      All locations
+                    </option>
+                    <option
+                      v-for="loc in LOCATION_OPTIONS.slice(1)"
+                      :key="loc"
+                      :value="loc"
+                    >
+                      {{ loc }}
                     </option>
                   </select>
                 </div>
               </div>
 
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Date</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Date
+                </p>
                 <label
-                  v-for="option in dateOptions"
+                  v-for="option in dateOptionLabels"
                   :key="option"
                   class="group flex cursor-pointer items-center gap-3"
                 >
                   <input
-                    :checked="selectedDateFilters.includes(option)"
+                    :checked="dateCheckboxChecked(option)"
                     type="checkbox"
                     class="h-4 w-4 rounded border-primary-200 text-primary-500 focus:ring-primary-500"
                     @change="toggleDateFilter(option)"
@@ -262,21 +360,49 @@ function goToPage(nextPage: number) {
               </div>
 
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Category</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Category
+                </p>
+                <p v-if="categoryStore.error" class="text-xs text-amber-600 dark:text-amber-400">
+                  Categories unavailable — browse all filters still work.
+                </p>
                 <select
-                  v-model="selectedCategory"
+                  v-model="sidebarDraft.categoryId"
                   class="w-full rounded-xl border border-primary-100 bg-primary-50 py-2 text-sm font-medium text-slate-700 focus:border-primary-500 focus:ring-primary-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 >
-                  <option v-for="category in categories" :key="category" :value="category">
-                    {{ category }}
+                  <option value="">
+                    All Categories
+                  </option>
+                  <option
+                    v-for="c in categoryStore.categories"
+                    :key="c.id"
+                    :value="c.id"
+                  >
+                    {{ c.name }}
                   </option>
                 </select>
               </div>
 
               <div class="space-y-3">
-                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Price Range</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Search
+                </p>
+                <div class="rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
+                  <input
+                    v-model="sidebarDraft.search"
+                    type="search"
+                    placeholder="Artists, venues, titles…"
+                    class="w-full border-none bg-transparent p-0 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:ring-0 dark:text-slate-200"
+                  >
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Price Range
+                </p>
                 <input
-                  v-model="maxPrice"
+                  v-model.number="sidebarDraft.maxPrice"
                   type="range"
                   min="0"
                   max="500"
@@ -285,13 +411,107 @@ function goToPage(nextPage: number) {
                 >
                 <div class="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400">
                   <span>$0</span>
-                  <span>${{ maxPrice }}+</span>
+                  <span>${{ sidebarDraft.maxPrice }}+</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 class="w-full rounded-xl bg-primary-500 py-3 text-sm font-bold text-white shadow-lg shadow-primary-500/20 transition hover:bg-primary-600"
+                @click="applySidebar"
+              >
+                Apply Changes
+              </button>
+            </div>
+
+            <!-- Mobile condensed stack mirrors desktop fields -->
+            <div class="space-y-5 lg:hidden">
+              <div class="space-y-3">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Location
+                </p>
+                <select
+                  v-model="sidebarDraft.location"
+                  class="w-full rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
+                >
+                  <option value="">
+                    All locations
+                  </option>
+                  <option
+                    v-for="loc in LOCATION_OPTIONS.slice(1)"
+                    :key="'m-' + loc"
+                    :value="loc"
+                  >
+                    {{ loc }}
+                  </option>
+                </select>
+              </div>
+              <div class="space-y-3">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Date
+                </p>
+                <label
+                  v-for="option in dateOptionLabels"
+                  :key="'mb-' + option"
+                  class="group flex cursor-pointer items-center gap-3"
+                >
+                  <input
+                    :checked="dateCheckboxChecked(option)"
+                    type="checkbox"
+                    class="h-4 w-4 rounded border-primary-200 text-primary-500 focus:ring-primary-500"
+                    @change="toggleDateFilter(option)"
+                  >
+                  <span class="text-sm text-slate-600 dark:text-slate-300">{{ option }}</span>
+                </label>
+              </div>
+              <div class="space-y-3">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Category
+                </p>
+                <select
+                  v-model="sidebarDraft.categoryId"
+                  class="w-full rounded-xl border border-primary-100 bg-primary-50 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
+                >
+                  <option value="">
+                    All Categories
+                  </option>
+                  <option
+                    v-for="c in categoryStore.categories"
+                    :key="'mbc-' + c.id"
+                    :value="c.id"
+                  >
+                    {{ c.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="space-y-3">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Search
+                </p>
+                <input
+                  v-model="sidebarDraft.search"
+                  type="search"
+                  placeholder="Search…"
+                  class="w-full rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
+                >
+              </div>
+              <div class="space-y-1">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Price
+                </p>
+                <input
+                  v-model.number="sidebarDraft.maxPrice"
+                  type="range"
+                  min="0"
+                  max="500"
+                  step="10"
+                  class="h-1.5 w-full accent-primary-500"
+                >
+              </div>
+              <button
+                type="button"
+                class="w-full rounded-xl bg-primary-500 py-3 text-sm font-bold text-white shadow-lg hover:bg-primary-600"
+                @click="applySidebar"
               >
                 Apply Changes
               </button>
@@ -301,12 +521,12 @@ function goToPage(nextPage: number) {
 
         <div class="min-w-0 flex-1">
           <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm text-slate-500 dark:text-slate-400">
-                Showing {{ filteredEvents.length }} results for
+                Showing {{ browseStore.pagination.total }} results for
               </span>
               <span class="rounded-full bg-primary-50 px-3 py-1 text-sm font-bold text-primary-600 dark:bg-primary-500/10 dark:text-primary-300">
-                "{{ selectedCategory === 'All Categories' ? 'All Events' : selectedCategory }}"
+                "{{ categoryChipLabel }}"
               </span>
             </div>
 
@@ -316,62 +536,96 @@ function goToPage(nextPage: number) {
                 :key="option.key"
                 type="button"
                 class="rounded-lg px-4 py-1.5 text-xs font-bold transition"
-                :class="selectedSort === option.key
+                :class="browseTab === option.key
                   ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300'
                   : 'text-slate-500 hover:bg-primary-50 dark:text-slate-300 dark:hover:bg-slate-800'"
-                @click="selectedSort = option.key"
+                @click="browseTab = option.key"
               >
                 {{ option.label }}
               </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            <article
-              v-for="event in paginatedEvents"
-              :key="event.id"
-              class="group overflow-hidden rounded-2xl border border-primary-50 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
+          <!-- Mobile tab row -->
+          <div class="mb-6 flex sm:hidden rounded-xl border border-primary-100 bg-white p-1 dark:border-slate-700 dark:bg-slate-900">
+            <button
+              v-for="option in sortOptions"
+              :key="'mt-' + option.key"
+              type="button"
+              class="flex-1 rounded-lg py-2 text-[11px] font-bold transition"
+              :class="browseTab === option.key
+                ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300'
+                : 'text-slate-500'"
+              @click="browseTab = option.key"
             >
-              <div class="relative aspect-16/10 overflow-hidden">
-                <img
-                  :src="event.image"
-                  :alt="event.title"
-                  class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                >
-                <button
-                  type="button"
-                  aria-label="Save event"
-                  class="absolute right-4 top-4 rounded-full bg-white/90 p-2 text-slate-400 shadow-md backdrop-blur-sm transition hover:text-primary-500"
-                >
-                  <span class="material-symbols-outlined">favorite</span>
-                </button>
-                <span class="absolute bottom-4 left-4 rounded-lg bg-primary-500/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
-                  {{ event.type }}
-                </span>
-              </div>
-
-              <div class="space-y-3 p-5">
-                <div class="flex items-center justify-between text-xs font-bold text-primary-600 dark:text-primary-300">
-                  <span class="uppercase tracking-widest">{{ event.dateLabel }}</span>
-                  <span>{{ event.priceLabel }}</span>
-                </div>
-                <h3 class="line-clamp-1 text-lg font-bold text-slate-900 dark:text-white">
-                  {{ event.title }}
-                </h3>
-                <div class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-                  <span class="material-symbols-outlined text-sm">location_on</span>
-                  <span class="line-clamp-1">{{ event.location }}</span>
-                </div>
-              </div>
-            </article>
+              {{ option.label }}
+            </button>
           </div>
 
-          <div class="mt-10 flex items-center justify-center gap-2">
+          <div v-if="browseStore.loading" class="py-20 flex justify-center">
+            <LoadingState text="Loading events..." />
+          </div>
+
+          <div
+            v-else-if="browseStore.items.length === 0"
+            class="rounded-2xl border border-primary-100 bg-white py-14 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+          >
+            <span class="material-symbols-outlined text-5xl text-slate-300">event_busy</span>
+            <p class="mt-3 font-semibold">
+              No public events match your filters
+            </p>
+          </div>
+
+          <div v-else class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <NuxtLink
+              v-for="event in browseStore.items"
+              :key="event.id"
+              :to="`/events/${event.slug}`"
+              class="group overflow-hidden rounded-2xl border border-primary-50 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 block"
+            >
+              <article>
+                <div class="relative aspect-16/10 overflow-hidden">
+                  <img
+                    :src="browseImage(event)"
+                    :alt="event.title"
+                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  >
+                  <button
+                    type="button"
+                    aria-label="Save event"
+                    class="absolute right-4 top-4 rounded-full bg-white/90 p-2 text-slate-400 shadow-md backdrop-blur-sm transition hover:text-primary-500"
+                    @click.prevent.stop
+                  >
+                    <span class="material-symbols-outlined text-lg">favorite</span>
+                  </button>
+                  <span class="absolute bottom-4 left-4 rounded-lg bg-primary-500/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+                    {{ categoryBadge(event) }}
+                  </span>
+                </div>
+
+                <div class="space-y-3 p-5">
+                  <div class="flex items-center justify-between gap-2 text-xs font-bold text-primary-600 dark:text-primary-300">
+                    <span class="min-w-0 uppercase tracking-wider">{{ browseRowDate(event) }}</span>
+                    <span class="shrink-0">{{ browsePriceLabel(event) }}</span>
+                  </div>
+                  <h3 class="line-clamp-2 text-lg font-bold text-slate-900 dark:text-white">
+                    {{ event.title }}
+                  </h3>
+                  <div class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                    <span class="material-symbols-outlined text-base">location_on</span>
+                    <span class="line-clamp-1">{{ browseVenueLine(event) }}</span>
+                  </div>
+                </div>
+              </article>
+            </NuxtLink>
+          </div>
+
+          <div class="mt-10 flex flex-wrap items-center justify-center gap-2">
             <button
               type="button"
               class="flex h-10 w-10 items-center justify-center rounded-xl border border-primary-100 bg-white text-slate-600 transition hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-              :disabled="page === 1"
-              @click="goToPage(page - 1)"
+              :disabled="browseStore.pagination.page <= 1"
+              @click="goToPage(browseStore.pagination.page - 1)"
             >
               <span class="material-symbols-outlined">chevron_left</span>
             </button>
@@ -381,7 +635,7 @@ function goToPage(nextPage: number) {
               :key="number"
               type="button"
               class="h-10 min-w-10 rounded-xl px-3 text-sm font-bold transition"
-              :class="page === number
+              :class="browseStore.pagination.page === number
                 ? 'bg-primary-500 text-white'
                 : 'text-slate-600 hover:bg-primary-50 dark:text-slate-300 dark:hover:bg-slate-800'"
               @click="goToPage(number)"
@@ -392,8 +646,8 @@ function goToPage(nextPage: number) {
             <button
               type="button"
               class="flex h-10 w-10 items-center justify-center rounded-xl border border-primary-100 bg-white text-slate-600 transition hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-              :disabled="page === totalPages"
-              @click="goToPage(page + 1)"
+              :disabled="browseStore.pagination.page >= totalPages"
+              @click="goToPage(browseStore.pagination.page + 1)"
             >
               <span class="material-symbols-outlined">chevron_right</span>
             </button>

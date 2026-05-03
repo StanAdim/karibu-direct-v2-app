@@ -5,15 +5,9 @@ import type {
   EventCreateInput,
   EventFilters,
   EventStats,
-  EventUpdateInput,
-  PaginatedResponse
+  EventUpdateInput
 } from '~/types'
 import { useApi } from '~/composables/useApi'
-
-/** Backend may return a bare resource or `{ data: T }` (see auth store). */
-function unwrapResource<T>(raw: unknown): T {
-  return (raw as { data?: T })?.data ?? (raw as T)
-}
 
 interface EventsState {
   events: Event[]
@@ -27,6 +21,61 @@ interface EventsState {
     last_page: number
   }
   filters: EventFilters
+}
+
+/** Backend may return a bare resource or `{ data: T }` (see auth store). */
+function unwrapResource<T>(raw: unknown): T {
+  return (raw as { data?: T })?.data ?? (raw as T)
+}
+
+function toFiniteNumber(value: unknown, fallback: number): number {
+  const num = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(num) ? num : fallback
+}
+
+function extractPaginatedRows<T>(raw: unknown): { rows: T[]; meta: unknown } {
+  if (Array.isArray(raw)) {
+    return { rows: raw as T[], meta: undefined }
+  }
+  if (raw && typeof raw === 'object') {
+    const o = raw as { data?: unknown; meta?: unknown }
+    if (Array.isArray(o.data)) {
+      return { rows: o.data as T[], meta: o.meta }
+    }
+  }
+  return { rows: [], meta: undefined }
+}
+
+function normalizePagedMeta(
+  rawMeta: unknown,
+  fallback: { total: number; page: number; per_page: number; last_page: number }
+): EventsState['pagination'] {
+  if (!rawMeta || typeof rawMeta !== 'object') {
+    return { ...fallback }
+  }
+  const m = rawMeta as Record<string, unknown>
+  const nested = m.pagination as Record<string, unknown> | undefined
+  const src = nested && typeof nested === 'object' ? nested : m
+
+  const total = toFiniteNumber(src.total, fallback.total)
+  const page = toFiniteNumber(src.page ?? src.current_page, fallback.page)
+  const perPage = toFiniteNumber(src.size ?? src.per_page ?? src.perPage, fallback.per_page)
+
+  let lastPage = toFiniteNumber(
+    src.last_page ?? src.lastPage ?? src.total_pages,
+    fallback.last_page
+  )
+
+  if (!Number.isFinite(lastPage) || lastPage < 1) {
+    lastPage = Math.max(1, Math.ceil(total / Math.max(perPage, 1)) || 1)
+  }
+
+  return {
+    total,
+    page,
+    per_page: perPage,
+    last_page: lastPage
+  }
 }
 
 export const useEventsStore = defineStore('events', () => {
@@ -47,6 +96,7 @@ export const useEventsStore = defineStore('events', () => {
   const filters = ref<EventFilters>({} as EventFilters)
   const api = useApi()
   let fetchEventSeq = 0
+  let fetchEventsSeq = 0
 
   // Getters
   const upcomingEvents = computed<Event[]>(() => {
@@ -86,45 +136,68 @@ export const useEventsStore = defineStore('events', () => {
     loading.value = true
     filters.value = eventFilters || ({} as EventFilters)
 
-    try {
-      const toFiniteNumber = (value: unknown, fallback: number): number => {
-        const num = typeof value === 'number' ? value : Number(value)
-        return Number.isFinite(num) ? num : fallback
-      }
+    const seq = ++fetchEventsSeq
 
-      // Protect the API call from sending `page=undefined` / `per_page=undefined`.
-      // This can happen if `pagination` was overwritten with an unexpected `response.meta` shape.
+    try {
       const safePage = toFiniteNumber(pagination.value.page, 1)
       const safePerPage = toFiniteNumber(pagination.value.per_page, 10)
 
       const params = new URLSearchParams()
 
       params.append('page', String(safePage))
-      params.append('per_page', String(safePerPage))
+      params.append('size', String(safePerPage))
 
       if (eventFilters?.status) params.append('status', eventFilters.status)
       if (eventFilters?.visibility) params.append('visibility', eventFilters.visibility)
-      if (eventFilters?.category) params.append('category', eventFilters.category)
+      if (eventFilters?.category_id) {
+        params.append('category_id', eventFilters.category_id)
+      }
+      else if (eventFilters?.category) {
+        params.append('category', eventFilters.category)
+      }
+      if (
+        eventFilters?.price_min != null
+        && eventFilters.price_min > 0
+      ) {
+        params.append('price_min', String(eventFilters.price_min))
+      }
+      if (eventFilters?.price_max != null) {
+        params.append('price_max', String(eventFilters.price_max))
+      }
+      if (eventFilters?.location) {
+        params.append('location', eventFilters.location)
+      }
       if (eventFilters?.search) params.append('search', eventFilters.search)
       if (eventFilters?.start_date) params.append('start_date', eventFilters.start_date)
       if (eventFilters?.end_date) params.append('end_date', eventFilters.end_date)
       if (eventFilters?.organizer_id) params.append('organizer_id', eventFilters.organizer_id)
-
-      const response = await api.get<PaginatedResponse<Event>>(`/events/?${params.toString()}`)
-
-      events.value = response.data
-      // Normalize meta to match our local pagination key names.
-      // (Backends sometimes return `current_page` / `perPage` instead of `page` / `per_page`.)
-      const meta = response.meta as any
-      pagination.value = {
-        total: toFiniteNumber(meta?.total, pagination.value.total),
-        page: toFiniteNumber(meta?.page ?? meta?.current_page, safePage),
-        per_page: toFiniteNumber(meta?.per_page ?? meta?.perPage, safePerPage),
-        last_page: toFiniteNumber(meta?.last_page ?? meta?.lastPage, 1)
+      if (
+        eventFilters?.sort_by
+        && eventFilters.sort_by !== 'relevancy'
+      ) {
+        params.append('sort_by', eventFilters.sort_by)
       }
+
+      const raw = await api.get<unknown>(`/events/?${params.toString()}`)
+
+      if (seq !== fetchEventsSeq) return
+
+      const { rows, meta } = extractPaginatedRows<Event>(raw)
+      events.value = rows
+
+      const fallbackMeta = {
+        total: pagination.value.total,
+        page: safePage,
+        per_page: safePerPage,
+        last_page: pagination.value.last_page
+      }
+
+      pagination.value = normalizePagedMeta(meta, fallbackMeta)
     }
     finally {
-      loading.value = false
+      if (seq === fetchEventsSeq) {
+        loading.value = false
+      }
     }
   }
 
@@ -144,26 +217,31 @@ export const useEventsStore = defineStore('events', () => {
 
       const params = new URLSearchParams()
       params.append('page', String(safePage))
-      params.append('per_page', String(safePerPage))
+      params.append('size', String(safePerPage))
 
       if (eventFilters?.status) params.append('status', eventFilters.status)
       if (eventFilters?.visibility) params.append('visibility', eventFilters.visibility)
-      if (eventFilters?.category) params.append('category', eventFilters.category)
+      if (eventFilters?.category_id) {
+        params.append('category_id', eventFilters.category_id)
+      }
+      else if (eventFilters?.category) {
+        params.append('category', eventFilters.category)
+      }
       if (eventFilters?.search) params.append('search', eventFilters.search)
       if (eventFilters?.start_date) params.append('start_date', eventFilters.start_date)
       if (eventFilters?.end_date) params.append('end_date', eventFilters.end_date)
       // Intentionally do not send `organizer_id` for the "my-events" endpoint.
 
-      const response = await api.get<PaginatedResponse<Event>>(`/events/my-events?${params.toString()}`)
+      const raw = await api.get<unknown>(`/events/my-events?${params.toString()}`)
+      const { rows, meta } = extractPaginatedRows<Event>(raw)
 
-      events.value = response.data
-      const meta = response.meta as any
-      pagination.value = {
-        total: toFiniteNumber(meta?.total, pagination.value.total),
-        page: toFiniteNumber(meta?.page ?? meta?.current_page, safePage),
-        per_page: toFiniteNumber(meta?.per_page ?? meta?.perPage, safePerPage),
-        last_page: toFiniteNumber(meta?.last_page ?? meta?.lastPage, 1)
-      }
+      events.value = rows
+      pagination.value = normalizePagedMeta(meta, {
+        total: pagination.value.total,
+        page: safePage,
+        per_page: safePerPage,
+        last_page: pagination.value.last_page
+      })
     }
     finally {
       loading.value = false

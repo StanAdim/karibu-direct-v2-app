@@ -8,11 +8,15 @@ definePageMeta({
 })
 
 type TabId = 'upcoming' | 'past' | 'archived'
-
+interface EventCategory {
+  id: string
+  name: string
+}
 interface SavedEvent {
   id: string
   title: string
   category: string
+  categories: [EventCategory]
   date: string
   time: string
   location: string
@@ -47,6 +51,7 @@ function mapEventToSavedEvent(event: Event): SavedEvent {
     id: event.id,
     title: event.title,
     category: String(category ?? 'EVENT').toUpperCase(),
+    categories: event.categories,
     date: start.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
     time: start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
     location: location || '—',
@@ -172,7 +177,7 @@ onMounted(() => {
           <div class="relative aspect-16/10 overflow-hidden">
             <img :src="event.image" :alt="event.title" class="h-full w-full object-cover">
             <span class="absolute left-4 bottom-4 rounded-lg bg-primary-600 px-2.5 py-1 text-xs font-bold text-white uppercase tracking-wide">
-              {{ event.category }}
+              <span v-for="item in event.categories" :key="item?.id">{{ item?.name }}</span>
             </span>
             <button
               type="button"
