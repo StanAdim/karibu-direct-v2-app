@@ -105,7 +105,7 @@ function toggleOpen() {
         <span :class="selectedOption ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500'">
           {{ displayText }}
         </span>
-        <UIcon
+        <AppLucideIcon
           name="i-lucide-chevron-down"
           class="h-4 w-4 shrink-0 text-slate-400 transition-transform"
           :class="{ 'rotate-180': open }"
@@ -158,7 +158,7 @@ function toggleOpen() {
             @click="selectOption(option)"
           >
             <span>{{ option.label }}</span>
-            <UIcon
+            <AppLucideIcon
               v-if="model === option.value"
               name="i-lucide-check"
               class="h-4 w-4 text-primary-600 dark:text-primary-400"
@@ -181,7 +181,7 @@ function toggleOpen() {
           aria-label="Clear selection"
           @click="clearSelection"
         >
-          <UIcon
+          <AppLucideIcon
             name="i-lucide-x"
             class="h-3 w-3"
           />

@@ -202,7 +202,7 @@ onUnmounted(() => {
             aria-label="Change photo"
             @click="triggerAvatarPick"
           >
-            <span class="material-symbols-outlined text-lg">photo_camera</span>
+            <AppLucideIcon name="photo_camera" class="text-lg" />
           </button>
         </div>
         <h2 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">
@@ -212,7 +212,7 @@ onUnmounted(() => {
           Member since {{ memberSince }}
         </p>
         <p class="mt-2 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-          <span class="material-symbols-outlined text-base">location_on</span>
+          <AppLucideIcon name="location_on" class="text-base" />
           {{ geoLabel }}
         </p>
         <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
@@ -238,7 +238,7 @@ onUnmounted(() => {
         <!-- Personal Information -->
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
           <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-            <span class="material-symbols-outlined text-primary-500">person</span>
+            <AppLucideIcon name="person" class="text-primary-500" />
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
               Personal Information
             </h3>
@@ -315,7 +315,7 @@ onUnmounted(() => {
         <!-- Notifications -->
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
           <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-            <span class="material-symbols-outlined text-primary-500">notifications</span>
+            <AppLucideIcon name="notifications" class="text-primary-500" />
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
               Notifications
             </h3>
@@ -385,7 +385,7 @@ onUnmounted(() => {
         <!-- Security & Privacy -->
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
           <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-            <span class="material-symbols-outlined text-primary-500">shield</span>
+            <AppLucideIcon name="shield" class="text-primary-500" />
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
               Security &amp; Privacy
             </h3>
@@ -427,7 +427,7 @@ onUnmounted(() => {
         <!-- Danger Zone -->
         <div class="rounded-2xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
           <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-            <span class="material-symbols-outlined text-red-500">warning</span>
+            <AppLucideIcon name="warning" class="text-red-500" />
             <h3 class="text-lg font-semibold text-red-600 dark:text-red-400">
               Danger Zone
             </h3>

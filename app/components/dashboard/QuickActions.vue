@@ -35,7 +35,7 @@ withDefaults(defineProps<Props>(), {
         @click="action.onClick"
       >
         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white dark:bg-gray-900">
-          <UIcon
+          <AppLucideIcon
             :name="action.icon"
             class="h-5 w-5 text-primary-500"
           />

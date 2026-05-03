@@ -173,7 +173,7 @@ async function handleSocialSignup(provider: string) {
           class="absolute right-3 top-9 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           @click="showPassword = !showPassword"
         >
-          <UIcon
+          <AppLucideIcon
             :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
             class="size-5"
           />
@@ -237,7 +237,7 @@ async function handleSocialSignup(provider: string) {
 <!--          class="flex items-center justify-center gap-2 p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 group hover:bg-primary-500/20 transition-all text-left"-->
 <!--          @click="credentials.role = 'Organizer'"-->
 <!--        >-->
-<!--          <span class="material-symbols-outlined text-primary-500">campaign</span>-->
+<!--          <AppLucideIcon name="campaign" class="text-primary-500" />-->
 <!--          <div class="flex flex-col items-start">-->
 <!--            <span class="text-sm font-bold text-slate-900 dark:text-slate-100">-->
 <!--              Want to host events?-->

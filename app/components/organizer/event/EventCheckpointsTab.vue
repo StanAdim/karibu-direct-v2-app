@@ -149,9 +149,7 @@ function openCheckpointsManager() {
 
     <!-- Toolbar search (matches reference; filters local list) -->
     <div class="relative max-w-xl">
-      <span class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl text-slate-400">
-        search
-      </span>
+      <AppLucideIcon name="search" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl text-slate-400" />
       <input
         v-model="searchQuery"
         type="search"
@@ -176,7 +174,7 @@ function openCheckpointsManager() {
         >
           <div class="flex items-start justify-between">
             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400">
-              <span class="material-symbols-outlined">sensors</span>
+              <AppLucideIcon name="sensors" />
             </div>
             <span class="rounded-full bg-primary-500/10 px-2 py-1 text-[10px] font-bold text-primary-600 dark:text-primary-400">
               LIVE
@@ -196,7 +194,7 @@ function openCheckpointsManager() {
           class="flex h-40 flex-col justify-between rounded-[2rem] bg-white p-6 shadow-xl shadow-primary-500/5 dark:bg-slate-900"
         >
           <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#dae2f9] text-[#2b47ab] dark:bg-indigo-950/50 dark:text-indigo-300">
-            <span class="material-symbols-outlined">how_to_reg</span>
+            <AppLucideIcon name="how_to_reg" />
           </div>
           <div>
             <p class="text-3xl font-extrabold text-slate-900 dark:text-white">
@@ -283,10 +281,10 @@ function openCheckpointsManager() {
                   class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl transition-transform group-hover:scale-105"
                   :class="iconSurfaceClass(index)"
                 >
-                  <span
-                    class="material-symbols-outlined text-4xl"
-                    style="font-variation-settings: 'FILL' 1"
-                  >{{ materialIcon(checkpoint.type) }}</span>
+                  <AppLucideIcon
+                    :name="materialIcon(checkpoint.type)"
+                    class="text-4xl"
+                  />
                 </div>
                 <div class="min-w-0">
                   <h4 class="truncate text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -314,7 +312,7 @@ function openCheckpointsManager() {
                   aria-label="Checkpoint actions"
                   @click.stop="openMenuId = openMenuId === checkpoint.id ? null : checkpoint.id"
                 >
-                  <span class="material-symbols-outlined">more_vert</span>
+                  <AppLucideIcon name="more_vert" />
                 </button>
                 <div
                   v-if="openMenuId === checkpoint.id"
@@ -328,7 +326,7 @@ function openCheckpointsManager() {
                     class="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-[#e8efff] dark:text-slate-200 dark:hover:bg-slate-800"
                     @click="closeMenus(); openCheckpointsManager()"
                   >
-                    <span class="material-symbols-outlined text-base text-slate-500">open_in_new</span>
+                    <AppLucideIcon name="open_in_new" class="text-base text-slate-500" />
                     Manage checkpoints
                   </button>
                 </div>
@@ -366,7 +364,7 @@ function openCheckpointsManager() {
             >
               <div class="flex items-center justify-between gap-2">
                 <span class="text-xs font-bold text-primary-600 dark:text-primary-400">Crowd density warning</span>
-                <span class="material-symbols-outlined text-sm text-primary-600 dark:text-primary-400">warning</span>
+                <AppLucideIcon name="warning" class="text-sm text-primary-600 dark:text-primary-400" />
               </div>
               <p class="mt-1 text-[10px] font-medium text-slate-700 dark:text-slate-300">
                 This checkpoint leads scan volume versus others. Consider balancing entry points or opening an alternate route.
@@ -395,7 +393,7 @@ function openCheckpointsManager() {
             <div
               class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#d4dfff] text-slate-500 shadow-inner transition-all group-hover:bg-primary-500 group-hover:text-white dark:bg-slate-800 dark:text-slate-400"
             >
-              <span class="material-symbols-outlined text-4xl">add</span>
+              <AppLucideIcon name="add" class="text-4xl" />
             </div>
             <h4 class="text-xl font-extrabold text-slate-600 transition-colors hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400">
               Create new checkpoint

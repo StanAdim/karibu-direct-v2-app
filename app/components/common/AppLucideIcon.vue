@@ -1,54 +1,51 @@
 <script setup lang="ts">
-import * as LucideIcons from 'lucide-vue-next'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { computed, useAttrs } from 'vue'
+import { appIconShouldSpin, resolveAppIcon } from '~/utils/icons'
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<{
-    /** e.g. `i-lucide-calendar` or `calendar` */
+    /** `i-lucide-*` key or former Material Symbols ligature name (e.g. `search`, `favorite_border`) */
     name: string
+    /** Pixel size; omit to size via Tailwind (`text-lg`, `h-6 w-6`, …) */
     size?: number | string
+    /** @deprecated Font Awesome uses fixed stroke; ignored */
     strokeWidth?: number | string
+    spin?: boolean
   }>(),
   {
-    size: 20,
-    strokeWidth: 2
+    strokeWidth: 2,
+    spin: false
   }
 )
 
-function toLucideComponentName(iName: string): string {
-  const raw = iName.replace(/^i-lucide-/, '')
-  return raw
-    .split('-')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('')
-}
+const icon = computed(() => resolveAppIcon(props.name))
 
-const Icon = computed(() => {
-  const key = toLucideComponentName(props.name) as keyof typeof LucideIcons
-  const mod = LucideIcons as Record<string, unknown>
-  const C = mod[key]
-  if (typeof C === 'object' && C !== null) {
-    return C as typeof LucideIcons.Activity
-  }
-  return LucideIcons.CircleHelp
-})
+const spinning = computed(
+  () => props.spin || appIconShouldSpin(props.name)
+)
 
 const attrs = useAttrs()
+
 const mergedClass = computed(() => {
   const c = attrs.class
   const base = 'shrink-0'
   if (!c) return base
   return Array.isArray(c) ? [base, ...c] : [base, c]
 })
+
+const fontSizeStyle = computed(() =>
+  typeof props.size === 'number' ? { fontSize: `${props.size}px`, width: '1em', height: '1em' } : undefined
+)
 </script>
 
 <template>
-  <component
-    :is="Icon"
-    :size="size"
-    :stroke-width="strokeWidth"
+  <FontAwesomeIcon
+    :icon="icon"
+    :spin="spinning"
+    :style="fontSizeStyle"
     :class="mergedClass"
     v-bind="{ ...attrs, class: undefined }"
   />

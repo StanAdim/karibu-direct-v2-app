@@ -100,7 +100,7 @@ function formatTime(timestamp: string): string {
       v-else-if="displayedItems.length === 0"
       class="py-8 text-center"
     >
-      <UIcon
+      <AppLucideIcon
         name="i-lucide-activity"
         class="mx-auto h-12 w-12 text-gray-400"
       />
@@ -130,7 +130,7 @@ function formatTime(timestamp: string): string {
             :alt="item.user.name"
             size="sm"
           />
-          <UIcon
+          <AppLucideIcon
             v-else
             :name="activityIcons[item.type]?.icon || 'i-lucide-activity'"
             :class="['h-5 w-5', activityIcons[item.type]?.color || 'text-gray-500']"

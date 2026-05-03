@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Font Awesome SVG: required when config.autoAddCss is false — sets .svg-inline--fa height: 1em etc. */
+@import "@fortawesome/fontawesome-svg-core/styles.css";
 
 @theme {
   --font-sans:  'Roboto', 'Helvetica Neue', Arial, sans-serif;;

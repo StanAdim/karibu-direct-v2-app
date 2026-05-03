@@ -81,9 +81,7 @@ function handleConfirm() {
             variantConfig.iconWrap
           ]"
         >
-          <span class="material-symbols-outlined text-[26px] leading-none">
-            {{ variantConfig.icon }}
-          </span>
+          <AppLucideIcon :name="variantConfig.icon" class="text-[26px] leading-none" />
         </div>
 
         <div class="min-w-0 flex-1 pt-0.5">
@@ -114,12 +112,12 @@ function handleConfirm() {
           :disabled="loading"
           @click="handleConfirm"
         >
-          <span
+          <AppLucideIcon
             v-if="loading"
-            class="material-symbols-outlined shrink-0 animate-spin text-base"
-          >
-            progress_activity
-          </span>
+            name="progress_activity"
+            spin
+            class="shrink-0 text-base"
+          />
           <span>{{ confirmText }}</span>
         </AppButton>
       </div>

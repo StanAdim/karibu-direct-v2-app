@@ -150,9 +150,7 @@ function confirmDelete() {
     <!-- Toolbar -->
     <section class="grid gap-4 lg:grid-cols-[1fr,auto] lg:items-center">
       <div class="relative max-w-xl">
-        <span class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl text-slate-400">
-          search
-        </span>
+        <AppLucideIcon name="search" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-xl text-slate-400" />
         <input
           v-model="searchQuery"
           type="search"
@@ -168,9 +166,7 @@ function confirmDelete() {
           class="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           @click="showDeleted = !showDeleted"
         >
-          <span class="material-symbols-outlined text-base">
-            {{ showDeleted ? 'visibility' : 'visibility_off' }}
-          </span>
+          <AppLucideIcon :name="showDeleted ? 'visibility' : 'visibility_off'" class="text-base" />
           {{ showDeleted ? 'Showing deleted' : 'Hide deleted' }}
           <span
             v-if="deletedCount"
@@ -239,19 +235,19 @@ function confirmDelete() {
 
               <div class="flex flex-wrap gap-2 text-xs">
                 <span class="inline-flex items-center gap-2 rounded-full bg-[#e8efff]/80 px-3 py-1.5 font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-100">
-                  <span class="material-symbols-outlined text-base text-primary-600 dark:text-primary-300">paid</span>
+                  <AppLucideIcon name="paid" class="text-base text-primary-600 dark:text-primary-300" />
                   {{ formatMoney(t.price, t.currency) }}
                 </span>
                 <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-100">
-                  <span class="material-symbols-outlined text-base text-slate-500">inventory_2</span>
+                  <AppLucideIcon name="inventory_2" class="text-base text-slate-500" />
                   Qty: {{ (t.quantity ?? 0).toLocaleString() }}
                 </span>
                 <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-100">
-                  <span class="material-symbols-outlined text-base text-slate-500">shopping_cart</span>
+                  <AppLucideIcon name="shopping_cart" class="text-base text-slate-500" />
                   Max/order: {{ t.max_per_order ?? 10 }}
                 </span>
                 <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                  <span class="material-symbols-outlined text-base text-slate-500">schedule</span>
+                  <AppLucideIcon name="schedule" class="text-base text-slate-500" />
                   {{ formatWindow(t.sales_start, t.sales_end) }}
                 </span>
               </div>
@@ -278,9 +274,7 @@ function confirmDelete() {
                   class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/70 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                   @click="openMenuId = openMenuId === t.id ? null : t.id"
                 >
-                  <span class="material-symbols-outlined text-[20px]">
-                    more_vert
-                  </span>
+                  <AppLucideIcon name="more_vert" class="text-[20px]" />
                 </button>
 
                 <Transition
@@ -300,7 +294,7 @@ function confirmDelete() {
                       class="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-slate-800 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
                       @click="() => { emit('clone', t); closeMenus() }"
                     >
-                      <span class="material-symbols-outlined text-base text-slate-500">content_copy</span>
+                      <AppLucideIcon name="content_copy" class="text-base text-slate-500" />
                       Clone
                     </button>
                     <button
@@ -309,7 +303,7 @@ function confirmDelete() {
                       :disabled="Boolean(t.deleted_at)"
                       @click="openDeleteConfirm(t)"
                     >
-                      <span class="material-symbols-outlined text-base">delete</span>
+                      <AppLucideIcon name="delete" class="text-base" />
                       Delete
                     </button>
                   </div>

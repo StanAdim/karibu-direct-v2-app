@@ -49,7 +49,7 @@ function formatPrice(price: string | number): string {
         :class="isFavorite ? 'text-primary-500' : 'text-slate-400 hover:text-primary-500'"
         @click.stop="emit('favorite', id)"
       >
-        <span class="material-symbols-outlined font-bold text-lg">favorite</span>
+        <AppLucideIcon name="favorite" class="font-bold text-lg" />
       </button>
 
       <!-- Category: small tag below image (optional, design has it below image) -->
@@ -68,7 +68,7 @@ function formatPrice(price: string | number): string {
 
       <!-- Location -->
       <div class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-        <span class="material-symbols-outlined text-sm shrink-0">location_on</span>
+        <AppLucideIcon name="location_on" class="text-sm shrink-0" />
         <span class="line-clamp-1">{{ location }}</span>
       </div>
 

@@ -75,7 +75,10 @@ function closeMobileSidebar() {
       aria-label="Toggle menu"
       @click="isMobileSidebarOpen = !isMobileSidebarOpen"
     >
-      <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">{{ isMobileSidebarOpen ? 'close' : 'menu' }}</span>
+      <AppLucideIcon
+        :name="isMobileSidebarOpen ? 'close' : 'menu'"
+        class="text-slate-600 dark:text-slate-300 text-2xl"
+      />
     </button>
 
     <!-- Mobile sidebar backdrop -->
@@ -100,7 +103,7 @@ function closeMobileSidebar() {
       <div class="p-5 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800">
         <NuxtLink to="/attendee" class="flex items-center gap-3 min-w-0" @click="closeMobileSidebar">
           <div class="size-10 rounded-xl bg-primary-500 flex items-center justify-center text-white shrink-0 shadow-sm">
-            <span class="material-symbols-outlined text-xl">confirmation_number</span>
+            <AppLucideIcon name="confirmation_number" class="text-xl text-white" />
           </div>
           <div v-if="isSidebarOpen" class="overflow-hidden min-w-0">
             <h1 class="text-slate-900 dark:text-white font-bold text-lg leading-tight truncate">
@@ -126,7 +129,7 @@ function closeMobileSidebar() {
           :title="!isSidebarOpen ? item.label : undefined"
           @click="closeMobileSidebar"
         >
-          <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+          <AppLucideIcon :name="item.icon" class="text-[22px]" />
           <span v-if="isSidebarOpen" class="text-sm flex-1 truncate">{{ item.label }}</span>
         </NuxtLink>
 
@@ -151,7 +154,7 @@ function closeMobileSidebar() {
           :title="!isSidebarOpen ? item.label : undefined"
           @click="closeMobileSidebar"
         >
-          <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+          <AppLucideIcon :name="item.icon" class="text-[22px]" />
           <span v-if="isSidebarOpen" class="text-sm flex-1 truncate">{{ item.label }}</span>
         </NuxtLink>
       </nav>
@@ -163,7 +166,10 @@ function closeMobileSidebar() {
           class="flex items-center justify-center w-full p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           @click="isSidebarOpen = !isSidebarOpen"
         >
-          <span class="material-symbols-outlined">{{ isSidebarOpen ? 'chevron_left' : 'chevron_right' }}</span>
+          <AppLucideIcon
+            :name="isSidebarOpen ? 'chevron_left' : 'chevron_right'"
+            class="text-base text-slate-500"
+          />
         </button>
       </div>
 
@@ -181,7 +187,7 @@ function closeMobileSidebar() {
             v-else
             class="size-10 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-500 shrink-0"
           >
-            <span class="material-symbols-outlined">person</span>
+            <AppLucideIcon name="person" class="text-primary-500 text-xl" />
           </div>
           <div class="overflow-hidden min-w-0">
             <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">
@@ -198,7 +204,7 @@ function closeMobileSidebar() {
       <!-- Header: search + actions -->
       <header class="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 lg:px-6 py-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div class="relative flex-1 min-w-0 order-2 sm:order-1 pl-12 sm:pl-0 max-w-full sm:max-w-md">
-          <span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none hidden sm:inline ml-1">search</span>
+          <AppLucideIcon name="search" class="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none hidden sm:inline ml-1 text-xl" />
           <input
             v-model="searchQuery"
             type="search"
@@ -213,7 +219,7 @@ function closeMobileSidebar() {
             class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl relative transition-colors"
             aria-label="Notifications"
           >
-            <span class="material-symbols-outlined">notifications</span>
+            <AppLucideIcon name="notifications" class="text-xl text-slate-600 dark:text-slate-400" />
             <span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
           </button>
           <button
@@ -221,7 +227,7 @@ function closeMobileSidebar() {
             class="hidden sm:flex p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
             aria-label="Help"
           >
-            <span class="material-symbols-outlined">help_outline</span>
+            <AppLucideIcon name="help_outline" class="text-xl text-slate-600 dark:text-slate-400" />
           </button>
           <AppButton
             to="/attendee/events"

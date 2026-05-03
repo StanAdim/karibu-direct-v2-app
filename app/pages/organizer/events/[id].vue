@@ -560,7 +560,7 @@ onUnmounted(() => {
                   <span :class="statusValue ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500'">
                     {{ statusUpdateLoading ? 'Updating…' : statusSelectLabel }}
                   </span>
-                  <UIcon
+                  <AppLucideIcon
                     name="i-lucide-chevron-down"
                     class="h-4 w-4 shrink-0 text-slate-400 transition-transform"
                     :class="{ 'rotate-180': statusSelectOpen }"

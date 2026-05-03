@@ -59,7 +59,7 @@ function onInput(event: Event) {
         v-if="icon"
         class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none"
       >
-        <UIcon
+        <AppLucideIcon
           :name="icon"
           class="size-4"
         />
@@ -94,7 +94,7 @@ function onInput(event: Event) {
         class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
         tabindex="-1"
       >
-        <UIcon
+        <AppLucideIcon
           :name="trailingIcon"
           class="size-4"
         />

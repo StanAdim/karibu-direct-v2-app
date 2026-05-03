@@ -189,9 +189,7 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
       >
         <div class="flex justify-between items-start mb-3">
           <div class="size-12 bg-primary-500/10 rounded-xl flex items-center justify-center text-primary-500">
-            <span class="material-symbols-outlined">
-              {{ metric.icon }}
-            </span>
+            <AppLucideIcon :name="metric.icon" />
           </div>
           <span
             class="text-xs font-bold px-2 py-1 rounded-full"
@@ -385,10 +383,10 @@ const capacityProgress = (event: UpcomingEvent) => Math.round((event.sold / even
               <td class="px-4 py-2 text-right">
                 <button
                   type="button"
-                  class="material-symbols-outlined text-slate-400 hover:text-primary-500 transition-colors"
+                  class="text-slate-400 hover:text-primary-500 transition-colors inline-flex"
                   aria-label="More actions"
                 >
-                  more_horiz
+                  <AppLucideIcon name="more_horiz" class="text-xl" />
                 </button>
               </td>
             </tr>

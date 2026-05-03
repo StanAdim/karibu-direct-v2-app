@@ -275,7 +275,7 @@ function handleCancel() {
                 ]"
                 @click="form.venue.type = type.value"
               >
-                <UIcon
+                <AppLucideIcon
                   :name="type.icon"
                   class="h-4 w-4"
                 />

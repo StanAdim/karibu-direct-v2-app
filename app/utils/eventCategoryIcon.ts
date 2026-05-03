@@ -1,6 +1,6 @@
 import type { EventCategory } from '~/types'
 
-/** Maps API category name/slug keywords to Material Symbols for browse sidebar. */
+/** Maps API category name/slug keywords to icon keys resolved by `~/utils/icons` (formerly Material ligatures). */
 export function eventCategoryMaterialIcon(
   category: Pick<EventCategory, 'name' | 'slug'>
 ): string {

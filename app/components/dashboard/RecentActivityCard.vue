@@ -105,7 +105,7 @@ function itemTimeAgo(item: RecentActivityItem): string | undefined {
           class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg"
           aria-label="More options"
         >
-          <span class="material-symbols-outlined">more_vert</span>
+          <AppLucideIcon name="more_vert" />
         </button>
       </div>
     </div>

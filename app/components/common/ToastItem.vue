@@ -40,7 +40,7 @@ function handleClose() {
   >
     <div class="flex items-start gap-3">
       <div class="mt-0.5">
-        <UIcon
+        <AppLucideIcon
           :name="iconName"
           class="size-5"
         />

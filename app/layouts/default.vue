@@ -30,7 +30,7 @@ const navItems = [
               class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
               active-class="bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white"
             >
-              <UIcon
+              <AppLucideIcon
                 :name="item.icon"
                 class="size-4"
               />

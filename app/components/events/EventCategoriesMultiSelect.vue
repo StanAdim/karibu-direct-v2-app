@@ -129,7 +129,7 @@ const summary = computed(() => {
         <span :class="model.length ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500'">
           {{ loading ? 'Loading categories…' : summary }}
         </span>
-        <UIcon
+        <AppLucideIcon
           name="i-lucide-chevron-down"
           class="h-4 w-4 shrink-0 text-slate-400 transition-transform"
           :class="{ 'rotate-180': open }"
@@ -194,7 +194,7 @@ const summary = computed(() => {
           aria-label="Remove"
           @click="remove(id)"
         >
-          <UIcon
+          <AppLucideIcon
             name="i-lucide-x"
             class="h-3 w-3"
           />

@@ -422,7 +422,7 @@ onUnmounted(() => {
         class="inline-flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/25 transition hover:bg-primary-600 active:scale-95"
         @click="openCreateRole"
       >
-        <span class="material-symbols-outlined text-lg">add_circle</span>
+        <AppLucideIcon name="add_circle" class="text-lg" />
         Create New Role
       </button>
     </div>
@@ -492,7 +492,7 @@ onUnmounted(() => {
             title="Filter"
             @click="dummyFilter"
           >
-            <span class="material-symbols-outlined text-base">filter_list</span>
+            <AppLucideIcon name="filter_list" class="text-base" />
           </button>
           <button
             type="button"
@@ -500,7 +500,7 @@ onUnmounted(() => {
             title="More"
             @click="dummyFilter"
           >
-            <span class="material-symbols-outlined text-base">more_vert</span>
+            <AppLucideIcon name="more_vert" class="text-base" />
           </button>
         </div>
       </div>
@@ -543,7 +543,7 @@ onUnmounted(() => {
             <tr v-else-if="roles.length === 0">
               <td colspan="5" class="px-8 py-16">
                 <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-8 py-12 text-center dark:border-slate-700 dark:bg-slate-800/30">
-                  <span class="material-symbols-outlined text-5xl text-slate-400">admin_panel_settings</span>
+                  <AppLucideIcon name="admin_panel_settings" class="text-5xl text-slate-400" />
                   <p class="mt-3 font-bold text-slate-900 dark:text-white">No roles found</p>
                   <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Try adjusting your search or try again.</p>
                 </div>
@@ -610,7 +610,7 @@ onUnmounted(() => {
                     aria-label="Edit role"
                     @click="openEditRole(r)"
                   >
-                    <span class="material-symbols-outlined text-lg">edit</span>
+                    <AppLucideIcon name="edit" class="text-lg" />
                   </button>
                   <button
                     type="button"
@@ -619,7 +619,7 @@ onUnmounted(() => {
                     :disabled="deleteLoading && roleToDelete?.id === r.id"
                     @click="handleDeleteRole(r)"
                   >
-                    <span class="material-symbols-outlined text-lg">delete</span>
+                    <AppLucideIcon name="delete" class="text-lg" />
                   </button>
                 </div>
               </td>
@@ -657,27 +657,27 @@ onUnmounted(() => {
     <!-- Permissions matrix preview -->
     <section class="mt-2">
       <h2 class="flex items-center gap-3 text-2xl font-extrabold text-slate-900 mb-6">
-        <span class="material-symbols-outlined text-primary-500">security_update_good</span>
+        <AppLucideIcon name="security_update_good" class="text-primary-500" />
         Permissions Matrix Preview
       </h2>
 
       <div class="grid grid-cols-1 gap-6 md:grid-cols-4">
         <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
           <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500/15 text-primary-600">
-            <span class="material-symbols-outlined">public</span>
+            <AppLucideIcon name="public" />
           </div>
           <h4 class="mb-3 font-bold text-slate-900 dark:text-white">Global Management</h4>
           <ul class="space-y-2">
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Manage System Config
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Edit Platform Brand
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 opacity-40 dark:text-slate-300">
-              <span class="material-symbols-outlined text-sm">cancel</span>
+              <AppLucideIcon name="cancel" class="text-sm" />
               Root Access
             </li>
           </ul>
@@ -685,20 +685,20 @@ onUnmounted(() => {
 
         <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
           <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-tertiary/15 text-tertiary">
-            <span class="material-symbols-outlined">group_add</span>
+            <AppLucideIcon name="group_add" />
           </div>
           <h4 class="mb-3 font-bold text-slate-900 dark:text-white">User Control</h4>
           <ul class="space-y-2">
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Create Users
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Reset Passwords
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Ban/Unban User
             </li>
           </ul>
@@ -706,20 +706,20 @@ onUnmounted(() => {
 
         <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
           <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/15 text-secondary">
-            <span class="material-symbols-outlined">edit_document</span>
+            <AppLucideIcon name="edit_document" />
           </div>
           <h4 class="mb-3 font-bold text-slate-900 dark:text-white">Content Ops</h4>
           <ul class="space-y-2">
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Approve Events
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Feature Events
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Delete Content
             </li>
           </ul>
@@ -727,20 +727,20 @@ onUnmounted(() => {
 
         <div class="rounded-3xl border border-white/50 bg-white/70 p-6 dark:bg-slate-800/40">
           <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-            <span class="material-symbols-outlined">payments</span>
+            <AppLucideIcon name="payments" />
           </div>
           <h4 class="mb-3 font-bold text-slate-900 dark:text-white">Financial Gate</h4>
           <ul class="space-y-2">
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 opacity-40 dark:text-slate-300">
-              <span class="material-symbols-outlined text-sm">cancel</span>
+              <AppLucideIcon name="cancel" class="text-sm" />
               Process Payouts
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               View Audit Logs
             </li>
             <li class="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+              <AppLucideIcon name="check_circle" class="text-emerald-500 text-sm" />
               Revenue Insights
             </li>
           </ul>
@@ -755,7 +755,7 @@ onUnmounted(() => {
       title="Help"
       @click="helpInfo"
     >
-      <span class="material-symbols-outlined text-2xl">help_outline</span>
+      <AppLucideIcon name="help_outline" class="text-2xl" />
     </button>
 
     <!-- Confirm (delete) -->
@@ -787,7 +787,7 @@ onUnmounted(() => {
               {{ roleModalMode === 'create' ? 'Define a new access role for the platform.' : 'Update role details and permissions metadata.' }}
             </p>
           </div>
-          <span class="material-symbols-outlined text-slate-400">admin_panel_settings</span>
+          <AppLucideIcon name="admin_panel_settings" class="text-slate-400" />
         </div>
 
         <form class="space-y-4" @submit.prevent="submitRole">

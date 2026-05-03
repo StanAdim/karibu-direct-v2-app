@@ -266,7 +266,7 @@ function formatSessionTypeLabel(session: Session): string {
           disabled
           title="Coming soon"
         >
-          <span class="material-symbols-outlined text-lg text-slate-500">filter_list</span>
+          <AppLucideIcon name="filter_list" class="text-lg text-slate-500" />
           Filter
         </button>
         <AppButton
@@ -475,7 +475,7 @@ function formatSessionTypeLabel(session: Session): string {
               </td>
               <td class="px-4 py-5 sm:px-6">
                 <div class="flex min-w-0 items-center gap-2 text-slate-600 dark:text-slate-400">
-                  <span class="material-symbols-outlined shrink-0 text-lg text-slate-400">location_on</span>
+                  <AppLucideIcon name="location_on" class="shrink-0 text-lg text-slate-400" />
                   <span class="truncate text-sm">{{ session.room || session.location || 'Main venue' }}</span>
                 </div>
               </td>
@@ -498,7 +498,7 @@ function formatSessionTypeLabel(session: Session): string {
                     aria-label="Edit session"
                     @click.stop="closeMenus(); emit('edit-session', session)"
                   >
-                    <span class="material-symbols-outlined text-lg">edit</span>
+                    <AppLucideIcon name="edit" class="text-lg" />
                   </button>
                   <button
                     type="button"
@@ -506,7 +506,7 @@ function formatSessionTypeLabel(session: Session): string {
                     aria-label="Delete session"
                     @click.stop="closeMenus(); void handleDeleteSession(session)"
                   >
-                    <span class="material-symbols-outlined text-lg">delete</span>
+                    <AppLucideIcon name="delete" class="text-lg" />
                   </button>
                   <div class="relative">
                     <button
@@ -516,7 +516,7 @@ function formatSessionTypeLabel(session: Session): string {
                       aria-label="More session actions"
                       @click.stop="openMenuId = openMenuId === session.id ? null : session.id"
                     >
-                      <span class="material-symbols-outlined text-lg">more_vert</span>
+                      <AppLucideIcon name="more_vert" class="text-lg" />
                     </button>
                     <div
                       v-if="openMenuId === session.id"
@@ -531,7 +531,7 @@ function formatSessionTypeLabel(session: Session): string {
                         :disabled="session.is_break"
                         @click="emit('assign-speaker', session); closeMenus()"
                       >
-                        <span class="material-symbols-outlined text-base text-slate-500">person_add</span>
+                        <AppLucideIcon name="person_add" class="text-base text-slate-500" />
                         Assign speaker
                       </button>
                       <button
@@ -541,7 +541,7 @@ function formatSessionTypeLabel(session: Session): string {
                         :disabled="session.is_break"
                         @click="emit('session-register', session); closeMenus()"
                       >
-                        <span class="material-symbols-outlined text-base text-slate-500">how_to_reg</span>
+                        <AppLucideIcon name="how_to_reg" class="text-base text-slate-500" />
                         Registration
                       </button>
                       <button
@@ -551,7 +551,7 @@ function formatSessionTypeLabel(session: Session): string {
                         :disabled="session.is_break"
                         @click="emit('session-checkin', session); closeMenus()"
                       >
-                        <span class="material-symbols-outlined text-base text-slate-500">qr_code_scanner</span>
+                        <AppLucideIcon name="qr_code_scanner" class="text-base text-slate-500" />
                         Check-in
                       </button>
                     </div>
@@ -581,7 +581,7 @@ function formatSessionTypeLabel(session: Session): string {
             aria-label="Previous page"
             @click="goPage(currentPage - 1)"
           >
-            <span class="material-symbols-outlined text-sm">chevron_left</span>
+            <AppLucideIcon name="chevron_left" class="text-sm" />
           </button>
           <button
             v-for="p in totalPages"
@@ -602,7 +602,7 @@ function formatSessionTypeLabel(session: Session): string {
             aria-label="Next page"
             @click="goPage(currentPage + 1)"
           >
-            <span class="material-symbols-outlined text-sm">chevron_right</span>
+            <AppLucideIcon name="chevron_right" class="text-sm" />
           </button>
         </div>
       </div>
@@ -629,9 +629,10 @@ function formatSessionTypeLabel(session: Session): string {
             Notify all speakers
           </button>
         </div>
-        <span
-          class="material-symbols-outlined pointer-events-none absolute -bottom-8 -right-8 rotate-12 text-[180px] text-slate-900/[0.06] transition group-hover:rotate-0 dark:text-white/[0.08]"
-        >mic</span>
+        <AppLucideIcon
+          name="mic"
+          class="pointer-events-none absolute -bottom-8 -right-8 rotate-12 text-[180px] text-slate-900/[0.06] transition group-hover:rotate-0 dark:text-white/[0.08]"
+        />
       </div>
 
       <div
@@ -662,7 +663,7 @@ function formatSessionTypeLabel(session: Session): string {
           title="Coming soon"
         >
           Open map manager
-          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          <AppLucideIcon name="arrow_forward" class="text-sm" />
         </button>
       </div>
     </div>

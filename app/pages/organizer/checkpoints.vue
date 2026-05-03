@@ -119,10 +119,12 @@ function goPickEvent(): void {
     >
       <template #actions>
         <UButton
-          icon="i-lucide-plus"
           :disabled="!eventId"
           @click="createModalOpen = true"
         >
+          <template #leading>
+            <AppLucideIcon name="i-lucide-plus" class="h-4 w-4" :size="16" />
+          </template>
           Add Checkpoint
         </UButton>
       </template>
@@ -137,9 +139,11 @@ function goPickEvent(): void {
     >
       <template #actions>
         <UButton
-          icon="i-lucide-calendar"
           @click="goPickEvent"
         >
+          <template #leading>
+            <AppLucideIcon name="i-lucide-calendar" class="h-4 w-4" :size="16" />
+          </template>
           Go to events
         </UButton>
       </template>
@@ -162,9 +166,11 @@ function goPickEvent(): void {
     >
       <template #actions>
         <UButton
-          icon="i-lucide-plus"
           @click="createModalOpen = true"
         >
+          <template #leading>
+            <AppLucideIcon name="i-lucide-plus" class="h-4 w-4" :size="16" />
+          </template>
           Add checkpoint
         </UButton>
       </template>
@@ -186,7 +192,7 @@ function goPickEvent(): void {
                 checkpoint.is_active ? 'bg-emerald-100 dark:bg-emerald-950' : 'bg-gray-100 dark:bg-gray-800'
               ]"
             >
-              <UIcon
+              <AppLucideIcon
                 :name="getCheckpointTypeIcon(checkpoint.type)"
                 :class="[
                   'h-6 w-6',
@@ -221,7 +227,7 @@ function goPickEvent(): void {
           v-if="checkpoint.location"
           class="mt-3 flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400"
         >
-          <UIcon
+          <AppLucideIcon
             name="i-lucide-map-pin"
             class="h-4 w-4"
           />
@@ -242,15 +248,19 @@ function goPickEvent(): void {
             <UButton
               variant="soft"
               size="sm"
-              icon="i-lucide-qr-code"
             >
+              <template #leading>
+                <AppLucideIcon name="i-lucide-qr-code" class="h-4 w-4" :size="16" />
+              </template>
               QR Code
             </UButton>
             <UButton
               variant="soft"
               size="sm"
-              icon="i-lucide-history"
             >
+              <template #leading>
+                <AppLucideIcon name="i-lucide-history" class="h-4 w-4" :size="16" />
+              </template>
               History
             </UButton>
           </div>

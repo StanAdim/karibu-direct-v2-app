@@ -13,7 +13,7 @@ defineProps<Props>()
   <div class="flex flex-col items-center text-center">
     <!-- Icon: purple rounded square -->
     <div class="size-20 rounded-2xl bg-primary-500 flex items-center justify-center text-white shadow-lg mb-6">
-      <span class="material-symbols-outlined text-4xl">{{ icon }}</span>
+      <AppLucideIcon :name="icon" class="text-4xl" />
     </div>
 
     <!-- Title -->

@@ -141,7 +141,7 @@ const alignmentClasses = {
             >
               <div class="flex items-center gap-1">
                 <span>{{ column.label }}</span>
-                <UIcon
+                <AppLucideIcon
                   v-if="column.sortable && sortKey === column.key"
                   :name="sortDirection === 'asc' ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
                   class="h-4 w-4"

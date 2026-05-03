@@ -320,11 +320,11 @@ const organizerLine = computed(() => {
         <NuxtLink to="/attendee" class="text-primary-500 hover:underline">
           Home
         </NuxtLink>
-        <span class="text-slate-400 material-symbols-outlined text-xs">chevron_right</span>
+        <AppLucideIcon name="chevron_right" class="text-slate-400 text-xs" />
         <NuxtLink to="/attendee/events" class="text-primary-500 hover:underline">
           Events
         </NuxtLink>
-        <span class="text-slate-400 material-symbols-outlined text-xs">chevron_right</span>
+        <AppLucideIcon name="chevron_right" class="text-slate-400 text-xs" />
         <span class="text-slate-500 dark:text-slate-400">
           {{ event.slug || 'Event' }}
         </span>
@@ -359,11 +359,11 @@ const organizerLine = computed(() => {
             </h1>
             <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 sm:gap-6 text-slate-600 dark:text-slate-400">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary-500">calendar_today</span>
+                <AppLucideIcon name="calendar_today" class="text-primary-500" />
                 <span class="text-sm">{{ formatEventDateTime(event.start_date) }}</span>
               </div>
               <div class="flex items-center gap-2 min-w-0">
-                <span class="material-symbols-outlined text-primary-500 shrink-0">location_on</span>
+                <AppLucideIcon name="location_on" class="text-primary-500 shrink-0" />
                 <span class="text-sm truncate">{{ getLocationLine(event) }}</span>
               </div>
             </div>
@@ -449,7 +449,7 @@ const organizerLine = computed(() => {
           </div>
 
           <div v-show="activeTab === 'reviews'" class="animate-fade-in py-8 text-center rounded-xl border border-dashed border-primary-500/20 bg-white/50 dark:bg-slate-900/50">
-            <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600">rate_review</span>
+            <AppLucideIcon name="rate_review" class="text-4xl text-slate-300 dark:text-slate-600" />
             <p class="mt-2 text-slate-600 dark:text-slate-400 font-medium">
               No reviews yet
             </p>
@@ -466,7 +466,7 @@ const organizerLine = computed(() => {
             <div class="rounded-xl overflow-hidden h-72 sm:h-80 relative border border-primary-500/10 bg-slate-200 dark:bg-slate-800">
               <div class="absolute inset-0 bg-primary-500/5 flex items-center justify-center">
                 <div class="flex flex-col items-center gap-2 px-4 text-center">
-                  <span class="material-symbols-outlined text-4xl text-primary-500 animate-bounce">location_on</span>
+                  <AppLucideIcon name="location_on" class="text-4xl text-primary-500 animate-bounce" />
                   <span class="font-bold text-slate-600 dark:text-slate-300">{{ event.venue?.name || getLocationLine(event) }}</span>
                 </div>
               </div>
@@ -489,7 +489,7 @@ const organizerLine = computed(() => {
                 rel="noopener noreferrer"
                 class="inline-flex items-center gap-2 text-primary-500 font-bold hover:underline shrink-0"
               >
-                <span class="material-symbols-outlined text-sm">directions</span>
+                <AppLucideIcon name="directions" class="text-sm" />
                 Get Directions
               </a>
             </div>
@@ -542,7 +542,7 @@ const organizerLine = computed(() => {
                 class="p-2 border-2 border-primary-500/20 text-slate-400 rounded-xl hover:text-primary-500 transition-colors inline-flex items-center justify-center"
                 aria-label="Email organizer"
               >
-                <span class="material-symbols-outlined">mail</span>
+                <AppLucideIcon name="mail" />
               </a>
             </div>
           </div>
@@ -605,7 +605,7 @@ const organizerLine = computed(() => {
                     :disabled="quantity <= 1"
                     @click="decQty"
                   >
-                    <span class="material-symbols-outlined text-lg">remove</span>
+                    <AppLucideIcon name="remove" class="text-lg" />
                   </button>
                   <span class="font-bold text-lg tabular-nums">{{ quantity }}</span>
                   <button
@@ -614,7 +614,7 @@ const organizerLine = computed(() => {
                     :disabled="quantity >= maxQuantity"
                     @click="incQty"
                   >
-                    <span class="material-symbols-outlined text-lg">add</span>
+                    <AppLucideIcon name="add" class="text-lg" />
                   </button>
                 </div>
                 <p class="text-xs text-slate-400">
@@ -647,7 +647,7 @@ const organizerLine = computed(() => {
                   class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-primary-500/10 text-slate-600 dark:text-slate-400 hover:text-primary-500 transition-all"
                   @click="shareEvent"
                 >
-                  <span class="material-symbols-outlined text-lg">share</span>
+                  <AppLucideIcon name="share" class="text-lg" />
                   <span class="text-xs font-bold">Share</span>
                 </button>
                 <button
@@ -655,14 +655,14 @@ const organizerLine = computed(() => {
                   class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/30 text-slate-600 dark:text-slate-400 hover:text-red-500 transition-all"
                   @click="toggleSaved"
                 >
-                  <span class="material-symbols-outlined text-lg">{{ savedToggle ? 'favorite' : 'favorite' }}</span>
+                  <AppLucideIcon :name="savedToggle ? 'favorite' : 'favorite'" class="text-lg" />
                   <span class="text-xs font-bold">{{ savedToggle ? 'Saved' : 'Save' }}</span>
                 </button>
               </div>
               <div class="mt-4 pt-4 border-t border-primary-500/10 flex justify-center gap-5 text-slate-400">
-                <span class="material-symbols-outlined cursor-default opacity-50" title="Social links">public</span>
-                <span class="material-symbols-outlined cursor-default opacity-50" title="Social links">groups</span>
-                <span class="material-symbols-outlined cursor-default opacity-50" title="Social links">alternate_email</span>
+                <AppLucideIcon name="public" class="cursor-default opacity-50 text-xl" title="Social links" />
+                <AppLucideIcon name="groups" class="cursor-default opacity-50 text-xl" title="Social links" />
+                <AppLucideIcon name="alternate_email" class="cursor-default opacity-50 text-xl" title="Social links" />
               </div>
             </div>
           </div>
@@ -677,7 +677,7 @@ const organizerLine = computed(() => {
           </h3>
           <NuxtLink to="/attendee/events" class="text-primary-500 font-bold hover:underline flex items-center gap-1 text-sm sm:text-base shrink-0">
             See All
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            <AppLucideIcon name="arrow_forward" class="text-sm" />
           </NuxtLink>
         </div>
 
@@ -710,7 +710,7 @@ const organizerLine = computed(() => {
                 {{ ev.short_description || ev.description }}
               </p>
               <div class="flex items-center gap-2 text-xs text-slate-400 font-medium mt-auto">
-                <span class="material-symbols-outlined text-sm">calendar_month</span>
+                <AppLucideIcon name="calendar_month" class="text-sm" />
                 {{ formatEventDateTime(ev.start_date) }}
               </div>
             </div>

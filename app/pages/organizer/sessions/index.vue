@@ -95,9 +95,11 @@ onMounted(loadSessions)
     >
       <template #actions>
         <UButton
-          icon="i-lucide-plus"
           :to="eventId ? `/organizer/sessions/create?event_id=${eventId}` : '/organizer/sessions/create'"
         >
+          <template #leading>
+            <AppLucideIcon name="i-lucide-plus" class="h-4 w-4" :size="16" />
+          </template>
           Add Session
         </UButton>
       </template>
@@ -110,8 +112,11 @@ onMounted(loadSessions)
           <UInput
             v-model="searchQuery"
             placeholder="Search sessions..."
-            icon="i-lucide-search"
-          />
+          >
+            <template #leading>
+              <AppLucideIcon name="i-lucide-search" class="size-4" :size="16" />
+            </template>
+          </UInput>
         </div>
 
         <USelect
@@ -142,9 +147,11 @@ onMounted(loadSessions)
     >
       <template #actions>
         <UButton
-          icon="i-lucide-plus"
           :to="eventId ? `/organizer/sessions/create?event_id=${eventId}` : '/organizer/sessions/create'"
         >
+          <template #leading>
+            <AppLucideIcon name="i-lucide-plus" class="h-4 w-4" :size="16" />
+          </template>
           Add Session
         </UButton>
       </template>

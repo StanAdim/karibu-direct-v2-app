@@ -143,7 +143,7 @@ function isSelected(event: Event): boolean {
                   v-else
                   class="flex h-full items-center justify-center"
                 >
-                  <UIcon
+                  <AppLucideIcon
                     name="i-lucide-calendar"
                     class="h-5 w-5 text-gray-400"
                   />
@@ -171,7 +171,7 @@ function isSelected(event: Event): boolean {
           <!-- Venue -->
           <td class="px-4 py-4 whitespace-nowrap">
             <div class="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-              <UIcon
+              <AppLucideIcon
                 :name="event.venue.type === 'virtual' ? 'i-lucide-video' : 'i-lucide-map-pin'"
                 class="h-4 w-4"
               />
@@ -212,12 +212,33 @@ function isSelected(event: Event): boolean {
                 ]
               ]"
             >
+              <template #item-leading="{ item }">
+                <AppLucideIcon
+                  v-if="item.loading"
+                  name="i-lucide-loader-2"
+                  class="h-4 w-4"
+                  :size="16"
+                />
+                <AppLucideIcon
+                  v-else-if="item.icon"
+                  :name="item.icon"
+                  class="h-4 w-4"
+                  :size="16"
+                />
+              </template>
               <UButton
                 color="neutral"
                 variant="ghost"
-                icon="i-lucide-more-horizontal"
                 size="sm"
-              />
+              >
+                <template #leading>
+                  <AppLucideIcon
+                    name="i-lucide-more-horizontal"
+                    class="h-4 w-4"
+                    :size="16"
+                  />
+                </template>
+              </UButton>
             </UDropdownMenu>
           </td>
         </tr>

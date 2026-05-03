@@ -35,8 +35,8 @@ const variantClasses = {
     <div class="flex items-center justify-between mb-4">
       <!-- Icon -->
       <div class="p-2 rounded-lg" :class="variantClasses[variant]">
-        <span v-if="materialIcon" class="material-symbols-outlined">{{ materialIcon }}</span>
-        <UIcon v-else :name="icon" class="h-6 w-6" />
+        <AppLucideIcon v-if="materialIcon" :name="materialIcon" class="h-6 w-6" />
+        <AppLucideIcon v-else :name="icon" class="h-6 w-6" />
       </div>
 
       <!-- Trend -->
@@ -49,9 +49,11 @@ const variantClasses = {
           'text-slate-400': trend.direction === 'neutral'
         }"
       >
-        <span v-if="trend.direction !== 'neutral'" class="material-symbols-outlined text-sm">
-          {{ trend.direction === 'up' ? 'trending_up' : 'trending_down' }}
-        </span>
+        <AppLucideIcon
+          v-if="trend.direction !== 'neutral'"
+          :name="trend.direction === 'up' ? 'trending_up' : 'trending_down'"
+          class="text-sm"
+        />
         {{ trend.value }}
       </span>
     </div>

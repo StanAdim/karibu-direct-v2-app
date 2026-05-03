@@ -45,7 +45,7 @@ const imageLogo = computed(() => `/images/logo.png`)
         <!-- Brand -->
         <div class="flex items-center gap-3 mb-8">
           <div class="bg-white/20 p-2 rounded-lg backdrop-blur-md">
-<!--            <span class="material-symbols-outlined text-white text-3xl">event_upcoming</span>-->
+<!--            <AppLucideIcon name="event_upcoming" class="text-white text-3xl" />-->
             <NuxtLink to="/" class="flex items-center gap-2">
 
             <img
@@ -75,7 +75,7 @@ const imageLogo = computed(() => `/images/logo.png`)
             :key="stat.title"
             class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10"
           >
-            <span class="material-symbols-outlined text-white mb-2">{{ stat.icon }}</span>
+            <AppLucideIcon :name="stat.icon" class="text-white mb-2" />
             <p class="text-white font-bold">{{ stat.title }}</p>
             <p class="text-white/60 text-sm">{{ stat.subtitle }}</p>
           </div>
@@ -96,7 +96,7 @@ const imageLogo = computed(() => `/images/logo.png`)
             class="inline-flex items-center gap-2"
           >
             <div class="bg-primary-500 p-2 rounded-lg">
-              <span class="material-symbols-outlined text-white">event_upcoming</span>
+              <AppLucideIcon name="event_upcoming" class="text-white" />
             </div>
             <span class="text-xl font-bold text-slate-900 dark:text-white">
               {{ config.public.appName }}

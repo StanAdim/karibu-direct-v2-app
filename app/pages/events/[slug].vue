@@ -122,7 +122,7 @@ const heroImage = computed(() => {
               {{ event.title }}
             </h1>
             <p class="mt-2 flex flex-wrap items-center gap-3 text-sm text-white/85">
-              <span class="material-symbols-outlined text-[18px]">schedule</span>
+              <AppLucideIcon name="schedule" class="text-[18px]" />
               <span>{{ new Date(event.start_date).toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
@@ -137,7 +137,7 @@ const heroImage = computed(() => {
               }) }}</span>
             </p>
             <p class="mt-1 flex flex-wrap items-center gap-3 text-sm text-white/85">
-              <span class="material-symbols-outlined text-[18px]">location_on</span>
+              <AppLucideIcon name="location_on" class="text-[18px]" />
               <span>{{ venueLine(event) }}</span>
             </p>
           </div>

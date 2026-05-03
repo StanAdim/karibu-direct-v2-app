@@ -24,7 +24,7 @@ defineEmits<{
     ]"
     @click="$emit('click')"
   >
-    <span v-if="icon" class="material-symbols-outlined text-lg">{{ icon }}</span>
+    <AppLucideIcon v-if="icon" :name="icon" class="text-lg" />
     {{ label }}
   </button>
 </template>

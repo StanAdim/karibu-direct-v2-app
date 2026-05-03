@@ -9,7 +9,7 @@ withDefaults(
   defineProps<{
     placeholder?: string
     id?: string
-    /** Lucide-style name, e.g. i-lucide-search */
+    /** Icon key for `AppLucideIcon` / `~/utils/icons`, e.g. i-lucide-search or search */
     iconName?: string
   }>(),
   {

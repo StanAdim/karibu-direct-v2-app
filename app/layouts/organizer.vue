@@ -64,7 +64,10 @@ const pageTitle = computed(() => {
       class="lg:hidden fixed top-3 left-3 z-50 p-2 bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700"
       @click="isMobileSidebarOpen = !isMobileSidebarOpen"
     >
-      <span class="material-symbols-outlined">{{ isMobileSidebarOpen ? 'close' : 'menu' }}</span>
+      <AppLucideIcon
+        :name="isMobileSidebarOpen ? 'close' : 'menu'"
+        class="text-xl text-slate-700 dark:text-slate-200"
+      />
     </button>
 
     <!-- Mobile sidebar backdrop -->
@@ -88,7 +91,7 @@ const pageTitle = computed(() => {
       <div class="p-4 flex items-center gap-3">
         <NuxtLink to="/organizer" class="flex items-center gap-3">
           <div class="size-10 bg-primary-500 rounded-xl flex items-center justify-center text-white shrink-0">
-            <span class="material-symbols-outlined">event_seat</span>
+            <AppLucideIcon name="event_seat" class="text-white text-xl" />
           </div>
           <div v-if="isSidebarOpen" class="overflow-hidden">
             <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</h1>
@@ -112,7 +115,7 @@ const pageTitle = computed(() => {
           :title="!isSidebarOpen ? item.label : undefined"
           @click="closeMobileSidebar"
         >
-          <span class="material-symbols-outlined">{{ item.icon }}</span>
+          <AppLucideIcon :name="item.icon" class="text-xl text-slate-600 dark:text-slate-400" />
           <span v-if="isSidebarOpen" class="font-medium text-sm">{{ item.label }}</span>
         </NuxtLink>
       </nav>
@@ -123,7 +126,10 @@ const pageTitle = computed(() => {
           class="flex items-center justify-center w-full p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           @click="isSidebarOpen = !isSidebarOpen"
         >
-          <span class="material-symbols-outlined">{{ isSidebarOpen ? 'chevron_left' : 'chevron_right' }}</span>
+          <AppLucideIcon
+            :name="isSidebarOpen ? 'chevron_left' : 'chevron_right'"
+            class="text-slate-500"
+          />
         </button>
       </div>
 
@@ -139,7 +145,7 @@ const pageTitle = computed(() => {
               size="sm"
             />
             <div v-else class="size-10 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-500">
-              <span class="material-symbols-outlined">business</span>
+              <AppLucideIcon name="business" class="text-primary-500 text-xl" />
             </div>
             <div class="overflow-hidden">
               <p class="text-sm font-bold truncate text-slate-900 dark:text-white">{{ getFullName(user) }}</p>
@@ -159,7 +165,7 @@ const pageTitle = computed(() => {
 
           <!-- Search -->
           <div class="max-w-md w-full ml-3 relative hidden md:block">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+            <AppLucideIcon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
             <input
               v-model="searchQuery"
               type="text"
@@ -172,7 +178,7 @@ const pageTitle = computed(() => {
         <div class="flex items-center gap-3">
           <!-- Notifications -->
           <button class="size-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative">
-            <span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+            <AppLucideIcon name="notifications" class="text-slate-600 dark:text-slate-300 text-lg" />
             <span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800" />
           </button>
           <!-- User Menu -->

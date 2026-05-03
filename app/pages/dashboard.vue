@@ -48,7 +48,7 @@ const recentActivity = ref([
             </p>
           </div>
           <div class="rounded-lg bg-primary-100 p-2 dark:bg-primary-900">
-            <UIcon
+            <AppLucideIcon
               :name="stat.icon"
               class="size-6 text-primary-600 dark:text-primary-400"
             />
@@ -153,7 +153,7 @@ const recentActivity = ref([
             class="flex items-center gap-4"
           >
             <div class="rounded-lg bg-gray-100 p-2 dark:bg-gray-800">
-              <UIcon
+              <AppLucideIcon
                 :name="activity.icon"
                 class="size-5 text-gray-600 dark:text-gray-400"
               />

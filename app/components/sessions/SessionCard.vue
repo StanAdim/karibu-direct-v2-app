@@ -53,7 +53,7 @@ const levelColors: Record<string, string> = {
             isLive ? 'bg-red-100 dark:bg-red-950' : session.is_break ? 'bg-gray-100 dark:bg-gray-800' : 'bg-primary-100 dark:bg-primary-950'
           ]"
         >
-          <UIcon
+          <AppLucideIcon
             :name="session.is_break ? 'i-lucide-coffee' : (sessionTypeIcons[session.session_type] || 'i-lucide-calendar')"
             :class="[
               'h-6 w-6',
@@ -93,7 +93,7 @@ const levelColors: Record<string, string> = {
 
             <div class="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
               <span class="flex items-center gap-1">
-                <UIcon
+                <AppLucideIcon
                   name="i-lucide-clock"
                   class="h-4 w-4"
                 />
@@ -104,7 +104,7 @@ const levelColors: Record<string, string> = {
                 v-if="session.room"
                 class="flex items-center gap-1"
               >
-                <UIcon
+                <AppLucideIcon
                   name="i-lucide-map-pin"
                   class="h-4 w-4"
                 />
@@ -115,7 +115,7 @@ const levelColors: Record<string, string> = {
                 v-if="session.track"
                 class="flex items-center gap-1"
               >
-                <UIcon
+                <AppLucideIcon
                   name="i-lucide-layers"
                   class="h-4 w-4"
                 />
@@ -185,13 +185,34 @@ const levelColors: Record<string, string> = {
               ]
             ]"
           >
+            <template #item-leading="{ item }">
+              <AppLucideIcon
+                v-if="item.loading"
+                name="i-lucide-loader-2"
+                class="h-4 w-4"
+                :size="16"
+              />
+              <AppLucideIcon
+                v-else-if="item.icon"
+                :name="item.icon"
+                class="h-4 w-4"
+                :size="16"
+              />
+            </template>
             <UButton
               color="neutral"
               variant="ghost"
-              icon="i-lucide-more-vertical"
               size="sm"
               @click.stop
-            />
+            >
+              <template #leading>
+                <AppLucideIcon
+                  name="i-lucide-more-vertical"
+                  class="h-4 w-4"
+                  :size="16"
+                />
+              </template>
+            </UButton>
           </UDropdownMenu>
         </div>
       </div>

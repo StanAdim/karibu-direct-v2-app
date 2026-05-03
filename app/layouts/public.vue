@@ -109,7 +109,7 @@ const imageLogo = computed(() => `/images/logo.png`)
           v-if="showSearch"
           class="hidden lg:flex w-full max-w-md items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-3 py-2 mx-6"
         >
-          <span class="material-symbols-outlined text-slate-400">search</span>
+          <AppLucideIcon name="search" class="text-slate-400 text-lg" />
           <input
             type="text"
             placeholder="Search events, artists..."
@@ -145,7 +145,7 @@ const imageLogo = computed(() => `/images/logo.png`)
               class="h-full w-full rounded-full object-cover"
             />
             <div v-else class="h-full w-full rounded-full bg-primary-500/10 flex items-center justify-center">
-              <span class="material-symbols-outlined text-primary-500">person</span>
+              <AppLucideIcon name="person" class="text-primary-500 text-xl" />
             </div>
           </div>
 
@@ -154,7 +154,10 @@ const imageLogo = computed(() => `/images/logo.png`)
             class="md:hidden p-2 text-slate-600 dark:text-slate-400"
             @click="isMobileMenuOpen = !isMobileMenuOpen"
           >
-            <span class="material-symbols-outlined">{{ isMobileMenuOpen ? 'close' : 'menu' }}</span>
+            <AppLucideIcon
+              :name="isMobileMenuOpen ? 'close' : 'menu'"
+              class="text-2xl text-slate-600 dark:text-slate-400"
+            />
           </button>
         </div>
       </div>
@@ -204,7 +207,7 @@ const imageLogo = computed(() => `/images/logo.png`)
           <div class="col-span-1 lg:col-span-2">
             <div class="flex items-center gap-2">
               <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500 text-white shrink-0">
-                <span class="material-symbols-outlined text-sm">event</span>
+                <AppLucideIcon name="event" class="text-sm text-white" />
               </div>
               <h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</h2>
             </div>
@@ -213,10 +216,10 @@ const imageLogo = computed(() => `/images/logo.png`)
             </p>
             <div class="mt-5 flex gap-3">
               <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary-500 hover:text-white transition-colors text-slate-600 dark:text-slate-400" aria-label="Twitter">
-                <span class="material-symbols-outlined text-lg">chat</span>
+                <AppLucideIcon name="chat" class="text-lg text-slate-600 dark:text-slate-400" />
               </a>
               <a href="#" class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary-500 hover:text-white transition-colors text-slate-600 dark:text-slate-400" aria-label="Instagram">
-                <span class="material-symbols-outlined text-lg">photo_camera</span>
+                <AppLucideIcon name="photo_camera" class="text-lg text-slate-600 dark:text-slate-400" />
               </a>
             </div>
           </div>

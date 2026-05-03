@@ -299,7 +299,7 @@ onMounted(() => {
 
       <div class="mb-6 rounded-2xl border border-primary-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:hidden">
         <div class="flex items-center gap-2 rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
-          <span class="material-symbols-outlined text-primary-500">search</span>
+          <AppLucideIcon name="search" class="text-primary-500" />
           <input
             v-model="sidebarDraft.search"
             type="text"
@@ -528,7 +528,7 @@ onMounted(() => {
             v-else-if="browseStore.items.length === 0"
             class="rounded-2xl border border-primary-100 bg-white py-14 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
           >
-            <span class="material-symbols-outlined text-5xl text-slate-300">event_busy</span>
+            <AppLucideIcon name="event_busy" class="text-5xl text-slate-300" />
             <p class="mt-3 font-semibold">
               No public events match your filters
             </p>
@@ -554,7 +554,7 @@ onMounted(() => {
                     class="absolute right-4 top-4 rounded-full bg-white/90 p-2 text-slate-400 shadow-md backdrop-blur-sm transition hover:text-primary-500"
                     @click.prevent.stop
                   >
-                    <span class="material-symbols-outlined text-lg">favorite</span>
+                    <AppLucideIcon name="favorite" class="text-lg" />
                   </button>
                   <span class="absolute bottom-4 left-4 rounded-lg bg-primary-500/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
                     {{ categoryBadge(event) }}
@@ -570,7 +570,7 @@ onMounted(() => {
                     {{ event.title }}
                   </h3>
                   <div class="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-                    <span class="material-symbols-outlined text-base">location_on</span>
+                    <AppLucideIcon name="location_on" class="text-base" />
                     <span class="line-clamp-1">{{ browseVenueLine(event) }}</span>
                   </div>
                 </div>
@@ -585,7 +585,7 @@ onMounted(() => {
               :disabled="browseStore.pagination.page <= 1"
               @click="goToPage(browseStore.pagination.page - 1)"
             >
-              <span class="material-symbols-outlined">chevron_left</span>
+              <AppLucideIcon name="chevron_left" />
             </button>
 
             <button
@@ -607,7 +607,7 @@ onMounted(() => {
               :disabled="browseStore.pagination.page >= totalPages"
               @click="goToPage(browseStore.pagination.page + 1)"
             >
-              <span class="material-symbols-outlined">chevron_right</span>
+              <AppLucideIcon name="chevron_right" />
             </button>
           </div>
         </div>

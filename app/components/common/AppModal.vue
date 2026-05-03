@@ -84,9 +84,7 @@ const alignmentClass = computed(() => {
                 aria-label="Close"
                 @click="isOpen = false"
               >
-                <span class="material-symbols-outlined text-base">
-                  close
-                </span>
+                <AppLucideIcon name="close" class="text-base" />
               </button>
 
             <div class="p-4 sm:p-5 lg:p-6">

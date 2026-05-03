@@ -154,7 +154,7 @@ watch(isOpen, (open) => {
           class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary-600 hover:text-primary-700 dark:text-primary-400"
           @click="isOpen = false"
         >
-          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <AppLucideIcon name="arrow_back" class="text-sm" />
           Back to Event Hub
         </button>
         <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -180,7 +180,7 @@ watch(isOpen, (open) => {
                 aria-label="Previous month"
                 @click="prevMonth"
               >
-                <span class="material-symbols-outlined text-xl">chevron_left</span>
+                <AppLucideIcon name="chevron_left" class="text-xl" />
               </button>
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ monthLabel }}
@@ -191,7 +191,7 @@ watch(isOpen, (open) => {
                 aria-label="Next month"
                 @click="nextMonth"
               >
-                <span class="material-symbols-outlined text-xl">chevron_right</span>
+                <AppLucideIcon name="chevron_right" class="text-xl" />
               </button>
             </div>
             <div class="grid grid-cols-7 gap-0.5 text-center">
@@ -230,7 +230,7 @@ watch(isOpen, (open) => {
               Most urban tech meetups perform best between 18:00 and 20:00. This avoids the morning rush and lunch breaks.
             </p>
             <div class="mt-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide opacity-90">
-              <span class="material-symbols-outlined text-sm">push_pin</span>
+              <AppLucideIcon name="push_pin" class="text-sm" />
               Smart scheduling active
             </div>
           </div>
@@ -299,7 +299,7 @@ watch(isOpen, (open) => {
           <div class="rounded-2xl border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-700 dark:bg-slate-800/30">
             <div class="flex items-center gap-2">
               <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-400">
-                <span class="material-symbols-outlined text-xs">info</span>
+                <AppLucideIcon name="info" class="text-xs" />
               </span>
               <span class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 Estimated traffic

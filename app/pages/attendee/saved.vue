@@ -151,7 +151,7 @@ onMounted(() => {
       v-if="!loading && filteredEvents.length === 0"
       class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center"
     >
-      <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600">favorite</span>
+      <AppLucideIcon name="favorite" class="text-5xl text-slate-300 dark:text-slate-600" />
       <p class="mt-4 text-slate-600 dark:text-slate-400 font-medium">
         No saved events in this tab
       </p>
@@ -184,7 +184,7 @@ onMounted(() => {
               class="absolute right-4 top-4 rounded-full bg-white/90 dark:bg-slate-900/90 p-2 shadow-md text-primary-500 hover:bg-white dark:hover:bg-slate-800"
               @click.prevent
             >
-              <span class="material-symbols-outlined text-lg">favorite</span>
+              <AppLucideIcon name="favorite" class="text-lg" />
             </button>
           </div>
           <div class="p-4 flex-1 flex flex-col">
@@ -192,15 +192,15 @@ onMounted(() => {
               {{ event.title }}
             </h3>
             <p class="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-1">
-              <span class="material-symbols-outlined text-base">calendar_today</span>
+              <AppLucideIcon name="calendar_today" class="text-base" />
               {{ event.date }} • {{ event.time }}
             </p>
             <p class="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-2">
-              <span class="material-symbols-outlined text-base">location_on</span>
+              <AppLucideIcon name="location_on" class="text-base" />
               <span class="line-clamp-1">{{ event.location }}</span>
             </p>
             <p class="flex items-center gap-1.5 text-sm mb-4">
-              <span class="material-symbols-outlined text-base text-slate-500">payments</span>
+              <AppLucideIcon name="payments" class="text-base text-slate-500" />
               <span :class="event.price === 0 ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-700 dark:text-slate-300'">
                 {{ formatPrice(event.price) }}
               </span>

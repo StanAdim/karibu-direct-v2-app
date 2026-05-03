@@ -57,7 +57,7 @@ function handleSearch() {
             class="mt-10 flex flex-col sm:flex-row gap-3 w-full max-w-3xl mx-auto rounded-2xl bg-white/95 dark:bg-slate-800/95 p-2 shadow-xl overflow-hidden"
           >
             <div class="flex flex-1 items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 px-4 py-3 min-w-0">
-              <span class="material-symbols-outlined text-slate-400 shrink-0">search</span>
+              <AppLucideIcon name="search" class="text-slate-400 shrink-0" />
               <input
                 v-model="searchQuery"
                 type="text"
@@ -69,7 +69,7 @@ function handleSearch() {
 
             <template v-if="showLocationSelect">
               <div class="flex flex-1 items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 px-4 py-3 min-w-0 sm:max-w-[200px]">
-                <span class="material-symbols-outlined text-slate-400 shrink-0">location_on</span>
+                <AppLucideIcon name="location_on" class="text-slate-400 shrink-0" />
                 <select
                   v-model="selectedLocation"
                   class="w-full border-none bg-transparent p-0 text-slate-900 dark:text-white focus:ring-0 outline-none text-sm md:text-base appearance-none"
@@ -79,7 +79,7 @@ function handleSearch() {
                     {{ loc }}
                   </option>
                 </select>
-                <span class="material-symbols-outlined text-slate-400 text-lg shrink-0">expand_more</span>
+                <AppLucideIcon name="expand_more" class="text-slate-400 text-lg shrink-0" />
               </div>
             </template>
 

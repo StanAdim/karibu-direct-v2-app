@@ -201,9 +201,7 @@ async function handleSocialLogin(provider: string) {
             class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             @click="showPassword = !showPassword"
           >
-            <span class="material-symbols-outlined text-lg">
-              {{ showPassword ? 'visibility_off' : 'visibility' }}
-            </span>
+            <AppLucideIcon :name="showPassword ? 'visibility_off' : 'visibility'" class="text-lg" />
           </button>
         </div>
       </div>
@@ -255,9 +253,7 @@ async function handleSocialLogin(provider: string) {
       >
         <div class="mx-auto flex max-w-md flex-col items-center text-center">
           <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary-50 text-primary-500 shadow-sm dark:bg-primary-500/10">
-            <span class="material-symbols-outlined text-3xl">
-              lock_reset
-            </span>
+            <AppLucideIcon name="lock_reset" class="text-3xl" />
           </div>
           <h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
             Reset your password
@@ -307,9 +303,7 @@ async function handleSocialLogin(provider: string) {
       >
         <div class="mx-auto flex max-w-md flex-col items-center text-center">
           <div class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 shadow-sm dark:bg-emerald-500/10">
-            <span class="material-symbols-outlined text-3xl">
-              mark_email_unread
-            </span>
+            <AppLucideIcon name="mark_email_unread" class="text-3xl" />
           </div>
 
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-500">

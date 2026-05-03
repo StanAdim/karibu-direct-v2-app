@@ -178,7 +178,7 @@ onMounted(() => {
     </div>
 
     <div class="relative">
-      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+      <AppLucideIcon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl" />
       <input
         v-model="searchQuery"
         type="search"
@@ -222,7 +222,7 @@ onMounted(() => {
       v-else-if="filteredTickets.length === 0"
       class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 px-6 py-16 text-center"
     >
-      <span class="material-symbols-outlined text-5xl text-slate-400 mb-4">confirmation_number</span>
+      <AppLucideIcon name="confirmation_number" class="text-5xl text-slate-400 mb-4" />
       <h3 class="text-lg font-semibold text-slate-900 dark:text-white">No tickets found</h3>
       <p class="mt-1 text-sm text-slate-600 dark:text-slate-400 max-w-sm">Browse events to get your first ticket.</p>
       <AppButton
@@ -268,27 +268,27 @@ onMounted(() => {
 
           <div class="grid gap-2 sm:grid-cols-2 text-sm">
             <p class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-              <span class="material-symbols-outlined text-lg">calendar_today</span>
+              <AppLucideIcon name="calendar_today" class="text-lg" />
               {{ formatDateWithTime(ticket.event?.start_date || ticket.valid_from) }}
             </p>
             <p class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-              <span class="material-symbols-outlined text-lg">location_on</span>
+              <AppLucideIcon name="location_on" class="text-lg" />
               {{ getVenueLine(ticket) }}
             </p>
             <p class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-              <span class="material-symbols-outlined text-lg">confirmation_number</span>
+              <AppLucideIcon name="confirmation_number" class="text-lg" />
               {{ ticket.ticket_type_name }}
             </p>
             <p class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-              <span class="material-symbols-outlined text-lg">payments</span>
+              <AppLucideIcon name="payments" class="text-lg" />
               {{ formatPrice(ticket) }}
             </p>
             <p class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 sm:col-span-2">
-              <span class="material-symbols-outlined text-lg">person</span>
+              <AppLucideIcon name="person" class="text-lg" />
               {{ fullName(ticket) }} <span v-if="ticket.user?.email" class="text-slate-400">• {{ ticket.user.email }}</span>
             </p>
             <p class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 sm:col-span-2">
-              <span class="material-symbols-outlined text-lg">schedule</span>
+              <AppLucideIcon name="schedule" class="text-lg" />
               Valid until {{ formatDateWithTime(ticket.valid_until) }}
             </p>
           </div>
@@ -297,9 +297,11 @@ onMounted(() => {
             <UButton
               v-if="ticket.qr_code"
               color="primary"
-              icon="i-lucide-qr-code"
               @click="showQrCode(ticket)"
             >
+              <template #leading>
+                <AppLucideIcon name="i-lucide-qr-code" class="h-4 w-4" :size="16" />
+              </template>
               View QR Code
             </UButton>
             <NuxtLink :to="`/attendee/events/${ticket.event_id}`">
@@ -310,9 +312,11 @@ onMounted(() => {
             <UButton
               v-if="isTicketValid(ticket)"
               variant="outline"
-              icon="i-lucide-ticket"
               @click="showQrCode(ticket)"
             >
+              <template #leading>
+                <AppLucideIcon name="i-lucide-ticket" class="h-4 w-4" :size="16" />
+              </template>
               Check-in Pass
             </UButton>
           </div>
@@ -321,7 +325,7 @@ onMounted(() => {
     </div>
 
     <div class="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 p-8 text-center">
-      <span class="material-symbols-outlined text-4xl text-primary-500">add_circle</span>
+      <AppLucideIcon name="add_circle" class="text-4xl text-primary-500" />
       <h3 class="mt-3 text-base font-semibold text-slate-900 dark:text-white">
         Have a promo code?
       </h3>
@@ -356,7 +360,7 @@ onMounted(() => {
               </p> -->
             </div>
             <div v-else class="h-64 flex flex-col items-center justify-center text-slate-500">
-              <UIcon name="i-lucide-qr-code" class="h-12 w-12" />
+              <AppLucideIcon name="i-lucide-qr-code" class="h-12 w-12" />
               <p class="mt-2 text-sm">
                 QR code unavailable for this ticket
               </p>

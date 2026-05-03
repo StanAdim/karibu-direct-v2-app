@@ -327,9 +327,7 @@ onMounted(loadEvents)
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div class="flex flex-1 flex-wrap items-center gap-3">
           <div class="relative flex-1 min-w-[220px] max-w-md">
-            <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              search
-            </span>
+            <AppLucideIcon name="search" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               v-model="searchQuery"
               type="search"
@@ -339,9 +337,7 @@ onMounted(loadEvents)
           </div>
 
           <div class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">
-            <span class="material-symbols-outlined text-sm text-slate-400">
-              tune
-            </span>
+            <AppLucideIcon name="tune" class="text-sm text-slate-400" />
             <select
               v-model="selectedStatus"
               class="border-0 bg-transparent p-0 text-xs font-semibold text-slate-700 focus:ring-0 dark:text-slate-100"
@@ -423,9 +419,7 @@ onMounted(loadEvents)
             v-if="coverUploadingEventId === event.id"
             class="absolute inset-0 z-[5] flex items-center justify-center bg-black/40 backdrop-blur-[1px]"
           >
-            <span class="material-symbols-outlined animate-spin text-3xl text-white">
-              progress_activity
-            </span>
+            <AppLucideIcon name="progress_activity" class="animate-spin text-3xl text-white" />
           </div>
           <div class="pointer-events-none absolute left-4 top-4 z-10 flex items-center gap-2">
             <span
@@ -447,9 +441,7 @@ onMounted(loadEvents)
             class="absolute bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-white hover:text-slate-900 transition-colors"
             @click="handleEditEvent(event)"
           >
-            <span class="material-symbols-outlined text-[20px]">
-              more_vert
-            </span>
+            <AppLucideIcon name="more_vert" class="text-[20px]" />
           </button>
         </div>
 
@@ -460,25 +452,19 @@ onMounted(loadEvents)
               {{ event.title }}
             </h2>
             <div class="rounded-lg bg-primary-50 p-2 text-primary-500 dark:bg-primary-500/10 dark:text-primary-300">
-              <span class="material-symbols-outlined text-[20px]">
-                confirmation_number
-              </span>
+              <AppLucideIcon name="confirmation_number" class="text-[20px]" />
             </div>
           </div>
 
           <div class="mb-6 space-y-3 text-sm text-slate-600 dark:text-slate-300">
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-[18px] text-slate-400">
-                calendar_today
-              </span>
+              <AppLucideIcon name="calendar_today" class="text-[18px] text-slate-400" />
               <span class="font-medium">
                 {{ getEventDateLabel(event) }}
               </span>
             </div>
             <div class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-[18px] text-slate-400">
-                location_on
-              </span>
+              <AppLucideIcon name="location_on" class="text-[18px] text-slate-400" />
               <span class="font-medium">
                 {{ getEventLocationLabel(event) }}
               </span>

@@ -170,9 +170,7 @@ const transactions = ref<PaymentTransaction[]>([
                 class="flex h-9 w-9 items-center justify-center rounded-xl"
                 :class="method.type === 'wallet' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-sky-500/10 text-sky-300'"
               >
-                <span class="material-symbols-outlined text-[18px]">
-                  {{ method.type === 'wallet' ? 'account_balance_wallet' : 'credit_card' }}
-                </span>
+                <AppLucideIcon :name="method.type === 'wallet' ? 'account_balance_wallet' : 'credit_card'" class="text-[18px]" />
               </div>
               <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -200,7 +198,7 @@ const transactions = ref<PaymentTransaction[]>([
           type="button"
           class="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600 hover:border-primary-400 hover:bg-primary-50/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
         >
-          <span class="material-symbols-outlined text-sm">add</span>
+          <AppLucideIcon name="add" class="text-sm" />
           Add New Method
         </button>
       </aside>
@@ -283,9 +281,7 @@ const transactions = ref<PaymentTransaction[]>([
                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200'
                     : 'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200'"
                 >
-                  <span class="material-symbols-outlined mr-0.5 text-[14px]">
-                    {{ tx.direction === 'incoming' ? 'arrow_downward' : 'arrow_upward' }}
-                  </span>
+                  <AppLucideIcon :name="tx.direction === 'incoming' ? 'arrow_downward' : 'arrow_upward'" class="mr-0.5 text-[14px]" />
                   {{ tx.direction === 'incoming' ? 'Incoming' : 'Outgoing' }}
                 </span>
               </td>

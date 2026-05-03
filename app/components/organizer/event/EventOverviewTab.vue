@@ -94,14 +94,14 @@ function getEventImage(event: Event): string {
               </div>
               <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-white/80">
                 <span class="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 font-medium">
-                  <UIcon
+                  <AppLucideIcon
                     name="i-lucide-map-pin"
                     class="h-3 w-3"
                   />
                   {{ venueLabel }}
                 </span>
                 <span class="inline-flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 font-medium">
-                  <UIcon
+                  <AppLucideIcon
                     name="i-lucide-calendar-clock"
                     class="h-3 w-3"
                   />
@@ -126,7 +126,7 @@ function getEventImage(event: Event): string {
                 </p>
               </div>
               <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <UIcon
+                <AppLucideIcon
                   name="i-lucide-ticket-percent"
                   class="h-6 w-6"
                 />
@@ -210,7 +210,7 @@ function getEventImage(event: Event): string {
                 </p>
               </div>
               <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <UIcon
+                <AppLucideIcon
                   name="i-lucide-badge-check"
                   class="h-6 w-6"
                 />
@@ -267,7 +267,7 @@ function getEventImage(event: Event): string {
               <p class="text-xs font-semibold uppercase tracking-[0.2em] text-on-surface-variant">
                 Venue
               </p>
-              <UIcon
+              <AppLucideIcon
                 name="i-lucide-map"
                 class="h-5 w-5 text-on-surface-variant"
               />
@@ -311,7 +311,7 @@ function getEventImage(event: Event): string {
             </div>
             <div class="flex flex-col items-end gap-2 text-xs text-on-primary/80">
               <span class="inline-flex items-center gap-1 rounded-full bg-black/10 px-2 py-1 backdrop-blur">
-                <UIcon
+                <AppLucideIcon
                   name="i-lucide-trending-up"
                   class="h-3 w-3"
                 />

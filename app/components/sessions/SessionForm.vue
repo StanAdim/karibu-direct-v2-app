@@ -186,7 +186,7 @@ function handleSubmit() {
             ]"
             @click="form.session_type = st.value"
           >
-            <UIcon
+            <AppLucideIcon
               :name="st.icon"
               class="h-4 w-4"
             />

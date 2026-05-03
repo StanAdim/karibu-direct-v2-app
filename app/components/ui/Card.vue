@@ -38,7 +38,7 @@ defineEmits<{
     >
       <slot name="header">
         <div class="flex items-center gap-3">
-          <UIcon
+          <AppLucideIcon
             v-if="icon"
             :name="icon"
             class="size-5 text-gray-500 dark:text-gray-400"

@@ -173,7 +173,7 @@ const transactions = ref<TicketTransaction[]>([
             v-if="metric.trend"
             class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300"
           >
-            <span class="material-symbols-outlined mr-0.5 text-[14px]">trending_up</span>
+            <AppLucideIcon name="trending_up" class="mr-0.5 text-[14px]" />
             {{ metric.trend }}
           </div>
         </div>
@@ -188,7 +188,7 @@ const transactions = ref<TicketTransaction[]>([
       <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div class="flex flex-1 flex-wrap items-center gap-3">
           <div class="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-slate-100 dark:ring-slate-800">
-            <span class="material-symbols-outlined text-sm text-slate-400">calendar_today</span>
+            <AppLucideIcon name="calendar_today" class="text-sm text-slate-400" />
             <select
               v-model="selectedDateRange"
               class="border-0 bg-transparent p-0 text-xs font-semibold text-slate-700 focus:ring-0 dark:text-slate-100"
@@ -204,7 +204,7 @@ const transactions = ref<TicketTransaction[]>([
           </div>
 
           <div class="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-slate-100 dark:ring-slate-800">
-            <span class="material-symbols-outlined text-sm text-slate-400">event</span>
+            <AppLucideIcon name="event" class="text-sm text-slate-400" />
             <select
               v-model="selectedEventFilter"
               class="border-0 bg-transparent p-0 text-xs font-semibold text-slate-700 focus:ring-0 dark:text-slate-100"
@@ -220,7 +220,7 @@ const transactions = ref<TicketTransaction[]>([
           </div>
 
           <div class="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:text-slate-100 dark:ring-slate-800">
-            <span class="material-symbols-outlined text-sm text-slate-400">confirmation_number</span>
+            <AppLucideIcon name="confirmation_number" class="text-sm text-slate-400" />
             <select
               v-model="selectedTicketTypeFilter"
               class="border-0 bg-transparent p-0 text-xs font-semibold text-slate-700 focus:ring-0 dark:text-slate-100"

@@ -66,7 +66,7 @@ function formatTime(dateString: string): string {
         v-else
         class="flex h-full min-h-32 items-center justify-center bg-gradient-to-br from-primary-500 to-primary-600"
       >
-        <UIcon
+        <AppLucideIcon
           name="i-lucide-calendar"
           class="h-12 w-12 text-white/50"
         />
@@ -102,14 +102,14 @@ function formatTime(dateString: string): string {
 
           <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
             <span class="flex items-center gap-1">
-              <UIcon
+              <AppLucideIcon
                 name="i-lucide-calendar"
                 class="h-4 w-4"
               />
               {{ formatDate(event.start_date) }}
             </span>
             <span class="flex items-center gap-1">
-              <UIcon
+              <AppLucideIcon
                 name="i-lucide-clock"
                 class="h-4 w-4"
               />
@@ -121,7 +121,7 @@ function formatTime(dateString: string): string {
             v-if="event.venue"
             class="mt-1 flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400"
           >
-            <UIcon
+            <AppLucideIcon
               :name="event.venue.type === 'virtual' ? 'i-lucide-video' : 'i-lucide-map-pin'"
               class="h-4 w-4"
             />
@@ -143,13 +143,34 @@ function formatTime(dateString: string): string {
             ]
           ]"
         >
+          <template #item-leading="{ item }">
+            <AppLucideIcon
+              v-if="item.loading"
+              name="i-lucide-loader-2"
+              class="h-4 w-4"
+              :size="16"
+            />
+            <AppLucideIcon
+              v-else-if="item.icon"
+              :name="item.icon"
+              class="h-4 w-4"
+              :size="16"
+            />
+          </template>
           <UButton
             color="neutral"
             variant="ghost"
-            icon="i-lucide-more-vertical"
             size="sm"
             @click.stop
-          />
+          >
+            <template #leading>
+              <AppLucideIcon
+                name="i-lucide-more-vertical"
+                class="h-4 w-4"
+                :size="16"
+              />
+            </template>
+          </UButton>
         </UDropdownMenu>
       </div>
 

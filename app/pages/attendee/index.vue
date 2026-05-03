@@ -276,9 +276,7 @@ onNuxtReady(() => {
                   :aria-label="event.isSaved ? 'Unsave event' : 'Save event'"
                   @click.prevent.stop="toggleEventSaved(event.id, event.isSaved)"
                 >
-                  <span class="material-symbols-outlined text-lg">
-                    {{ event.isSaved ? 'favorite' : 'favorite_border' }}
-                  </span>
+                  <AppLucideIcon :name="event.isSaved ? 'favorite' : 'favorite_border'" class="text-lg" />
                 </button>
               </div>
               <div class="p-4">
@@ -289,11 +287,11 @@ onNuxtReady(() => {
                   {{ event.title }}
                 </h3>
                 <p class="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-1">
-                  <span class="material-symbols-outlined text-sm">location_on</span>
+                  <AppLucideIcon name="location_on" class="text-sm" />
                   <span class="line-clamp-1">{{ event.location }}</span>
                 </p>
                 <p class="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                  <span class="material-symbols-outlined text-sm">schedule</span>
+                  <AppLucideIcon name="schedule" class="text-sm" />
                   {{ event.time }}
                 </p>
                 <div class="mt-4">
@@ -310,7 +308,7 @@ onNuxtReady(() => {
           v-if="upcomingEvents.length === 0"
           class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center"
         >
-          <span class="material-symbols-outlined text-4xl text-slate-400">event_available</span>
+          <AppLucideIcon name="event_available" class="text-4xl text-slate-400" />
           <p class="mt-2 text-slate-600 dark:text-slate-400">No upcoming events</p>
           <AppButton
             to="/attendee/events"
@@ -335,7 +333,7 @@ onNuxtReady(() => {
         <!-- Upgrade to Pro -->
         <div class="relative rounded-2xl bg-primary-500 overflow-hidden p-6 text-white shadow-lg">
           <div class="absolute bottom-0 right-0 w-32 h-32 opacity-20" aria-hidden="true">
-            <span class="material-symbols-outlined text-[120px]">star</span>
+            <AppLucideIcon name="star" class="text-[120px]" />
           </div>
           <h3 class="text-lg font-bold relative z-10">Upgrade to Pro</h3>
           <p class="mt-2 text-sm text-white/90 relative z-10">

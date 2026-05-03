@@ -4,6 +4,7 @@ import { computed } from 'vue'
 interface Props {
   color?: 'primary' | 'neutral' | 'danger' | 'success'
   size?: 'sm' | 'md'
+  /** Former Material Symbols ligature or any key handled by `~/utils/icons` */
   icon?: string
   iconPosition?: 'left' | 'right'
   type?: 'button' | 'submit' | 'reset'
@@ -53,25 +54,22 @@ const sizeClasses: Record<ButtonSize, string> = {
     ]"
     v-bind="$attrs"
   >
-    <span
+    <AppLucideIcon
       v-if="props.icon && props.iconPosition === 'left'"
-      class="material-symbols-outlined shrink-0"
+      :name="props.icon"
       :class="props.size === 'sm' ? 'text-sm' : 'text-base'"
-    >
-      {{ props.icon }}
-    </span>
+      :size="props.size === 'sm' ? 16 : 18"
+    />
 
     <span>
       <slot />
     </span>
 
-    <span
+    <AppLucideIcon
       v-if="props.icon && props.iconPosition === 'right'"
-      class="material-symbols-outlined shrink-0"
+      :name="props.icon"
       :class="props.size === 'sm' ? 'text-sm' : 'text-base'"
-    >
-      {{ props.icon }}
-    </span>
+      :size="props.size === 'sm' ? 16 : 18"
+    />
   </component>
 </template>
-

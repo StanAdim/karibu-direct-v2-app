@@ -188,7 +188,7 @@ onMounted(() => {
         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="relative flex-1 min-w-0">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+              <AppLucideIcon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 v-model="filters.search"
                 type="search"
@@ -218,7 +218,7 @@ onMounted(() => {
           v-else-if="displayEvents.length === 0"
           class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm py-10 px-4 text-center"
         >
-          <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600">event_busy</span>
+          <AppLucideIcon name="event_busy" class="text-5xl text-slate-300 dark:text-slate-600" />
           <p class="mt-4 text-slate-700 dark:text-slate-300 font-medium">
             No events match your filters
           </p>
@@ -252,9 +252,7 @@ onMounted(() => {
                 :aria-label="isEventSaved(event) ? 'Unsave event' : 'Save event'"
                 @click.stop="toggleEventSaved(event)"
               >
-                <span class="material-symbols-outlined text-lg">
-                  {{ isEventSaved(event) ? 'favorite' : 'favorite_border' }}
-                </span>
+                <AppLucideIcon :name="isEventSaved(event) ? 'favorite' : 'favorite_border'" class="text-lg" />
               </button>
             </div>
             <div class="p-4 flex-1 flex flex-col">
@@ -271,7 +269,7 @@ onMounted(() => {
                 {{ event.title }}
               </h3>
               <p class="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-3">
-                <span class="material-symbols-outlined text-base">location_on</span>
+                <AppLucideIcon name="location_on" class="text-base" />
                 <span class="line-clamp-1">{{ getLocationLine(event) }}</span>
               </p>
               <p
@@ -293,7 +291,7 @@ onMounted(() => {
 <!--        <div class="rounded-2xl bg-primary-500 overflow-hidden shadow-lg flex flex-col md:flex-row">-->
 <!--          <div class="p-6 md:p-8 flex-1 flex flex-col justify-center">-->
 <!--            <div class="flex items-center gap-2 text-primary-100 text-xs font-bold uppercase tracking-wider mb-2">-->
-<!--              <span class="material-symbols-outlined text-lg">star</span>-->
+<!--              <AppLucideIcon name="star" class="text-lg" />-->
 <!--              Featured Spotlight-->
 <!--            </div>-->
 <!--            <h2 class="text-2xl md:text-3xl font-bold text-white mb-2">-->

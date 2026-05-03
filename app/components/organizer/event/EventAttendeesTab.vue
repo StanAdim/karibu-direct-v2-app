@@ -265,9 +265,7 @@ function exportCsv() {
     <!-- Search + export row -->
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div class="relative max-w-xl flex-1">
-        <span class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-          search
-        </span>
+        <AppLucideIcon name="search" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           v-model="searchQuery"
           type="search"
@@ -428,16 +426,16 @@ function exportCsv() {
               </td>
               <td class="px-4 py-4 text-center sm:px-6">
                 <div class="flex justify-center">
-                  <span
+                  <AppLucideIcon
                     v-if="isCheckedIn(p)"
-                    class="material-symbols-outlined text-emerald-500"
-                    style="font-variation-settings: 'FILL' 1"
-                  >check_circle</span>
-                  <span
+                    name="check_circle"
+                    class="text-emerald-500 text-2xl"
+                  />
+                  <AppLucideIcon
                     v-else
-                    class="material-symbols-outlined text-slate-300 dark:text-slate-600"
-                    style="font-variation-settings: 'wght' 200"
-                  >circle</span>
+                    name="circle"
+                    class="text-slate-300 dark:text-slate-600 text-2xl"
+                  />
                 </div>
               </td>
               <td class="px-6 py-4 text-right sm:px-8">
@@ -451,7 +449,7 @@ function exportCsv() {
                     aria-label="Row actions"
                     @click.stop="openMenuId = openMenuId === p.id ? null : p.id"
                   >
-                    <span class="material-symbols-outlined">more_vert</span>
+                    <AppLucideIcon name="more_vert" />
                   </button>
                   <div
                     v-if="openMenuId === p.id"
@@ -490,7 +488,7 @@ function exportCsv() {
             aria-label="Previous page"
             @click="goPage(currentPage - 1)"
           >
-            <span class="material-symbols-outlined">chevron_left</span>
+            <AppLucideIcon name="chevron_left" />
           </button>
           <button
             type="button"
@@ -499,7 +497,7 @@ function exportCsv() {
             aria-label="Next page"
             @click="goPage(currentPage + 1)"
           >
-            <span class="material-symbols-outlined">chevron_right</span>
+            <AppLucideIcon name="chevron_right" />
           </button>
         </div>
       </div>
