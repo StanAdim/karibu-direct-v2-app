@@ -10,6 +10,8 @@ export interface User {
   status: UserStatus
   organization_id?: string
   permissions?: string[]
+  /** From auth payloads (`/auth/me`, login); when omitted, treat as active like legacy ``status``. */
+  is_active?: boolean
   created_at: string
   updated_at: string
 }

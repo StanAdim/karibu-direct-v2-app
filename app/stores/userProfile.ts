@@ -1,6 +1,6 @@
 import { nextTick, reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { ProfileBundlePayload, User } from '~/types'
+import type { ProfileBundlePayload, ProfileGeoIds, User } from '~/types'
 import { useApi } from '~/composables/useApi'
 
 /** Backend may wrap resources as `{ success, data: T }` or `{ data: T }`. */
@@ -23,8 +23,13 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     last_name: '',
     email: '',
     phone_number: '',
-    avatar_url: '' as string | undefined,
-    location: ''
+    avatar_url: '' as string | undefined
+  })
+
+  const location = reactive<ProfileGeoIds>({
+    region_id: null,
+    district_id: null,
+    ward_id: null
   })
 
   const preferences = reactive({
@@ -51,11 +56,21 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
   function applyBundle(bundle: ProfileBundlePayload): void {
     Object.assign(profile, {
-      ...bundle.profile,
+      id: bundle.profile.id,
+      first_name: bundle.profile.first_name,
+      last_name: bundle.profile.last_name,
+      email: bundle.profile.email,
       phone_number: bundle.profile.phone_number ?? '',
-      avatar_url: bundle.profile.avatar_url ?? undefined,
-      location: bundle.profile.location ?? ''
+      avatar_url: bundle.profile.avatar_url ?? undefined
     })
+
+    location.region_id =
+      bundle.profile.region_id ?? null
+    location.district_id =
+      bundle.profile.district_id ?? null
+    location.ward_id =
+      bundle.profile.ward_id ?? null
+
     preferences.event_reminders = bundle.preferences.event_reminders
     preferences.marketing_notifications = bundle.preferences.marketing_notifications
     replaceRecord(additional_info, bundle.additional_info ?? {})
@@ -75,6 +90,24 @@ export const useUserProfileStore = defineStore('userProfile', () => {
       avatar: p.avatar_url || prev.avatar
     }
     authStore.setUser(merged)
+  }
+
+  function buildPutBody(options: { includeAdditionalInfo?: boolean } = {}): Record<string, unknown> {
+    const body: Record<string, unknown> = {
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      phone_number: profile.phone_number || null,
+      region_id: location.region_id,
+      district_id: location.district_id,
+      ward_id: location.ward_id
+    }
+    if (
+      options.includeAdditionalInfo
+      && Object.keys(additional_info).length > 0
+    ) {
+      body.additional_info = { ...additional_info }
+    }
+    return body
   }
 
   async function fetchProfile(): Promise<void> {
@@ -98,7 +131,41 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     }
   }
 
-  async function updateProfile(): Promise<boolean> {
+  /** PUT profile payload (personal info + structured location + optional additional_info). */
+  async function updateProfile(options?: {
+    toastTitle?: string
+    includeAdditionalInfo?: boolean
+  }): Promise<boolean> {
+    saving.value = true
+    error.value = null
+    try {
+      const raw = await api.put<unknown>(
+        '/profile',
+        buildPutBody({ includeAdditionalInfo: options?.includeAdditionalInfo ?? true }),
+      )
+      const data = unwrapResource<ProfileBundlePayload>(raw)
+      applyBundle(data)
+      mergeAuthFromProfile(data)
+      toast.success({
+        title:
+          options?.toastTitle ?? 'Profile updated successfully',
+      })
+      return true
+    }
+    catch (err: unknown) {
+      error.value = err instanceof Error ? err.message : 'Update failed'
+      return false
+    }
+    finally {
+      saving.value = false
+    }
+  }
+
+  /**
+   * Persist structured location FKs without touching ``additional_info``.
+   * Applies server response via ``applyBundle`` on success.
+   */
+  async function updateLocation(next: ProfileGeoIds): Promise<boolean> {
     saving.value = true
     error.value = null
     try {
@@ -106,14 +173,14 @@ export const useUserProfileStore = defineStore('userProfile', () => {
         first_name: profile.first_name,
         last_name: profile.last_name,
         phone_number: profile.phone_number || null,
-        location: profile.location ?? null,
-        additional_info:
-          Object.keys(additional_info).length > 0 ? { ...additional_info } : undefined
+        region_id: next.region_id,
+        district_id: next.district_id,
+        ward_id: next.ward_id,
       })
       const data = unwrapResource<ProfileBundlePayload>(raw)
       applyBundle(data)
       mergeAuthFromProfile(data)
-      toast.success({ title: 'Profile updated successfully' })
+      toast.success({ title: 'Location saved', description: 'Your structured location has been updated.' })
       return true
     }
     catch (err: unknown) {
@@ -214,6 +281,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
   return {
     profile,
+    location,
     preferences,
     additional_info,
     stats,
@@ -223,6 +291,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
     error,
     fetchProfile,
     updateProfile,
+    updateLocation,
     updatePreferences,
     onPreferenceFieldChange,
     uploadAvatar

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import AppAvatar from '~/components/common/AppAvatar.vue'
+import AppButton from '~/components/ui/AppButton.vue'
+import ProfileGeoModal from '~/components/attendee/ProfileGeoModal.vue'
 import { getFullName } from '~/types'
 import { resolveApiUploadUrl } from '~/utils/mediaUrl'
 
@@ -12,6 +15,7 @@ const { user } = useAuth()
 const notifications = useNotifications()
 const authStore = useAuthStore()
 const profileStore = useUserProfileStore()
+const locationStore = useLocationStore()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 /** Local blob preview immediately after picking a file (revoked after upload completes). */
@@ -41,19 +45,44 @@ const memberSince = computed(() => {
 })
 
 const accountStatusLabel = computed(() => {
-  const s = user.value?.status
-  // Auth payloads sometimes omit ``status``; authenticated users behave as active.
-  if (!s || s === 'active') return 'Verified'
-  return s.charAt(0).toUpperCase() + s.slice(1).replace('_', ' ')
+  // Auth payloads omit ``is_active`` in some contexts; authenticated session implies active unless false.
+  if (user.value?.is_active === false) return 'Inactive'
+  return 'Active'
 })
 
-const locationLine = computed(() => {
-  const loc = profileStore.profile.location?.trim()
-  if (loc) return loc
-  const extra = profileStore.additional_info.location
-  if (typeof extra === 'string' && extra.trim()) return extra.trim()
-  return '—'
-})
+const geoModalOpen = ref(false)
+
+const geoLabel = ref('—')
+
+/** Title-case every whitespace-delimited word in each segment (`region / district / ward`). */
+function capitalizeGeoLabelSegments(line: string): string {
+  return line
+    .split(' / ')
+    .map(part =>
+      part
+        .trim()
+        .split(/\s+/u)
+        .filter(Boolean)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+    )
+    .filter(Boolean)
+    .join(' / ')
+}
+
+watch(
+  () => ({
+    r: profileStore.location.region_id,
+    d: profileStore.location.district_id,
+    w: profileStore.location.ward_id
+  }),
+  async () => {
+    await locationStore.hydrateNamesForProfile(profileStore.location)
+    const line = locationStore.profileGeoLabel(profileStore.location).trim()
+    geoLabel.value = line ? capitalizeGeoLabelSegments(line) : '—'
+  },
+  { deep: true, immediate: true },
+)
 
 const eventsAttended = computed(() => profileStore.stats.events_attended ?? 0)
 
@@ -150,8 +179,8 @@ onUnmounted(() => {
       <!-- Left: Profile Summary card -->
       <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-6 h-fit">
         <div class="relative inline-block">
-          <UAvatar
-            :src="displayAvatarUrl"
+          <AppAvatar
+            :src="displayAvatarUrl ?? null"
             :alt="displayName"
             size="2xl"
             class="ring-4 ring-slate-100 dark:ring-slate-800"
@@ -182,11 +211,19 @@ onUnmounted(() => {
         </p>
         <p class="mt-2 flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
           <span class="material-symbols-outlined text-base">location_on</span>
-          {{ locationLine }}
+          {{ geoLabel }}
         </p>
         <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
           <p class="text-sm text-slate-600 dark:text-slate-400">
-            Account Status: <span class="font-medium text-emerald-600 dark:text-emerald-400">{{ accountStatusLabel }}</span>
+            Account Status:
+            <span
+              class="font-medium"
+              :class="
+                user?.is_active === false
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-emerald-600 dark:text-emerald-400'
+              "
+            >{{ accountStatusLabel }}</span>
           </p>
           <p class="text-sm text-slate-600 dark:text-slate-400">
             Events Attended: <span class="font-semibold text-slate-900 dark:text-white">{{ eventsAttended }}</span>
@@ -244,25 +281,31 @@ onUnmounted(() => {
                 :disabled="profileStore.loading"
               >
             </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
-              <input
-                v-model="profileStore.profile.location"
-                type="text"
-                class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="City, State / Region"
-                :disabled="profileStore.loading"
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div class="flex-1">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
+                <p class="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/40 px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 ">
+                  {{ geoLabel }}
+                </p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Region, district, and ward are stored as structured references to the location catalogue.
+                </p>
+              </div>
+              <button
+                type="button"
+                class="shrink-0 self-end sm:self-start rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                @click="geoModalOpen = true"
               >
+                Edit location
+              </button>
             </div>
             <div class="flex justify-end">
-              <UButton
+              <AppButton
                 type="submit"
-                color="primary"
-                :loading="profileStore.saving"
-                :disabled="profileStore.loading"
+                :disabled="profileStore.loading || profileStore.saving"
               >
-                Save Changes
-              </UButton>
+                {{ profileStore.saving ? 'Saving…' : 'Save Changes' }}
+              </AppButton>
             </div>
           </form>
         </div>
@@ -276,7 +319,7 @@ onUnmounted(() => {
             </h3>
           </div>
           <div class="p-6 space-y-6">
-            <label class="flex items-center justify-between gap-4">
+            <div class="flex items-center justify-between gap-4">
               <div>
                 <p class="font-medium text-slate-900 dark:text-white">
                   Event Reminders
@@ -285,13 +328,27 @@ onUnmounted(() => {
                   Get notified about upcoming events you're attending.
                 </p>
               </div>
-              <USwitch
-                :model-value="profileStore.preferences.event_reminders"
+              <button
+                type="button"
+                role="switch"
+                :aria-checked="profileStore.preferences.event_reminders"
                 :disabled="profileStore.loading || profileStore.savingPreferences"
-                @update:model-value="onReminderToggle($event)"
-              />
-            </label>
-            <label class="flex items-center justify-between gap-4">
+                class="relative inline-flex shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-slate-900"
+                @click="onReminderToggle(!profileStore.preferences.event_reminders)"
+              >
+                <span class="sr-only">Toggle event reminders</span>
+                <span
+                  class="relative h-7 w-12 rounded-full transition-colors duration-200"
+                  :class="profileStore.preferences.event_reminders ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-600'"
+                >
+                  <span
+                    class="absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200"
+                    :class="profileStore.preferences.event_reminders ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </span>
+              </button>
+            </div>
+            <div class="flex items-center justify-between gap-4">
               <div>
                 <p class="font-medium text-slate-900 dark:text-white">
                   Marketing &amp; Promotions
@@ -300,12 +357,26 @@ onUnmounted(() => {
                   Receive offers and newsletters about new events.
                 </p>
               </div>
-              <USwitch
-                :model-value="profileStore.preferences.marketing_notifications"
+              <button
+                type="button"
+                role="switch"
+                :aria-checked="profileStore.preferences.marketing_notifications"
                 :disabled="profileStore.loading || profileStore.savingPreferences"
-                @update:model-value="onMarketingToggle($event)"
-              />
-            </label>
+                class="relative inline-flex shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-slate-900"
+                @click="onMarketingToggle(!profileStore.preferences.marketing_notifications)"
+              >
+                <span class="sr-only">Toggle marketing notifications</span>
+                <span
+                  class="relative h-7 w-12 rounded-full transition-colors duration-200"
+                  :class="profileStore.preferences.marketing_notifications ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-600'"
+                >
+                  <span
+                    class="absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200"
+                    :class="profileStore.preferences.marketing_notifications ? 'translate-x-5' : 'translate-x-0'"
+                  />
+                </span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -340,9 +411,9 @@ onUnmounted(() => {
                   Add an extra layer of security to your account.
                 </p>
               </div>
-              <UButton color="primary" size="sm" @click="enable2FA">
+              <AppButton color="primary" size="sm" type="button" @click="enable2FA">
                 Enable 2FA
-              </UButton>
+              </AppButton>
             </div>
           </div>
         </div>
@@ -370,5 +441,6 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <ProfileGeoModal v-model:open="geoModalOpen" />
   </div>
 </template>

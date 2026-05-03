@@ -7,7 +7,7 @@ const props = withDefaults(
   defineProps<{
     src?: string | null
     alt: string
-    size?: 'xs' | 'sm' | 'md' | 'lg'
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   }>(),
   {
     size: 'md',
@@ -21,7 +21,9 @@ const sizeClasses = {
   xs: 'h-6 w-6 text-[10px]',
   sm: 'h-8 w-8 text-xs',
   md: 'h-10 w-10 text-sm',
-  lg: 'h-12 w-12 text-base'
+  lg: 'h-12 w-12 text-base',
+  xl: 'h-16 w-16 text-lg',
+  '2xl': 'h-[5.5rem] w-[5.5rem] text-xl'
 }
 
 const initials = computed(() => {

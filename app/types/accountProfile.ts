@@ -7,7 +7,9 @@ export interface AccountProfileSlice {
   email: string
   phone_number: string
   avatar_url?: string
-  location?: string
+  region_id?: number | null
+  district_id?: number | null
+  ward_id?: number | null
 }
 
 export interface AccountPreferencesSlice {
