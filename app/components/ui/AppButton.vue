@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NuxtLink } from '#components'
 import { computed } from 'vue'
 
 interface Props {
@@ -22,7 +23,10 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const isLink = computed(() => Boolean(props.to))
-const tag = computed(() => (isLink.value ? 'NuxtLink' : 'button'))
+/** String `'NuxtLink'` does not reliably resolve with `<component :is>`; use the concrete component. */
+const tag = computed((): 'button' | typeof NuxtLink =>
+  isLink.value ? NuxtLink : 'button'
+)
 
 type ButtonColor = NonNullable<Props['color']>
 type ButtonSize = NonNullable<Props['size']>

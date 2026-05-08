@@ -331,6 +331,33 @@ onNuxtReady(() => {
           empty-label="No recent activity yet."
         />
 
+        <!-- Organizer program -->
+        <div
+          v-if="user?.primary_role?.name !== 'Organizer'"
+          class="rounded-2xl border border-primary-500/20 bg-white dark:bg-slate-900 p-5 shadow-sm"
+        >
+          <div class="flex items-center gap-3 mb-2">
+            <div class="size-10 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-600">
+              <AppLucideIcon
+                name="business_center"
+                class="text-2xl"
+              />
+            </div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">
+              Host your own events
+            </h3>
+          </div>
+          <p class="text-sm text-slate-600 dark:text-slate-400">
+            Apply to become a verified organizer and unlock the organizer dashboard.
+          </p>
+          <NuxtLink
+            to="/attendee/organizer/application"
+            class="mt-4 inline-flex items-center justify-center rounded-xl bg-primary-500 text-white font-semibold px-4 py-2.5 text-sm w-full sm:w-auto hover:bg-primary-600 transition-colors"
+          >
+            Become an organizer
+          </NuxtLink>
+        </div>
+
         <!-- Upgrade to Pro -->
         <div class="relative rounded-2xl bg-primary-500 overflow-hidden p-6 text-white shadow-lg">
           <div class="absolute bottom-0 right-0 w-32 h-32 opacity-20" aria-hidden="true">

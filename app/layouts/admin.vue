@@ -23,6 +23,7 @@ watch(
       || path.startsWith('/admin/roles')
       || path.startsWith('/admin/settings')
       || path.startsWith('/admin/profile')
+      || path.startsWith('/admin/organizer-applications')
     if (!keepSearch) {
       adminHeaderSearch.value = ''
     }
@@ -42,6 +43,9 @@ const headerSearchPlaceholder = computed(() => {
   if (route.path.startsWith('/admin/settings')) {
     return 'Search configurations...'
   }
+  if (route.path.startsWith('/admin/organizer-applications')) {
+    return 'Search applications, organizations, emails…'
+  }
   if (route.path.startsWith('/admin/roles')) {
     return 'Search roles...'
   }
@@ -52,6 +56,7 @@ const navigationItems = [
   { label: 'Dashboard', icon: 'i-lucide-layout-dashboard', to: '/admin' },
   { label: 'Users', icon: 'i-lucide-users', to: '/admin/users' },
   { label: 'Events', icon: 'i-lucide-calendar', to: '/admin/events' },
+  { label: 'Organizer Applications', icon: 'i-lucide-building-2', to: '/admin/organizer-applications' },
   { label: 'Finances', icon: 'i-lucide-wallet', to: '/admin/analytics' },
   { label: 'Roles', icon: 'i-lucide-check', to: '/admin/roles' },
   { label: 'System Settings', icon: 'i-lucide-settings', to: '/admin/settings' }

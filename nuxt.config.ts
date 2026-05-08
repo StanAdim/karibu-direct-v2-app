@@ -57,6 +57,7 @@ export default defineNuxtConfig({
     { path: '~/components/sessions', prefix: '' },
     { path: '~/components/public', prefix: '' },
     { path: '~/components/auth', prefix: '' },
+    { path: '~/components/organizer', pathPrefix: false },
     { path: '~/components', pathPrefix: false }
   ],
 

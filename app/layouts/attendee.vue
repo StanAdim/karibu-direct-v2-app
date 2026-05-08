@@ -15,18 +15,48 @@ type AccountMenuItem = {
 
 const config = useRuntimeConfig()
 const { user, logout } = useAuth()
+const authStore = useAuthStore()
+const organizerApplicationStore = useOrganizerApplicationStore()
 const route = useRoute()
 const isSidebarOpen = ref(true)
 const isMobileSidebarOpen = ref(false)
 const searchQuery = ref('')
 
-const mainNavItems = [
-  { id: 'overview', label: 'Overview', icon: 'grid_view', to: '/attendee' },
-  { id: 'events', label: 'Explore Events', icon: 'explore', to: '/attendee/events' },
-  { id: 'tickets', label: 'My Tickets', icon: 'confirmation_number', to: '/attendee/tickets' },
-  { id: 'saved', label: 'Saved Events', icon: 'favorite', to: '/attendee/saved' },
-  { id: 'calendar', label: 'Calendar', icon: 'calendar_today', to: '/attendee/schedule' }
-]
+const mainNavItems = computed(() => {
+  const base = [
+    { id: 'overview', label: 'Overview', icon: 'grid_view', to: '/attendee' },
+    { id: 'events', label: 'Explore Events', icon: 'explore', to: '/attendee/events' },
+    { id: 'tickets', label: 'My Tickets', icon: 'confirmation_number', to: '/attendee/tickets' },
+    { id: 'saved', label: 'Saved Events', icon: 'favorite', to: '/attendee/saved' },
+    { id: 'calendar', label: 'Calendar', icon: 'calendar_today', to: '/attendee/schedule' }
+  ]
+  if (authStore.user?.primary_role?.name === 'Organizer') {
+    return base
+  }
+  const hasApp = Boolean(organizerApplicationStore.application)
+  const organizerItem = {
+    id: 'organizer-apply',
+    label: hasApp ? 'Organizer Application' : 'Become an Organizer',
+    icon: 'business_center',
+    to: '/attendee/organizer/application' as const
+  }
+  return [...base, organizerItem]
+})
+
+onMounted(() => {
+  if (import.meta.client && authStore.user?.primary_role?.name !== 'Organizer') {
+    void organizerApplicationStore.fetchMine().catch(() => {})
+  }
+})
+
+watch(
+  () => route.path,
+  (p) => {
+    if (p.startsWith('/attendee/organizer') && authStore.user?.primary_role?.name !== 'Organizer') {
+      void organizerApplicationStore.fetchMine().catch(() => {})
+    }
+  }
+)
 
 const accountNavItems = [
   { id: 'profile', label: 'Profile', icon: 'person', to: '/attendee/profile' },
@@ -66,6 +96,9 @@ const userMenuItems = computed((): AccountMenuItem[][] => [
 function isActiveRoute(path: string): boolean {
   if (path === '/attendee') {
     return route.path === '/attendee'
+  }
+  if (path === '/attendee/organizer/application') {
+    return route.path.startsWith('/attendee/organizer')
   }
   return route.path.startsWith(path)
 }
