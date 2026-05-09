@@ -50,13 +50,43 @@ function organizerName(event: Event): string {
   return event.organizer ? getFullName(event.organizer) : 'Unknown organizer'
 }
 
+/** API may return category id strings or nested `{ id, name, slug }` objects. */
+function firstCategoryParts(event: Event): { display: string; matchText: string } {
+  const c = event.categories?.[0] as unknown
+  if (c == null || c === '') {
+    return { display: 'GENERAL', matchText: '' }
+  }
+  if (typeof c === 'string') {
+    return {
+      display: c.replace(/-/g, ' ').toUpperCase(),
+      matchText: c.toLowerCase()
+    }
+  }
+  if (typeof c === 'object' && c !== null) {
+    const o = c as { id?: unknown; name?: unknown; slug?: unknown }
+    const name = typeof o.name === 'string' ? o.name.trim() : ''
+    const slug = typeof o.slug === 'string' ? o.slug.trim() : ''
+    const id = typeof o.id === 'string' ? o.id.trim() : ''
+    const matchText = [slug, name, id].filter(Boolean).join(' ').toLowerCase()
+    const displayBase = name || slug.replace(/-/g, ' ') || 'GENERAL'
+    return {
+      display: displayBase.toUpperCase(),
+      matchText
+    }
+  }
+  const s = String(c)
+  return {
+    display: s.replace(/-/g, ' ').toUpperCase(),
+    matchText: s.toLowerCase()
+  }
+}
+
 function primaryCategory(event: Event): string {
-  const c = event.categories?.[0]
-  return c ? c.replace(/-/g, ' ').toUpperCase() : 'GENERAL'
+  return firstCategoryParts(event).display
 }
 
 function categoryPillClass(event: Event): string {
-  const raw = (event.categories?.[0] || '').toLowerCase()
+  const raw = firstCategoryParts(event).matchText
   if (raw.includes('night') || raw.includes('club') || raw.includes('music')) {
     return 'bg-primary-100 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300'
   }

@@ -21,9 +21,10 @@ definePageMeta({
 
     <ProfileSubnav
       profile-to="/organizer/profile"
+      preferences-to="/organizer/profile/setting"
       activity-to="/organizer/profile/activity"
     />
 
-    <UserActivityLogPageContent />
+    <UserActivityLogPageContent :default-page-size="8" />
   </div>
 </template>

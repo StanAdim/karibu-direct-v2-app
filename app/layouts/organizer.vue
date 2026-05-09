@@ -16,6 +16,7 @@ const searchQuery = ref('')
 const navigationItems: OrganizerNavItem[] = [
   { id: 'overview', label: 'Overview', icon: 'dashboard', to: '/organizer/dashboard' },
   { id: 'organization', label: 'My Organization', icon: 'i-lucide-building', to: '/organizer/organization' },
+  { id: 'account', label: 'My account', icon: 'person', to: '/organizer/profile' },
   { id: 'events', label: 'Events', icon: 'calendar_today', to: '/organizer/events' },
   { id: 'tickets', label: 'Tickets', icon: 'confirmation_number', to: '/organizer/ticket-sales' },
   { id: 'attendees', label: 'Attendees', icon: 'group', to: '/organizer/participants' },
@@ -35,6 +36,10 @@ const userMenuItems = computed(() => [
     label: 'Profile',
     icon: 'i-lucide-user',
     to: '/organizer/profile'
+  }, {
+    label: 'Account settings',
+    icon: 'i-lucide-user-cog',
+    to: '/organizer/profile/setting'
   }, {
     label: 'Activity',
     icon: 'i-lucide-history',
@@ -74,6 +79,7 @@ function closeMobileSidebar() {
 }
 
 const pageTitle = computed(() => {
+  if (route.path.startsWith('/organizer/profile/setting')) return 'Profile settings'
   if (route.path.startsWith('/organizer/profile')) return 'Profile'
   if (route.path.startsWith('/organizer/organization')) return 'My Organization'
   if (route.path.startsWith('/organizer/settings')) return 'Settings'
