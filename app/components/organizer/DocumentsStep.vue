@@ -47,7 +47,7 @@ defineProps<{
       v-if="mode === 'create'"
       class="text-sm text-slate-600 dark:text-slate-400"
     >
-      Choose files now; they upload automatically right after your application is created.
+      Logo is required; other documents are optional. Files upload automatically right after your application is created.
     </p>
 
     <div id="wizard-field-logo">
@@ -66,7 +66,7 @@ defineProps<{
 
     <div id="wizard-field-business_license">
       <UploadDropzone
-        label="Business license *"
+        label="Business license"
         description="PDF or image — max 10 MB"
         accept="application/pdf,image/png,image/jpeg"
         :max-bytes="DOC_MAX"
@@ -80,7 +80,7 @@ defineProps<{
 
     <div id="wizard-field-verification_document">
       <UploadDropzone
-        label="Verification document *"
+        label="Verification document"
         description="PDF or image — max 10 MB"
         accept="application/pdf,image/png,image/jpeg"
         :max-bytes="DOC_MAX"

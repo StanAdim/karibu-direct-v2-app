@@ -4,6 +4,7 @@ import type {
   OrganizationDocumentKind,
   OrganizationProfile,
   OrganizerApplicationAdminDetail,
+  OrganizerApplicationLogEntry,
   OrganizerApplicationsPaginationMeta
 } from '~/types/organizer'
 import { useOrganizerDocumentUpload } from '~/composables/useOrganizerDocumentUpload'
@@ -29,6 +30,8 @@ export const useOrganizerApplicationStore = defineStore('organizerApplication', 
   const { uploadDocument: xhrUpload } = useOrganizerDocumentUpload()
 
   const application = ref<OrganizationProfile | null>(null)
+  /** Audit log entries from GET /organizer-applications/me (review actions and comments). */
+  const applicationLogs = ref<OrganizerApplicationLogEntry[]>([])
   const mineLoaded = ref(false)
   const loadingMine = ref(false)
   const saving = ref(false)
@@ -50,8 +53,12 @@ export const useOrganizerApplicationStore = defineStore('organizerApplication', 
       const raw = await api.get<ApiEnvelope<OrganizationProfile>>('/organizer-applications/me', {
         suppressErrorToast: true
       })
+      const envelope = raw as ApiEnvelope<OrganizationProfile> & {
+        meta?: { logs?: OrganizerApplicationLogEntry[] }
+      }
       const data = unwrapResource<OrganizationProfile>(raw)
       application.value = data
+      applicationLogs.value = Array.isArray(envelope.meta?.logs) ? envelope.meta.logs : []
       mineLoaded.value = true
       return data
     }
@@ -60,6 +67,7 @@ export const useOrganizerApplicationStore = defineStore('organizerApplication', 
         ?? (err as { status?: number })?.status
       if (code === 404) {
         application.value = null
+        applicationLogs.value = []
         mineLoaded.value = true
         return null
       }
@@ -205,6 +213,7 @@ export const useOrganizerApplicationStore = defineStore('organizerApplication', 
 
   return {
     application,
+    applicationLogs,
     mineLoaded,
     loadingMine,
     saving,

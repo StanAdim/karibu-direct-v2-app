@@ -97,8 +97,20 @@ function validateDocumentsForCreate(): boolean {
   const errs: Record<string, string> = {}
   const p = wizard.pendingFiles
   if (!p.logo) errs.logo = 'Logo is required'
-  if (!p.business_license) errs.business_license = 'Business license is required'
-  if (!p.verification_document) errs.verification_document = 'Verification document is required'
+  if (Object.keys(errs).length) {
+    wizard.setFieldErrors(errs)
+    scrollToFirstError(Object.keys(errs)[0])
+    return false
+  }
+  return true
+}
+
+function validateDocumentsForEdit(): boolean {
+  wizard.clearFieldErrors()
+  const errs: Record<string, string> = {}
+  const p = wizard.pendingFiles
+  const hasLogo = Boolean(p.logo || orgStore.application?.logo_url)
+  if (!hasLogo) errs.logo = 'Logo is required'
   if (Object.keys(errs).length) {
     wizard.setFieldErrors(errs)
     scrollToFirstError(Object.keys(errs)[0])
@@ -172,6 +184,10 @@ async function onSubmitEdit(): Promise<void> {
       wizard.step = s
       return
     }
+  }
+  if (!validateDocumentsForEdit()) {
+    wizard.step = 4
+    return
   }
   if (submitting.value) return
   submitting.value = true

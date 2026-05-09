@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { resolveBackendMediaUrl } from '~/utils/mediaUrl'
+import type { OrganizationProfile, OrganizerApplicationLogEntry } from '~/types/organizer'
 
 definePageMeta({
   layout: 'attendee',
@@ -7,13 +9,48 @@ definePageMeta({
 })
 
 const organizerApplicationStore = useOrganizerApplicationStore()
+const { application, applicationLogs } = storeToRefs(organizerApplicationStore)
 const { startApplicationStatusPolling, stopPolling, shouldPollStatus } = useOrganizerApplication()
 const notifications = useNotifications()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 
+const REVIEW_LOG_ACTIONS = new Set([
+  'REVIEW_APPROVED',
+  'REVIEW_REJECTED',
+  'REVIEW_REQUEST_CHANGES'
+])
+
 function mediaHref(path: string | null | undefined): string | undefined {
   return resolveBackendMediaUrl(path, String(config.public.apiBase ?? ''))
+}
+
+function reviewerNoteFromApi(
+  app: OrganizationProfile,
+  logs: OrganizerApplicationLogEntry[]
+): string | null {
+  if (app.status === 'REJECTED' && app.rejection_reason?.trim()) {
+    return app.rejection_reason.trim()
+  }
+  for (let i = logs.length - 1; i >= 0; i--) {
+    const log = logs[i]
+    if (REVIEW_LOG_ACTIONS.has(String(log.action)) && log.comment?.trim()) {
+      return log.comment!.trim()
+    }
+  }
+  return null
+}
+
+function formatReviewedWhen(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    })
+  }
+  catch {
+    return iso
+  }
 }
 
 const loading = computed(() => organizerApplicationStore.loadingMine && !organizerApplicationStore.mineLoaded)
@@ -39,8 +76,6 @@ onUnmounted(() => {
   stopPolling()
 })
 
-const application = computed(() => organizerApplicationStore.application)
-
 const canEdit = computed(() => {
   const s = application.value?.status
   return s === 'PENDING' || s === 'UNDER_REVIEW' || s === 'REJECTED'
@@ -55,6 +90,17 @@ const statusLabel = computed(() => {
     REJECTED: 'Rejected — you can update and resubmit.'
   }
   return m[application.value.status] || application.value.status
+})
+
+const hasAdminReviewOutcome = computed(() => {
+  const s = application.value?.status
+  return s === 'UNDER_REVIEW' || s === 'APPROVED' || s === 'REJECTED'
+})
+
+const adminReviewerNote = computed(() => {
+  const app = application.value
+  if (!app) return null
+  return reviewerNoteFromApi(app, applicationLogs.value)
 })
 </script>
 
@@ -98,15 +144,47 @@ const statusLabel = computed(() => {
       <OrganizationProfileCard :profile="application" />
 
       <div
-        v-if="application.status === 'REJECTED' && application.rejection_reason"
-        class="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-4"
+        v-if="hasAdminReviewOutcome"
+        :class="[
+          'rounded-2xl border p-4 sm:p-5',
+          application.status === 'REJECTED'
+            ? 'border-red-200 dark:border-red-900/50 bg-red-50/80 dark:bg-red-950/20'
+            : application.status === 'APPROVED'
+              ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/60 dark:bg-emerald-950/20'
+              : 'border-blue-200 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-950/20'
+        ]"
       >
-        <p class="text-sm font-bold text-red-800 dark:text-red-200">
-          Rejection reason
+        <h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Application status
+        </h2>
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <OrganizationStatusBadge :status="application.status" />
+          <p class="text-sm text-slate-700 dark:text-slate-300 min-w-0 flex-1">
+            {{ statusLabel }}
+          </p>
+        </div>
+        <p
+          v-if="application.reviewed_at"
+          class="text-xs text-slate-600 dark:text-slate-400 mt-3"
+        >
+          Last review: {{ formatReviewedWhen(application.reviewed_at) }}
         </p>
-        <p class="text-sm text-red-900 dark:text-red-100 mt-1">
-          {{ application.rejection_reason }}
-        </p>
+        <div
+          v-if="adminReviewerNote"
+          :class="[
+            'mt-4 rounded-xl p-3 text-sm',
+            application.status === 'REJECTED'
+              ? 'bg-white/80 dark:bg-slate-900/50 text-red-900 dark:text-red-100 border border-red-100 dark:border-red-900/40'
+              : 'bg-white/80 dark:bg-slate-900/50 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700'
+          ]"
+        >
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            Message from reviewer
+          </p>
+          <p class="mt-1.5 leading-relaxed whitespace-pre-wrap">
+            {{ adminReviewerNote }}
+          </p>
+        </div>
       </div>
 
       <div class="flex flex-wrap gap-2">
@@ -126,6 +204,7 @@ const statusLabel = computed(() => {
       </div>
 
       <ApplicationTimeline
+        :logs="applicationLogs.length ? applicationLogs : null"
         :submitted-at="application.created_at"
         :reviewed-at="application.reviewed_at"
         :status-label="statusLabel"
