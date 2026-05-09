@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { resolveBackendMediaUrl } from '~/utils/mediaUrl'
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -8,6 +10,11 @@ const route = useRoute()
 const router = useRouter()
 const store = useOrganizerApplicationStore()
 const notifications = useNotifications()
+const config = useRuntimeConfig()
+
+function mediaHref(path: string | null | undefined): string | undefined {
+  return resolveBackendMediaUrl(path, String(config.public.apiBase ?? ''))
+}
 
 const profileId = computed(() => String(route.params.id || ''))
 
@@ -187,8 +194,8 @@ const loading = computed(() => store.adminDetailLoading)
               Logo
             </p>
             <a
-              v-if="detail.profile.logo_url"
-              :href="detail.profile.logo_url"
+              v-if="detail.profile.logo_url && mediaHref(detail.profile.logo_url)"
+              :href="mediaHref(detail.profile.logo_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold mt-1 inline-block"
@@ -205,8 +212,8 @@ const loading = computed(() => store.adminDetailLoading)
               Certificate
             </p>
             <a
-              v-if="detail.profile.certificate_url"
-              :href="detail.profile.certificate_url"
+              v-if="detail.profile.certificate_url && mediaHref(detail.profile.certificate_url)"
+              :href="mediaHref(detail.profile.certificate_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold mt-1 inline-block"
@@ -223,8 +230,8 @@ const loading = computed(() => store.adminDetailLoading)
               License
             </p>
             <a
-              v-if="detail.profile.business_license_url"
-              :href="detail.profile.business_license_url"
+              v-if="detail.profile.business_license_url && mediaHref(detail.profile.business_license_url)"
+              :href="mediaHref(detail.profile.business_license_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold mt-1 inline-block"

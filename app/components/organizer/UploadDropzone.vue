@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { OrganizationDocumentKind } from '~/types/organizer'
 import { resolveBackendMediaUrl } from '~/utils/mediaUrl'
 
 const props = defineProps<{
   label: string
   description?: string
-  kind: OrganizationDocumentKind
   accept: string
   maxBytes: number
   existingUrl?: string | null
+  previewUrl?: string | null
   disabled?: boolean
   progress?: number | null
   error?: string | null
@@ -16,17 +15,39 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [file: File]
-  retry: []
 }>()
 
 const dragOver = ref(false)
 const inputRef = ref<HTMLInputElement | null>(null)
 const localError = ref<string | null>(null)
 
+const acceptTokens = computed(() =>
+  props.accept.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+)
+
+function mimeAllowed(file: File): boolean {
+  const tokens = acceptTokens.value
+  if (tokens.length === 0) return true
+  const t = (file.type || '').toLowerCase()
+  for (const token of tokens) {
+    if (token.endsWith('/*')) {
+      const prefix = token.slice(0, -2)
+      if (t.startsWith(`${prefix}/`)) return true
+    }
+    else if (t === token) {
+      return true
+    }
+  }
+  return false
+}
+
 function validateFile(file: File): string | null {
   if (file.size > props.maxBytes) {
     const mb = (props.maxBytes / (1024 * 1024)).toFixed(1)
     return `File is too large (max ${mb} MB).`
+  }
+  if (!mimeAllowed(file)) {
+    return 'File type not accepted for this upload.'
   }
   return null
 }
@@ -67,6 +88,11 @@ const config = useRuntimeConfig()
 const resolvedExistingUrl = computed(() =>
   resolveBackendMediaUrl(props.existingUrl, String(config.public.apiBase ?? ''))
 )
+
+const isLikelyImagePreview = computed(() => {
+  if (!props.previewUrl) return false
+  return Boolean(props.previewUrl.startsWith('blob:') || props.previewUrl.match(/\.(png|jpe?g|gif|webp)$/i))
+})
 </script>
 
 <template>
@@ -83,14 +109,6 @@ const resolvedExistingUrl = computed(() =>
           {{ description }}
         </p>
       </div>
-      <button
-        v-if="resolvedExistingUrl && !disabled"
-        type="button"
-        class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline"
-        @click.stop="emit('retry')"
-      >
-        Replace
-      </button>
     </div>
 
     <div
@@ -134,6 +152,24 @@ const resolvedExistingUrl = computed(() =>
     </div>
 
     <div
+      v-if="previewUrl && isLikelyImagePreview"
+      class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden max-h-40 w-full flex justify-center bg-slate-50 dark:bg-slate-800/50"
+    >
+      <img
+        :src="previewUrl"
+        alt=""
+        class="max-h-40 object-contain"
+      >
+    </div>
+
+    <div
+      v-else-if="previewUrl"
+      class="text-xs text-slate-600 dark:text-slate-400 break-all"
+    >
+      Selected file ready to upload after submission.
+    </div>
+
+    <div
       v-if="resolvedExistingUrl"
       class="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 bg-white dark:bg-slate-900"
     >
@@ -143,7 +179,7 @@ const resolvedExistingUrl = computed(() =>
         rel="noopener noreferrer"
         class="text-sm font-semibold text-primary-600 dark:text-primary-400 truncate flex-1 min-w-0"
       >
-        View current file
+        View uploaded file
       </a>
       <AppLucideIcon
         name="open_in_new"

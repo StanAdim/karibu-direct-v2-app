@@ -4,7 +4,11 @@ export type ApplicationStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJEC
 
 export type AdminReviewAction = 'APPROVE' | 'REJECT' | 'REQUEST_CHANGES'
 
-export type OrganizationDocumentKind = 'certificate' | 'business_license' | 'logo'
+export type OrganizationDocumentKind =
+  | 'certificate'
+  | 'business_license'
+  | 'logo'
+  | 'verification_document'
 
 export type OrganizerLogAction =
   | 'CREATED'

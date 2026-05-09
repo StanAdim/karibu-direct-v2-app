@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { resolveBackendMediaUrl } from '~/utils/mediaUrl'
+
 definePageMeta({
   layout: 'organizer',
   middleware: 'organizer'
@@ -6,6 +8,11 @@ definePageMeta({
 
 const store = useOrganizerApplicationStore()
 const notifications = useNotifications()
+const config = useRuntimeConfig()
+
+function mediaHref(path: string | null | undefined): string | undefined {
+  return resolveBackendMediaUrl(path, String(config.public.apiBase ?? ''))
+}
 
 onMounted(async () => {
   try {
@@ -80,8 +87,8 @@ const profile = computed(() => store.application)
           <li class="flex justify-between gap-2">
             <span class="text-slate-600">Logo</span>
             <a
-              v-if="profile.logo_url"
-              :href="profile.logo_url"
+              v-if="profile.logo_url && mediaHref(profile.logo_url)"
+              :href="mediaHref(profile.logo_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold"
@@ -91,8 +98,8 @@ const profile = computed(() => store.application)
           <li class="flex justify-between gap-2">
             <span class="text-slate-600">Certificate</span>
             <a
-              v-if="profile.certificate_url"
-              :href="profile.certificate_url"
+              v-if="profile.certificate_url && mediaHref(profile.certificate_url)"
+              :href="mediaHref(profile.certificate_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold"
@@ -102,8 +109,8 @@ const profile = computed(() => store.application)
           <li class="flex justify-between gap-2">
             <span class="text-slate-600">Business license</span>
             <a
-              v-if="profile.business_license_url"
-              :href="profile.business_license_url"
+              v-if="profile.business_license_url && mediaHref(profile.business_license_url)"
+              :href="mediaHref(profile.business_license_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold"

@@ -37,7 +37,9 @@ export default defineNuxtConfig({
       /** Backend role IDs for `POST /users/{id}/roles/{role_id}` */
       roleIdAdmin: process.env.NUXT_PUBLIC_ROLE_ID_ADMIN || '',
       roleIdOrganizer: process.env.NUXT_PUBLIC_ROLE_ID_ORGANIZER || '',
-      roleIdAttendee: process.env.NUXT_PUBLIC_ROLE_ID_ATTENDEE || ''
+      roleIdAttendee: process.env.NUXT_PUBLIC_ROLE_ID_ATTENDEE || '',
+      /** Default country string for organizer applications (API requires `country`). */
+      organizerDefaultCountry: process.env.NUXT_PUBLIC_ORGANIZER_DEFAULT_COUNTRY || 'Tanzania'
     }
   },
 

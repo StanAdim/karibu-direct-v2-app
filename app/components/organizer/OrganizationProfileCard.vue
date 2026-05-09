@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import type { OrganizationProfile } from '~/types/organizer'
+import { resolveBackendMediaUrl } from '~/utils/mediaUrl'
 
-defineProps<{
+const props = defineProps<{
   profile: OrganizationProfile
   dense?: boolean
 }>()
+
+const config = useRuntimeConfig()
+const logoSrc = computed(() =>
+  resolveBackendMediaUrl(props.profile.logo_url, String(config.public.apiBase ?? ''))
+)
 </script>
 
 <template>
@@ -19,8 +25,8 @@ defineProps<{
         class="size-16 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200/80 dark:border-slate-700"
       >
         <img
-          v-if="profile.logo_url"
-          :src="profile.logo_url"
+          v-if="logoSrc"
+          :src="logoSrc"
           alt=""
           class="size-full object-cover"
         >

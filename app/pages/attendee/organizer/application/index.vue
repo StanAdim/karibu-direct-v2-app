@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { resolveBackendMediaUrl } from '~/utils/mediaUrl'
+
 definePageMeta({
   layout: 'attendee',
   middleware: ['attendee', 'organizer-application-attendee']
@@ -8,6 +10,11 @@ const organizerApplicationStore = useOrganizerApplicationStore()
 const { startApplicationStatusPolling, stopPolling, shouldPollStatus } = useOrganizerApplication()
 const notifications = useNotifications()
 const authStore = useAuthStore()
+const config = useRuntimeConfig()
+
+function mediaHref(path: string | null | undefined): string | undefined {
+  return resolveBackendMediaUrl(path, String(config.public.apiBase ?? ''))
+}
 
 const loading = computed(() => organizerApplicationStore.loadingMine && !organizerApplicationStore.mineLoaded)
 
@@ -132,8 +139,19 @@ const statusLabel = computed(() => {
           <li class="flex justify-between gap-2">
             <span class="text-slate-600 dark:text-slate-400">Logo</span>
             <a
-              v-if="application.logo_url"
-              :href="application.logo_url"
+              v-if="application.logo_url && mediaHref(application.logo_url)"
+              :href="mediaHref(application.logo_url)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-semibold text-primary-600 dark:text-primary-400 shrink-0"
+            >View</a>
+            <span v-else class="text-slate-400">Not uploaded</span>
+          </li>
+          <li class="flex justify-between gap-2">
+            <span class="text-slate-600 dark:text-slate-400">Verification document</span>
+            <a
+              v-if="application.verification_document_url && mediaHref(application.verification_document_url)"
+              :href="mediaHref(application.verification_document_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="font-semibold text-primary-600 dark:text-primary-400 shrink-0"
@@ -143,8 +161,8 @@ const statusLabel = computed(() => {
           <li class="flex justify-between gap-2">
             <span class="text-slate-600 dark:text-slate-400">Certificate</span>
             <a
-              v-if="application.certificate_url"
-              :href="application.certificate_url"
+              v-if="application.certificate_url && mediaHref(application.certificate_url)"
+              :href="mediaHref(application.certificate_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="font-semibold text-primary-600 dark:text-primary-400 shrink-0"
@@ -154,8 +172,8 @@ const statusLabel = computed(() => {
           <li class="flex justify-between gap-2">
             <span class="text-slate-600 dark:text-slate-400">Business license</span>
             <a
-              v-if="application.business_license_url"
-              :href="application.business_license_url"
+              v-if="application.business_license_url && mediaHref(application.business_license_url)"
+              :href="mediaHref(application.business_license_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="font-semibold text-primary-600 dark:text-primary-400 shrink-0"
