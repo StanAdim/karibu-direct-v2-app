@@ -114,9 +114,10 @@ function isAccountNavActive(item: (typeof accountNavItems)[number]): boolean {
   return isActiveRoute(item.to)
 }
 
-function closeMobileSidebar() {
-  isMobileSidebarOpen.value = false
-}
+const showReviewBanner = computed(() =>
+  authStore.user?.primary_role?.name !== 'Organizer'
+  && organizerApplicationStore.application?.status === 'UNDER_REVIEW'
+)
 </script>
 
 <template>
@@ -299,6 +300,26 @@ function closeMobileSidebar() {
 
       <!-- Page content: consistent padding for all attendee routes -->
       <div class="p-4 sm:p-5 lg:p-6 flex-1 overflow-x-hidden">
+        <div
+          v-if="showReviewBanner"
+          class="mb-4 rounded-2xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/80 dark:bg-blue-950/25 px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+          role="status"
+        >
+          <div class="flex items-start gap-2 min-w-0">
+            <AppLucideIcon name="info" class="text-blue-600 dark:text-blue-400 text-xl shrink-0 mt-0.5" />
+            <p class="text-sm text-slate-800 dark:text-slate-100">
+              <span class="font-semibold">Organizer application under review.</span>
+              We will notify you when there is an update. You can track status on your application page.
+            </p>
+          </div>
+          <AppButton
+            to="/attendee/organizer/application"
+            class="shrink-0 sm:ml-auto"
+            size="sm"
+          >
+            View application
+          </AppButton>
+        </div>
         <slot />
       </div>
     </main>

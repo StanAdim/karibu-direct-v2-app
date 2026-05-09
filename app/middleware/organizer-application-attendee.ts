@@ -6,6 +6,6 @@ export default defineNuxtRouteMiddleware(() => {
   if (!authStore.isAuthenticated) return
 
   if (authStore.user?.primary_role?.name === 'Organizer') {
-    return navigateTo('/organizer', { replace: true })
+    return navigateTo('/organizer/dashboard', { replace: true })
   }
 })

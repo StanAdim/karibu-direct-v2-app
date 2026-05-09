@@ -1,3 +1,10 @@
+export interface OrganizerNavItem {
+  id: string
+  label: string
+  icon: string
+  to: string
+}
+
 /** Organizer application workflow types (aligned with API `OrganizationProfile` + admin review). */
 
 export type ApplicationStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED'
@@ -8,6 +15,7 @@ export type OrganizationDocumentKind =
   | 'certificate'
   | 'business_license'
   | 'logo'
+  | 'banner'
   | 'verification_document'
 
 export type OrganizerLogAction =
@@ -37,6 +45,7 @@ export interface OrganizationProfile {
   ward: string | null
   address: string | null
   logo_url: string | null
+  banner_url: string | null
   certificate_url: string | null
   business_license_url: string | null
   verification_document_url: string | null

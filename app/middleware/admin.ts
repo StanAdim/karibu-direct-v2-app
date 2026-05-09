@@ -21,7 +21,7 @@ export default defineNuxtRouteMiddleware(() => {
 function getDefaultRouteForRole(primaryRole?: string): string {
   switch (primaryRole) {
     case 'Organizer':
-      return '/organizer'
+      return '/organizer/dashboard'
     case 'Attendee':
       return '/attendee'
     default:

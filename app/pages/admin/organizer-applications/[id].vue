@@ -188,7 +188,7 @@ const loading = computed(() => store.adminDetailLoading)
         <h3 class="font-bold text-slate-900 dark:text-white mb-3">
           Documents
         </h3>
-        <ul class="grid sm:grid-cols-3 gap-3 text-sm">
+        <ul class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 text-sm">
           <li class="rounded-xl border border-slate-100 dark:border-slate-800 p-3">
             <p class="text-xs font-bold text-slate-500 uppercase">
               Logo
@@ -196,6 +196,24 @@ const loading = computed(() => store.adminDetailLoading)
             <a
               v-if="detail.profile.logo_url && mediaHref(detail.profile.logo_url)"
               :href="mediaHref(detail.profile.logo_url)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary-600 font-semibold mt-1 inline-block"
+            >Open</a>
+            <p
+              v-else
+              class="text-slate-400 mt-1"
+            >
+              —
+            </p>
+          </li>
+          <li class="rounded-xl border border-slate-100 dark:border-slate-800 p-3">
+            <p class="text-xs font-bold text-slate-500 uppercase">
+              Banner
+            </p>
+            <a
+              v-if="detail.profile.banner_url && mediaHref(detail.profile.banner_url)"
+              :href="mediaHref(detail.profile.banner_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold mt-1 inline-block"
@@ -232,6 +250,24 @@ const loading = computed(() => store.adminDetailLoading)
             <a
               v-if="detail.profile.business_license_url && mediaHref(detail.profile.business_license_url)"
               :href="mediaHref(detail.profile.business_license_url)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary-600 font-semibold mt-1 inline-block"
+            >Open</a>
+            <p
+              v-else
+              class="text-slate-400 mt-1"
+            >
+              —
+            </p>
+          </li>
+          <li class="rounded-xl border border-slate-100 dark:border-slate-800 p-3 sm:col-span-2 lg:col-span-1">
+            <p class="text-xs font-bold text-slate-500 uppercase">
+              Verification
+            </p>
+            <a
+              v-if="detail.profile.verification_document_url && mediaHref(detail.profile.verification_document_url)"
+              :href="mediaHref(detail.profile.verification_document_url)"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 font-semibold mt-1 inline-block"

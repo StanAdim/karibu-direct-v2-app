@@ -61,6 +61,8 @@ onMounted(async () => {
     const app = organizerApplicationStore.application
     if (app?.status === 'APPROVED') {
       await authStore.fetchUser()
+      await navigateTo('/organizer/dashboard', { replace: true })
+      return
     }
     const s = app?.status
     if (s && shouldPollStatus(s)) {
@@ -196,7 +198,7 @@ const adminReviewerNote = computed(() => {
         </AppButton>
         <AppButton
           v-if="application.status === 'APPROVED'"
-          to="/organizer"
+          to="/organizer/dashboard"
           color="success"
         >
           Go to organizer dashboard

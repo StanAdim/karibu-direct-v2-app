@@ -149,6 +149,14 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = (): void => {
+    if (import.meta.client) {
+      try {
+        useOrganizerWorkspaceStore().reset()
+      }
+      catch {
+        /* Pinia may not be ready in rare teardown paths */
+      }
+    }
     clearAuth()
     navigateTo('/login')
   }
@@ -181,7 +189,7 @@ export const useAuthStore = defineStore('auth', () => {
       case 'Admin':
         return '/admin'
       case 'Organizer':
-        return '/organizer'
+        return '/organizer/dashboard'
       case 'Attendee':
         return '/attendee'
       default:

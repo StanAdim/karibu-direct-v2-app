@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
   showFooter: true,
   navLinks: () => [
     { label: 'Explore', to: '/events' },
-    { label: 'Host an Event', to: '/organizer' },
+    { label: 'Host an Event', to: '/organizer/dashboard' },
     { label: 'Help', to: '/help' }
   ],
   showSearch: false,
@@ -43,7 +43,7 @@ const footerSections = [
   {
     title: 'Plan Events',
     links: [
-      { label: 'Sell Tickets Online', href: '/organizer' },
+      { label: 'Sell Tickets Online', href: '/organizer/dashboard' },
       { label: 'Event Marketing', href: '/marketing' },
       { label: 'Event Management', href: '/management' },
       { label: 'Pricing', href: '/pricing' }

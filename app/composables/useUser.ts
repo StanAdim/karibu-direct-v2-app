@@ -8,6 +8,7 @@ interface UseUserReturn {
   userRole: ComputedRef<UserRole | null>
   userAvatar: ComputedRef<string | null>
   isAdmin: ComputedRef<boolean>
+  isOrganizer: ComputedRef<boolean>
   isModerator: ComputedRef<boolean>
   hasRole: (role: UserRole) => boolean
   hasAnyRole: (roles: UserRole[]) => boolean
@@ -30,6 +31,7 @@ export function useUser(): UseUserReturn {
   const userAvatar = computed(() => user.value?.avatar ?? null)
 
   const isAdmin = computed(() => userRole.value === 'Admin')
+  const isOrganizer = computed(() => userRole.value === 'Organizer')
   const isModerator = computed(() => userRole.value === 'Organizer' || isAdmin.value)
 
   function hasRole(role: UserRole): boolean {
@@ -49,6 +51,7 @@ export function useUser(): UseUserReturn {
     userRole,
     userAvatar,
     isAdmin,
+    isOrganizer,
     isModerator,
     hasRole,
     hasAnyRole

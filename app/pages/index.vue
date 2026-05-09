@@ -351,7 +351,7 @@ function handleSelectCity(city: string) {
               {{ isAuthenticated ? 'Go to Dashboard' : 'Start for Free' }}
             </button>
           </NuxtLink>
-          <NuxtLink to="/organizer">
+          <NuxtLink to="/organizer/dashboard">
             <button class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-base hover:bg-white/10 transition-all">
               Learn More
             </button>

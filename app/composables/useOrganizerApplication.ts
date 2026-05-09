@@ -32,6 +32,9 @@ export function useOrganizerApplication() {
         if (prev !== 'APPROVED' && next === 'APPROVED') {
           await authStore.fetchUser()
           stopPolling()
+          if (import.meta.client) {
+            await navigateTo('/organizer/dashboard', { replace: true })
+          }
         }
         if (next && !shouldPollStatus(next)) {
           stopPolling()
