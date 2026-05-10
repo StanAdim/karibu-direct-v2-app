@@ -210,30 +210,32 @@ function handleSelectCity(city: string) {
 
 <template>
   <div>
-    <!-- Hero Section -->
     <HeroSection
-      title="Discover Amazing Events "
-      highlight=" Near You"
-      subtitle="Find concerts, workshops, and meetups happening in your city."
+      title="Discover amazing events"
+      highlight=" near you"
+      subtitle="Find concerts, workshops, and meetups happening in your city — curated for discovery, built for memories."
       :background-image="`${config.public.appBase}/images/defaults/events-1.png`"
       :show-search="true"
       :show-location-select="true"
-      :locations="[ 'Dar es Salaam', 'Arusha', 'Zanzibar', 'Tanga', 'Morogoro', 'Mwanza']"
+      :locations="['Dar es Salaam', 'Arusha', 'Zanzibar', 'Tanga', 'Morogoro', 'Mwanza']"
       @search="handleSearch"
     />
 
-    <!-- Category pills -->
-    <section class="px-4 py-4 md:px-6">
-      <div class="mx-auto max-w-7xl">
+    <section class="public-section-tight border-b border-slate-200/60 dark:border-slate-800/60">
+      <div class="public-container">
         <p
           v-if="categoriesError"
-          class="mb-2 text-xs text-amber-600 dark:text-amber-400"
+          class="mb-3 text-xs font-medium text-amber-700 dark:text-amber-400"
         >
           Categories could not be loaded. You can still browse featured events.
         </p>
-        <div class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+        <div
+          class="-mx-1 flex snap-x snap-mandatory items-center gap-2 overflow-x-auto px-1 pb-3 pt-1 scrollbar-hide md:gap-3 md:pb-2"
+          role="list"
+          aria-label="Event categories"
+        >
           <template v-if="categoriesLoading && categoryPills.length <= 1">
-            <span class="text-sm text-slate-500 dark:text-slate-400 px-2">Loading categories…</span>
+            <span class="snap-start px-2 text-sm text-slate-500 dark:text-slate-400">Loading categories…</span>
           </template>
           <CategoryButton
             v-for="cat in categoryPills"
@@ -241,39 +243,48 @@ function handleSelectCity(city: string) {
             :label="cat.label"
             :icon="cat.icon"
             :active="activeCategoryId === cat.id"
+            class="snap-start"
+            role="listitem"
             @click="activeCategoryId = cat.id"
           />
         </div>
       </div>
     </section>
 
-    <!-- Featured Events -->
-    <section class="px-4 py-12 md:px-6 bg-slate-50/50 dark:bg-slate-900/30">
-      <div class="mx-auto max-w-7xl">
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+    <section class="public-section public-surface-band">
+      <div class="public-container">
+        <div class="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Featured Events</h2>
-            <p class="mt-2 text-slate-500 dark:text-slate-400">Hand-picked experiences you can't miss</p>
+            <p class="public-eyebrow">
+              Curated for you
+            </p>
+            <h2 class="public-heading-lg mt-2">
+              Featured events
+            </h2>
+            <p class="public-prose-muted mt-2 max-w-xl">
+              Hand-picked experiences trending across the community.
+            </p>
           </div>
-          <NuxtLink to="/events" class="text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors shrink-0" >
-            View All Events
+          <NuxtLink to="/events" class="public-focus-ring public-link-arrow shrink-0 rounded-lg">
+            View all
+            <AppLucideIcon name="arrow_forward" class="text-base" aria-hidden="true" />
           </NuxtLink>
         </div>
 
-        <div v-if="featuredLoading" class="py-16 flex justify-center">
-          <LoadingState text="Loading featured events…" />
+        <div v-if="featuredLoading" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <PublicEventCardSkeleton v-for="n in 4" :key="n" />
         </div>
 
         <p
           v-else-if="featuredError"
-          class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-10 text-center text-slate-600 dark:text-slate-400"
+          class="public-card-surface px-6 py-10 text-center text-slate-600 dark:text-slate-400"
         >
           Featured events couldn’t load. Try again later or browse the full list.
         </p>
 
         <p
           v-else-if="featuredEvents.length === 0"
-          class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-10 text-center text-slate-600 dark:text-slate-400"
+          class="public-card-surface px-6 py-10 text-center text-slate-600 dark:text-slate-400"
         >
           No public events match this filter right now.
         </p>
@@ -292,17 +303,27 @@ function handleSelectCity(city: string) {
             :location="featuredCardLocation(item)"
             :price="featuredPrice(item)"
             :category="item.primary_category_name?.trim() || 'Event'"
+            :show-favorite="false"
             @click="handleViewEvent(item.slug)"
           />
         </div>
       </div>
     </section>
 
-    <!-- Explore Popular Cities: circular cards -->
-    <section class="px-4 py-16 md:px-6">
-      <div class="mx-auto max-w-7xl">
-        <h2 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Explore Popular Cities</h2>
-        <div class="mt-12 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
+    <section class="public-section">
+      <div class="public-container">
+        <div class="mx-auto max-w-2xl text-center">
+          <p class="public-eyebrow">
+            Popular destinations
+          </p>
+          <h2 class="public-heading-lg mt-2">
+            Explore cities
+          </h2>
+          <p class="public-prose-muted mt-3">
+            Jump into what’s happening where you live — or plan your next trip around an experience.
+          </p>
+        </div>
+        <div class="mt-12 grid grid-cols-2 justify-items-center gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-6 lg:gap-8">
           <CityCard
             v-for="city in popularCities"
             :key="city.name"
@@ -315,45 +336,70 @@ function handleSelectCity(city: string) {
       </div>
     </section>
 
-    <!-- How It Works -->
-    <section class="px-4 py-20 md:px-6 bg-slate-50/50 dark:bg-slate-900/30">
-      <div class="mx-auto max-w-7xl">
-        <h2 class="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">How It Works</h2>
-        <div class="mt-16 grid grid-cols-1 gap-12 md:grid-cols-3">
+    <section class="public-section public-surface-band">
+      <div class="public-container">
+        <div class="mx-auto max-w-2xl text-center">
+          <p class="public-eyebrow">
+            Simple flow
+          </p>
+          <h2 class="public-heading-lg mt-2">
+            How it works
+          </h2>
+          <p class="public-prose-muted mt-3">
+            From discovery to your ticket — three quick steps.
+          </p>
+        </div>
+        <div class="mt-14 grid grid-cols-1 gap-14 md:grid-cols-3 md:gap-8">
           <FeatureStep
-            v-for="step in howItWorks"
+            v-for="(step, index) in howItWorks"
             :key="step.step"
             :step="step.step"
             :title="step.title"
             :icon="step.icon"
             :description="step.description"
+            :show-connector-tail="index < howItWorks.length - 1"
           />
         </div>
       </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="relative overflow-hidden bg-primary-500 py-20">
+    <section class="relative isolate overflow-hidden py-20 md:py-24 public-gradient-cta">
       <div
-        class="absolute inset-0 opacity-10"
+        class="absolute inset-0 opacity-[0.12]"
         style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 40px 40px;"
+        aria-hidden="true"
       />
-      <div class="relative mx-auto max-w-7xl px-6 text-center">
-        <h2 class="text-4xl font-black text-white">
-          Ready to Host Your Own Event?
+      <div
+        class="pointer-events-none absolute -left-24 top-1/2 size-[28rem] -translate-y-1/2 rounded-full bg-white/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div
+        class="pointer-events-none absolute -right-24 bottom-0 size-[22rem] rounded-full bg-violet-400/20 blur-3xl"
+        aria-hidden="true"
+      />
+
+      <div class="public-container relative text-center">
+        <h2 class="text-balance text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-[2.75rem]">
+          Ready to host your own event?
         </h2>
-        <p class="mx-auto mt-4 max-w-xl text-lg text-white/80">
-          Join thousands of organizers who trust our platform to create memorable experiences.
+        <p class="mx-auto mt-4 max-w-xl text-pretty text-lg text-white/85">
+          Join organizers who use {{ config.public.appName }} to sell tickets, grow audiences, and run unforgettable experiences.
         </p>
-        <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <NuxtLink :to="getStartedRoute()">
-            <button class="bg-white text-primary-500 px-8 py-4 rounded-xl font-bold text-base shadow-lg hover:bg-white/90 transition-all">
-              {{ isAuthenticated ? 'Go to Dashboard' : 'Start for Free' }}
+        <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+          <NuxtLink :to="getStartedRoute()" class="w-full sm:w-auto">
+            <button
+              type="button"
+              class="public-focus-ring w-full min-h-[3.25rem] rounded-2xl bg-white px-8 text-base font-bold text-primary-600 shadow-xl shadow-slate-950/25 transition hover:scale-[1.02] hover:bg-slate-50 active:scale-[0.99] dark:text-primary-700 sm:min-w-[12rem]"
+            >
+              {{ isAuthenticated ? 'Go to dashboard' : 'Start for free' }}
             </button>
           </NuxtLink>
-          <NuxtLink to="/organizer/dashboard">
-            <button class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-base hover:bg-white/10 transition-all">
-              Learn More
+          <NuxtLink to="/organizer/dashboard" class="w-full sm:w-auto">
+            <button
+              type="button"
+              class="public-focus-ring w-full min-h-[3.25rem] rounded-2xl border-2 border-white/80 bg-white/10 px-8 text-base font-bold text-white backdrop-blur-sm transition hover:bg-white/20 sm:min-w-[12rem]"
+            >
+              Explore hosting
             </button>
           </NuxtLink>
         </div>

@@ -286,18 +286,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-slate-50 dark:bg-slate-950">
-    <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div class="mb-8 space-y-2">
-        <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-          Discover Experiences
+  <div class="public-page-bg min-h-[50vh]">
+    <section class="public-container py-10 lg:py-12">
+      <div class="mb-8 max-w-3xl space-y-3">
+        <p class="public-eyebrow">
+          Browse
+        </p>
+        <h1 class="public-heading-xl">
+          Discover experiences
         </h1>
-        <p class="text-lg text-slate-500 dark:text-slate-400">
+        <p class="public-prose-muted">
           Find the best events happening in your city and beyond.
         </p>
       </div>
 
-      <div class="mb-6 rounded-2xl border border-primary-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:hidden">
+      <div class="public-card-surface mb-6 p-4 lg:hidden">
         <div class="flex items-center gap-2 rounded-xl border border-primary-100 bg-primary-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800">
           <AppLucideIcon name="search" class="text-primary-500" />
           <input
@@ -311,7 +314,7 @@ onMounted(() => {
 
       <div class="flex flex-col gap-8 lg:flex-row">
         <aside class="w-full shrink-0 lg:w-72">
-          <div class="sticky top-24 rounded-2xl border border-primary-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div class="sticky top-24 z-10 public-card-surface p-6 lg:top-28">
             <div class="mb-5 flex items-center justify-between border-b border-primary-50 pb-4 dark:border-slate-800">
               <h2 class="text-base font-bold text-slate-900 dark:text-white">
                 Filters

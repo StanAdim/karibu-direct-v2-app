@@ -87,13 +87,13 @@ const heroImage = computed(() => {
 </script>
 
 <template>
-  <div class="bg-slate-50 dark:bg-slate-950 min-h-[60vh]">
-    <div v-if="pending" class="mx-auto flex max-w-4xl justify-center px-4 py-20">
+  <div class="public-page-bg min-h-[60vh]">
+    <div v-if="pending" class="public-container flex justify-center py-24">
       <LoadingState text="Loading event…" />
     </div>
     <div
       v-else-if="fetchError || !event"
-      class="mx-auto max-w-4xl px-4 py-20 text-center"
+      class="public-container max-w-4xl py-24 text-center"
     >
       <p class="text-lg font-semibold text-slate-800 dark:text-slate-100">
         We couldn&apos;t find this event.
@@ -103,52 +103,55 @@ const heroImage = computed(() => {
       </p>
       <NuxtLink
         to="/events"
-        class="mt-8 inline-flex rounded-xl bg-primary-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-600"
+        class="public-focus-ring mt-8 inline-flex min-h-11 items-center rounded-2xl bg-primary-500 px-6 text-sm font-bold text-white shadow-lg shadow-primary-500/25 transition hover:bg-primary-600"
       >
         Browse events
       </NuxtLink>
     </div>
-    <article v-else class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:py-14">
-      <div class="mb-6 overflow-hidden rounded-3xl bg-slate-900 shadow-lg">
-        <div class="relative aspect-[21/9] min-h-[200px]">
+    <article v-else class="public-container max-w-4xl py-10 sm:py-14">
+      <div class="overflow-hidden rounded-[var(--radius-public-hero)] bg-slate-950 shadow-[var(--shadow-public-float)] ring-1 ring-white/10 dark:ring-white/10">
+        <div class="relative aspect-[21/9] min-h-[220px]">
           <img
             :src="heroImage"
             :alt="event.title"
-            class="h-full w-full object-cover opacity-90"
+            class="h-full w-full object-cover"
           >
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-transparent" />
-          <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-            <h1 class="text-3xl font-black text-white md:text-4xl">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-primary-900/25" />
+          <div class="absolute inset-0 bg-gradient-to-r from-slate-950/40 via-transparent to-transparent" />
+          <div class="absolute bottom-0 left-0 right-0 space-y-3 p-6 md:p-10">
+            <h1 class="text-balance text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-[2.5rem]">
               {{ event.title }}
             </h1>
-            <p class="mt-2 flex flex-wrap items-center gap-3 text-sm text-white/85">
-              <AppLucideIcon name="schedule" class="text-[18px]" />
+            <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium text-white/90">
+              <AppLucideIcon name="schedule" class="text-[18px] shrink-0" aria-hidden="true" />
               <span>{{ new Date(event.start_date).toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
                 day: 'numeric',
                 year: 'numeric'
               }) }}</span>
-              <span class="text-white/70">·</span>
+              <span class="text-white/50" aria-hidden="true">·</span>
               <span>{{ new Date(event.start_date).toLocaleTimeString('en-US', {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
               }) }}</span>
             </p>
-            <p class="mt-1 flex flex-wrap items-center gap-3 text-sm text-white/85">
-              <AppLucideIcon name="location_on" class="text-[18px]" />
+            <p class="flex flex-wrap items-center gap-2 text-sm text-white/85">
+              <AppLucideIcon name="location_on" class="text-[18px] shrink-0" aria-hidden="true" />
               <span>{{ venueLine(event) }}</span>
             </p>
           </div>
         </div>
       </div>
 
-      <div class="rounded-2xl border border-primary-50 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-8">
-        <p v-if="event.short_description" class="text-lg text-slate-600 dark:text-slate-300">
+      <div class="mt-8 public-card-surface p-6 md:p-10">
+        <p v-if="event.short_description" class="text-lg leading-relaxed text-slate-700 dark:text-slate-200">
           {{ event.short_description }}
         </p>
-        <div class="mt-6 whitespace-pre-line text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+        <div
+          class="mt-6 whitespace-pre-line border-t border-slate-100 pt-6 text-sm leading-relaxed text-slate-600 dark:border-slate-800 dark:text-slate-300"
+        >
           {{ event.description }}
         </div>
       </div>

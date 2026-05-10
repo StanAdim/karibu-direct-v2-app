@@ -4,25 +4,38 @@ interface Props {
   title: string
   description: string
   icon: string
+  /** Horizontal connector toward the next step (desktop). */
+  showConnectorTail?: boolean
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  showConnectorTail: false,
+})
 </script>
 
 <template>
-  <div class="flex flex-col items-center text-center">
-    <!-- Icon: purple rounded square -->
-    <div class="size-20 rounded-2xl bg-primary-500 flex items-center justify-center text-white shadow-lg mb-6">
-      <AppLucideIcon :name="icon" class="text-4xl" />
+  <div class="relative flex flex-col items-center text-center md:px-2">
+    <div
+      v-if="showConnectorTail"
+      class="absolute left-[calc(50%+2.75rem)] top-[2.125rem] z-0 hidden h-px w-[calc(100%-1.75rem)] bg-gradient-to-r from-primary-400/40 via-primary-300/25 to-transparent md:block dark:from-primary-500/35 dark:via-primary-500/15"
+      aria-hidden="true"
+    />
+
+    <div
+      class="relative z-[1] mb-6 flex size-[5.25rem] items-center justify-center rounded-3xl bg-gradient-to-br from-primary-500 to-violet-600 text-white shadow-xl shadow-primary-500/25 ring-4 ring-primary-500/10 transition-transform duration-300 hover:scale-105"
+    >
+      <AppLucideIcon :name="icon" class="text-4xl" aria-hidden="true" />
+      <span
+        class="absolute -right-1 -top-1 flex size-7 items-center justify-center rounded-full bg-white text-xs font-black text-primary-600 shadow-md dark:bg-slate-900 dark:text-primary-400"
+      >
+        {{ step }}
+      </span>
     </div>
 
-    <!-- Title -->
-    <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-3">
-      {{ step }}. {{ title }}
+    <h4 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+      {{ title }}
     </h4>
-
-    <!-- Description -->
-    <p class="text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs mx-auto">
+    <p class="mt-3 max-w-xs text-pretty text-sm leading-relaxed text-slate-600 dark:text-slate-400">
       {{ description }}
     </p>
   </div>
