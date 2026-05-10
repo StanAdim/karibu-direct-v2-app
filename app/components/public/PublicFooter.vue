@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+
 interface FooterLink {
   label: string
   href: string
@@ -43,7 +45,7 @@ const defaultSections: FooterSection[] = [
     links: [
       { label: 'Help center', href: '/help' },
       { label: 'Contact', href: '/support' },
-      { label: 'Community', href: '/support' },
+      { label: 'Community', href: '/help#community' },
     ],
   },
 ]

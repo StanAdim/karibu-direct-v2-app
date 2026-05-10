@@ -529,7 +529,7 @@ onMounted(() => {
 
           <div
             v-else-if="browseStore.items.length === 0"
-            class="rounded-2xl border border-primary-100 bg-white py-14 text-center text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+            class="public-card-surface py-14 text-center text-slate-600 dark:text-slate-300"
           >
             <AppLucideIcon name="event_busy" class="text-5xl text-slate-300" />
             <p class="mt-3 font-semibold">
@@ -542,10 +542,10 @@ onMounted(() => {
               v-for="event in browseStore.items"
               :key="event.id"
               :to="`/events/${event.slug}`"
-              class="group overflow-hidden rounded-2xl border border-primary-50 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 block"
+              class="group public-focus-ring block overflow-hidden rounded-[var(--radius-public-card)] border border-slate-200/80 bg-white/95 shadow-[var(--shadow-public-card)] transition-[var(--transition-public-surface)] hover:-translate-y-1 hover:border-primary-200/80 hover:shadow-[var(--shadow-public-card-hover)] dark:border-slate-800/90 dark:bg-slate-900/95 dark:hover:border-primary-500/25"
             >
               <article>
-                <div class="relative aspect-16/10 overflow-hidden">
+                <div class="relative aspect-[4/3] overflow-hidden">
                   <img
                     :src="browseImage(event)"
                     :alt="event.title"
