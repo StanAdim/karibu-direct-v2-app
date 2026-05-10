@@ -27,13 +27,8 @@ const config = useRuntimeConfig()
 const route = useRoute()
 const { user } = useAuth()
 const authStore = useAuthStore()
-const { y } = useWindowScroll()
 
 const isMobileMenuOpen = ref(false)
-
-const isHeroLanding = computed(() => route.path === '/' || route.path === '')
-const isScrolled = computed(() => y.value > 16)
-const useTransparentShell = computed(() => isHeroLanding.value && !isScrolled.value)
 
 const resolvedNavLinks = computed(() =>
   props.navLinks.map(link => ({
@@ -58,23 +53,15 @@ watch(
 )
 
 function navLinkClass(link: NavLink & { active?: boolean }): string {
-  if (useTransparentShell.value) {
-    return link.active
-      ? 'text-white font-semibold underline decoration-primary-300 decoration-2 underline-offset-8'
-      : 'text-white/85 hover:text-white'
-  }
   return link.active
     ? 'text-primary-600 dark:text-primary-400 font-semibold'
-    : 'text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400'
+    : 'text-slate-700 dark:text-slate-200 hover:text-primary-600 dark:hover:text-primary-400'
 }
 </script>
 
 <template>
   <header
-    :class="[
-      'sticky top-0 z-50 w-full transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-out',
-      useTransparentShell ? 'glass-public-nav-transparent' : 'glass-public-nav shadow-sm shadow-slate-900/5 dark:shadow-none',
-    ]"
+    class="sticky top-0 z-50 w-full glass-public-nav shadow-sm shadow-slate-900/5 transition-[box-shadow,backdrop-filter] duration-300 ease-out dark:shadow-none"
   >
     <div class="public-container flex items-center justify-between gap-4 py-3 lg:py-3.5">
       <NuxtLink
@@ -83,12 +70,7 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
         :aria-label="`Home — ${config.public.appName}`"
       >
         <div
-          :class="[
-            'flex size-10 items-center justify-center overflow-hidden rounded-xl transition-all duration-300',
-            useTransparentShell
-              ? 'bg-white/15 shadow-lg ring-1 ring-white/25 backdrop-blur-md'
-              : 'bg-primary-500 text-white shadow-md shadow-primary-500/25',
-          ]"
+          class="flex size-10 items-center justify-center overflow-hidden rounded-xl bg-primary-500 text-white shadow-md shadow-primary-500/25 transition-all duration-300"
         >
           <img
             :src="imageLogo"
@@ -99,10 +81,7 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
           >
         </div>
         <span
-          :class="[
-            'text-lg font-bold tracking-tight transition-colors',
-            useTransparentShell ? 'text-white' : 'text-slate-900 dark:text-white',
-          ]"
+          class="text-lg font-bold tracking-tight text-slate-900 transition-colors dark:text-white"
         >
           {{ config.public.appName }}
         </span>
@@ -141,12 +120,7 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
         <template v-if="showAuthButtons && !user">
           <NuxtLink
             to="/login"
-            :class="[
-              'public-focus-ring hidden rounded-lg px-3 py-2 text-sm font-semibold transition-colors sm:inline',
-              useTransparentShell
-                ? 'text-white/90 hover:text-white'
-                : 'text-slate-600 hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400',
-            ]"
+            class="public-focus-ring hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:text-primary-600 dark:text-slate-200 dark:hover:text-primary-400 sm:inline"
           >
             Log in
           </NuxtLink>
@@ -158,12 +132,7 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
         <NuxtLink
           v-else-if="user"
           :to="defaultUserRoute"
-          :class="[
-            'public-focus-ring relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full transition-all duration-300',
-            useTransparentShell
-              ? 'ring-2 ring-white/40 ring-offset-2 ring-offset-transparent hover:ring-white/70'
-              : 'border-2 border-primary-500/25 bg-primary-500/10 hover:border-primary-500/50',
-          ]"
+          class="public-focus-ring relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-primary-500/30 bg-primary-500/10 transition-all duration-300 hover:border-primary-500/55 dark:border-primary-400/35 dark:bg-primary-500/15"
           :aria-label="'Go to your dashboard'"
         >
           <img
@@ -175,17 +144,13 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
           <AppLucideIcon
             v-else
             name="person"
-            :class="useTransparentShell ? 'text-white' : 'text-primary-500'"
-            class="text-xl"
+            class="text-xl text-primary-600 dark:text-primary-400"
           />
         </NuxtLink>
 
         <button
           type="button"
-          :class="[
-            'public-focus-ring inline-flex rounded-lg p-2 md:hidden',
-            useTransparentShell ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
-          ]"
+          class="public-focus-ring inline-flex rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden dark:text-slate-300 dark:hover:bg-slate-800"
           :aria-expanded="isMobileMenuOpen"
           aria-controls="public-mobile-nav"
           aria-label="Toggle navigation menu"
@@ -210,12 +175,7 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
       <div
         v-if="isMobileMenuOpen"
         id="public-mobile-nav"
-        :class="[
-          'border-t md:hidden',
-          useTransparentShell
-            ? 'border-white/15 bg-slate-950/90 backdrop-blur-xl'
-            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950',
-        ]"
+        class="border-t border-slate-200 bg-white/95 backdrop-blur-xl md:hidden dark:border-slate-800 dark:bg-slate-950/95"
       >
         <nav
           class="public-container flex flex-col gap-1 py-4"
@@ -227,11 +187,9 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
             :to="link.to"
             :class="[
               'rounded-xl px-3 py-3 text-base font-semibold transition-colors',
-              useTransparentShell
-                ? (link.active ? 'bg-white/10 text-white' : 'text-white/85 hover:bg-white/10')
-                : (link.active
-                    ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400'
-                    : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900'),
+              link.active
+                ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400'
+                : 'text-slate-800 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-900',
             ]"
             @click="isMobileMenuOpen = false"
           >
@@ -240,8 +198,7 @@ function navLinkClass(link: NavLink & { active?: boolean }): string {
           <template v-if="showAuthButtons && !user">
             <NuxtLink
               to="/login"
-              class="rounded-xl px-3 py-3 text-base font-semibold sm:hidden"
-              :class="useTransparentShell ? 'text-white hover:bg-white/10' : 'text-slate-700 dark:text-slate-200'"
+              class="rounded-xl px-3 py-3 text-base font-semibold text-slate-800 hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-900 sm:hidden"
               @click="isMobileMenuOpen = false"
             >
               Log in
