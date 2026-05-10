@@ -1,10 +1,66 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import type { EventCategory } from '~/types'
 import { useApi } from '~/composables/useApi'
 
 const model = defineModel<string[]>({ default: () => [] })
+
+/** Names learned from `{ id, name }` entries until `GET /events/categories/` resolves. */
+const labelsFromEmbeddedObjects = ref<Record<string, string>>({})
+
+function normalizeCategorySelection(
+  vals: unknown
+): { ids: string[]; labels: Record<string, string> } {
+  const labels: Record<string, string> = {}
+  if (!Array.isArray(vals)) return { ids: [], labels }
+
+  const ids: string[] = []
+  for (const entry of vals) {
+    if (typeof entry === 'string') {
+      const id = entry.trim()
+      if (id) ids.push(id)
+      continue
+    }
+    if (entry && typeof entry === 'object') {
+      const o = entry as Record<string, unknown>
+      const id = o.id != null ? String(o.id) : ''
+      if (!id) continue
+      ids.push(id)
+      const nameRaw = o.name ?? o.title ?? o.label
+      if (nameRaw != null) labels[id] = String(nameRaw)
+    }
+  }
+
+  return { ids: [...new Set(ids)], labels }
+}
+
+function sameNormalizedSelection(ids: string[], vals: unknown): boolean {
+  if (!Array.isArray(vals)) return ids.length === 0
+  if (vals.length !== ids.length) return false
+  return vals.every((v, i) => typeof v === 'string' && v === ids[i])
+}
+
+watch(
+  () => model.value,
+  (vals) => {
+    const { ids, labels } = normalizeCategorySelection(vals)
+
+    if (Object.keys(labels).length > 0) {
+      labelsFromEmbeddedObjects.value = {
+        ...labelsFromEmbeddedObjects.value,
+        ...labels
+      }
+    }
+
+    labelsFromEmbeddedObjects.value = Object.fromEntries(
+      Object.entries(labelsFromEmbeddedObjects.value).filter(([id]) => ids.includes(id))
+    )
+
+    if (!sameNormalizedSelection(ids, vals)) model.value = ids
+  },
+  { deep: true, immediate: true }
+)
 
 withDefaults(
   defineProps<{
@@ -74,7 +130,7 @@ async function fetchCategories() {
 onMounted(fetchCategories)
 
 function isSelected(id: string) {
-  return model.value.includes(id)
+  return model.value?.includes(id) ?? false
 }
 
 function toggle(id: string) {
@@ -91,9 +147,14 @@ function remove(id: string) {
 
 const labelById = computed(() => {
   const m = new Map<string, string>()
+  for (const [id, name] of Object.entries(labelsFromEmbeddedObjects.value)) m.set(id, name)
   for (const c of categories.value) m.set(c.id, c.name)
   return m
 })
+
+function chipLabel(id: string) {
+  return labelById.value.get(id) ?? id
+}
 
 const summary = computed(() => {
   const n = model.value.length
@@ -184,9 +245,14 @@ const summary = computed(() => {
       <span
         v-for="id in model"
         :key="id"
-        class="inline-flex items-center gap-1 rounded-md bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-950 dark:text-primary-200"
+        class="inline-flex min-w-0 max-w-full items-center gap-1 rounded-md bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-800 dark:bg-primary-950 dark:text-primary-200"
       >
-        {{ labelById.get(id) ?? id }}
+        <span
+          class="min-w-0 max-w-48 truncate"
+          :title="chipLabel(id)"
+        >
+          {{ chipLabel(id) }}
+        </span>
         <button
           type="button"
           class="rounded p-0.5 hover:bg-primary-100 dark:hover:bg-primary-900"
