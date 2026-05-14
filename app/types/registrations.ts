@@ -14,13 +14,11 @@ export interface RegisterForEventPayload {
   }[]
 }
 
-/** POST /registrations/checkin */
+/** POST /registrations/checkin — matches API CheckInRequest */
 export interface RegistrationCheckInPayload {
-  registration_id?: string
-  qr_code?: string
-  event_id?: string
-  session_id?: string
-  checkpoint_id?: string
+  qr_token?: string
+  ticket_number?: string
+  confirmation_code?: string
 }
 
 export type RegistrationTicket = Ticket

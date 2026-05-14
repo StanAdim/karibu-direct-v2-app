@@ -24,6 +24,11 @@ export interface Event {
   created_at: string
   updated_at: string
   is_saved?: boolean
+  /** Optional aggregates returned by some organizer/event detail endpoints */
+  revenue_total?: number
+  average_ticket_price?: number
+  order_count?: number
+  checkin_count?: number
 }
 
 export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed' | 'archived'

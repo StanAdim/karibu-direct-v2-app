@@ -194,10 +194,30 @@ export const useRegistrationStore = defineStore('registration', () => {
     loadingEventRegistrations.value = true
     setError(null)
     try {
-      const raw = await api.get<unknown>(`/registrations/event/${eventId}`)
-      const { data } = unwrapList<Registration>(raw)
-      eventRegistrations.value = data
-      return data
+      const merged: Registration[] = []
+      let page = 1
+      const size = 100
+      let hasNext = true
+
+      while (hasNext) {
+        const raw = await api.get<unknown>(`/registrations/event/${eventId}`, {
+          params: { page, size }
+        })
+        const { data } = unwrapList<Registration>(raw)
+        merged.push(...data)
+
+        const pag = (raw as { meta?: { pagination?: { has_next?: boolean } } })?.meta?.pagination
+        hasNext = Boolean(pag?.has_next)
+        page += 1
+
+        if (!data.length)
+          hasNext = false
+        if (page > 500)
+          break
+      }
+
+      eventRegistrations.value = merged
+      return merged
     }
     catch (e) {
       setError(e)

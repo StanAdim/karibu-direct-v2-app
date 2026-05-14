@@ -240,7 +240,7 @@ onUnmounted(() => {
                 v-model="profileStore.profile.phone_number"
                 type="tel"
                 class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="+1 (555) 000-1234"
+                placeholder="+2557-xxxx-xxxx"
                 :disabled="profileStore.loading"
               >
             </div>

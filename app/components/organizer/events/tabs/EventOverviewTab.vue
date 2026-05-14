@@ -37,6 +37,29 @@ const venueLabel = computed(() => {
 })
 const config = useRuntimeConfig()
 
+const organizerCheckpointHref = computed(() => `/organizer/checkpoints?event_id=${props.event.id}`)
+
+const checkInProgressPct = computed(() => {
+  const reg = props.event.registered_count ?? 0
+  if (!reg)
+    return 0
+  const ci = props.event.checkin_count ?? 0
+  return Math.min(100, Math.round((ci / reg) * 100))
+})
+
+const primaryCurrency = computed(() =>
+  (props.event.ticket_types?.[0]?.currency ?? 'USD').toUpperCase()
+)
+
+function formatOrganizerMoney(amount: number): string {
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: primaryCurrency.value }).format(amount)
+  }
+  catch {
+    return `${amount} ${primaryCurrency.value}`
+  }
+}
+
 function getEventImage(event: Event): string {
   return getEventCoverImageUrl(event.cover_image, String(config.public.apiBase))
 }
@@ -227,19 +250,25 @@ function getEventImage(event: Event): string {
                     Attendees checked in
                   </p>
                 </div>
-                <div class="h-10 w-10 rounded-full bg-primary/10 text-xs flex items-center justify-center text-primary">
-                  {{ capacityPercentage }}%
-                </div>
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
+                {{ checkInProgressPct }}%
+              </div>
               </div>
               <div class="h-2 w-full overflow-hidden rounded-full bg-surface-container-low">
-                <div class="h-full w-5/12 rounded-full bg-primary/80" />
+                <div
+                  class="h-full rounded-full bg-primary/80 transition-[width]"
+                  :style="{ width: `${checkInProgressPct}%` }"
+                />
               </div>
               <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
                 <span class="inline-flex items-center gap-2 rounded-full bg-surface-container-low px-3 py-1">
                   <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Live check-in stream
+                  Entry checkpoints use attendee scans
                 </span>
-                <AppButton size="sm">
+                <AppButton
+                  size="sm"
+                  :to="organizerCheckpointHref"
+                >
                   Open check-in
                 </AppButton>
               </div>
@@ -256,6 +285,18 @@ function getEventImage(event: Event): string {
                 Event Description
               </p>
             </header>
+            <div
+              v-if="props.event.categories?.length"
+              class="mb-4 flex flex-wrap gap-2"
+            >
+              <span
+                v-for="cat in props.event.categories"
+                :key="cat"
+                class="rounded-full bg-primary/12 px-2.5 py-1 text-[11px] font-semibold capitalize text-primary"
+              >
+                {{ cat }}
+              </span>
+            </div>
             <p class="text-sm leading-relaxed text-on-surface-variant">
               {{ props.event.description || 'No description provided for this event yet.' }}
             </p>
@@ -303,7 +344,7 @@ function getEventImage(event: Event): string {
                 Revenue
               </p>
               <p class="mt-2 text-2xl font-headline font-extrabold tracking-tight">
-                {{ props.event.revenue_total ? `$${props.event.revenue_total.toLocaleString()}` : '$0' }}
+                {{ formatOrganizerMoney(Number(props.event.revenue_total ?? 0)) }}
               </p>
               <p class="mt-1 text-xs text-on-primary/70">
                 Across all ticket types
@@ -312,12 +353,11 @@ function getEventImage(event: Event): string {
             <div class="flex flex-col items-end gap-2 text-xs text-on-primary/80">
               <span class="inline-flex items-center gap-1 rounded-full bg-black/10 px-2 py-1 backdrop-blur">
                 <AppLucideIcon
-                  name="i-lucide-trending-up"
+                  name="i-lucide-shopping-cart"
                   class="h-3 w-3"
                 />
-                <span>+12.4%</span>
+                <span>{{ (props.event.order_count ?? 0).toLocaleString() }} orders</span>
               </span>
-              <span>vs last period</span>
             </div>
           </header>
 
@@ -325,7 +365,7 @@ function getEventImage(event: Event): string {
             <div class="flex items-center justify-between">
               <span>Average ticket value</span>
               <span class="font-semibold">
-                {{ props.event.average_ticket_price ? `$${props.event.average_ticket_price.toLocaleString()}` : '$0' }}
+                {{ formatOrganizerMoney(Number(props.event.average_ticket_price ?? 0)) }}
               </span>
             </div>
             <div class="flex items-center justify-between">
@@ -355,18 +395,13 @@ function getEventImage(event: Event): string {
 
           <div class="space-y-4">
             <article
-              v-for="item in 3"
-              :key="item"
-              class="flex gap-4 rounded-2xl border border-surface-container-low bg-surface-container-lowest px-4 py-3 text-xs shadow-sm dark:border-slate-800 transition-all duration-300 hover:border-primary/40 hover:shadow-md"
+              class="flex gap-4 rounded-2xl border border-surface-container-low bg-surface-container-lowest px-4 py-3 text-xs shadow-sm dark:border-slate-800"
             >
               <div class="w-1 rounded-full bg-primary" />
               <div class="flex-1">
-                <p class="text-on-surface">
-                  <span class="font-semibold">Registration activity</span>
-                  · placeholder copy to be wired with live data.
-                </p>
-                <p class="mt-1 text-[11px] text-on-surface-variant">
-                  Just now
+                <p class="text-on-surface leading-relaxed">
+                  <span class="font-semibold">Activity timeline</span>
+                  · granular audit feeds appear once registration activity endpoints are exposed for organizers.
                 </p>
               </div>
             </article>
@@ -381,10 +416,20 @@ function getEventImage(event: Event): string {
             </p>
           </header>
           <div class="grid gap-2 text-xs">
-            <AppButton block size="sm">
+            <AppButton
+              block
+              size="sm"
+              class="cursor-not-allowed opacity-60"
+              disabled
+            >
               Promote event
             </AppButton>
-            <AppButton block size="sm" color="neutral">
+            <AppButton
+              block
+              size="sm"
+              color="neutral"
+              :to="`/organizer/events/${props.event.id}?tab=attendees`"
+            >
               View attendees
             </AppButton>
           </div>

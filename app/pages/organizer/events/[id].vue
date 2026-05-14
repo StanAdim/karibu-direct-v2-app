@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  flattenParticipantsFromRegistrations,
   getEventCapacityPercentage,
   isEventLive,
   isEventPast,
@@ -9,7 +8,6 @@ import {
   type Event,
   type EventStatus,
   type EventUpdateInput,
-  type Participant,
   type Session,
   type SessionCreateInput,
   type SessionUpdateInput
@@ -25,12 +23,14 @@ import SessionEditModal from '~/components/events/SessionEditModal.vue'
 import AssignSessionSpeakerModal from '~/components/events/AssignSessionSpeakerModal.vue'
 import SessionRegistrationModal from '~/components/events/SessionRegistrationModal.vue'
 import SessionCheckInModal from '~/components/events/SessionCheckInModal.vue'
-import EventOverviewTab from '~/components/organizer/event/EventOverviewTab.vue'
-import EventSessionsTab from '~/components/organizer/event/EventSessionsTab.vue'
-import EventCheckpointsTab from '~/components/organizer/event/EventCheckpointsTab.vue'
-import EventAttendeesTab from '~/components/organizer/event/EventAttendeesTab.vue'
-import EventTicketTypesTab from '~/components/organizer/event/EventTicketTypesTab.vue'
+import EventOverviewTab from '~/components/organizer/events/tabs/EventOverviewTab.vue'
+import EventSessionsTab from '~/components/organizer/events/tabs/EventSessionsTab.vue'
+import EventCheckpointsTab from '~/components/organizer/events/tabs/EventCheckpointsTab.vue'
+import EventAttendeesTab from '~/components/organizer/events/tabs/EventAttendeesTab.vue'
+import EventTicketTypesTab from '~/components/organizer/events/tabs/EventTicketTypesTab.vue'
+import EventAnalyticsTab from '~/components/organizer/events/tabs/EventAnalyticsTab.vue'
 import type { TicketType, TicketTypeUpsertInput } from '~/stores/ticket_types'
+import { getEventCoverImageUrl } from '~/utils/eventImage'
 
 definePageMeta({
   layout: 'organizer',
@@ -47,6 +47,13 @@ const ticketTypesStore = useTicketTypesStore()
 const notifications = useNotifications()
 const router = useRouter()
 const api = useApi()
+const config = useRuntimeConfig()
+
+function eventCoverThumb(ev: Event): string | null {
+  if (!ev.cover_image)
+    return null
+  return getEventCoverImageUrl(ev.cover_image, String(config.public.apiBase))
+}
 
 type AssignSpeakerPayload = {
   user_id: string
@@ -74,15 +81,78 @@ const showSessionCheckInModal = ref(false)
 const checkInSession = ref<Session | null>(null)
 const sessionCheckInLoading = ref(false)
 const loading = ref(true)
-const activeTab = ref<'overview' | 'sessions' | 'ticket_types' | 'checkpoints' | 'attendees'>('overview')
-
 const organizerEventTabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'sessions', label: 'Sessions' },
   { id: 'ticket_types', label: 'Ticket Types' },
   { id: 'checkpoints', label: 'Checkpoints' },
-  { id: 'attendees', label: 'Attendee List' }
+  { id: 'attendees', label: 'Attendee List' },
+  { id: 'analytics', label: 'Analytics' }
 ] as const
+
+type OrganizerEventTabId = (typeof organizerEventTabs)[number]['id']
+
+const VALID_TAB_IDS: OrganizerEventTabId[] = organizerEventTabs.map(t => t.id)
+
+function tabQueryFromRoute(): OrganizerEventTabId {
+  const t = String(route.query.tab || '')
+  if (VALID_TAB_IDS.includes(t as OrganizerEventTabId))
+    return t as OrganizerEventTabId
+  return 'overview'
+}
+
+const activeTab = ref<OrganizerEventTabId>(tabQueryFromRoute())
+
+const tabFetchFlags = reactive({
+  ticketTypes: false,
+  sessions: false,
+  checkpoints: false,
+  registrations: false
+})
+
+function resetTabFetchState() {
+  tabFetchFlags.ticketTypes = false
+  tabFetchFlags.sessions = false
+  tabFetchFlags.checkpoints = false
+  tabFetchFlags.registrations = false
+}
+
+async function ensureTabData(tab: OrganizerEventTabId) {
+  const id = eventId.value
+  if (!id)
+    return
+
+  const promises: Promise<unknown>[] = []
+
+  const needTickets = tab === 'overview' || tab === 'ticket_types' || tab === 'attendees' || tab === 'analytics'
+  if (needTickets && !tabFetchFlags.ticketTypes) {
+    tabFetchFlags.ticketTypes = true
+    promises.push(ticketTypesStore.fetchEventTicketTypes(id))
+  }
+
+  if (tab === 'sessions') {
+    if (!tabFetchFlags.sessions) {
+      tabFetchFlags.sessions = true
+      promises.push(sessionsStore.fetchEventSessions(id))
+    }
+  }
+
+  if (tab === 'checkpoints') {
+    if (!tabFetchFlags.checkpoints) {
+      tabFetchFlags.checkpoints = true
+      promises.push(checkpointStore.fetchEventCheckpoints(id))
+    }
+  }
+
+  const needRegs = tab === 'sessions' || tab === 'attendees' || tab === 'analytics'
+  if (needRegs && !tabFetchFlags.registrations) {
+    tabFetchFlags.registrations = true
+    promises.push(registrationStore.fetchEventRegistrations(id))
+  }
+
+  if (promises.length)
+    await Promise.all(promises)
+}
 
 /** Only treat as loaded when it matches the current route (avoids stale hub state). */
 const event = computed<Event | null>(() => {
@@ -103,8 +173,9 @@ const eventCheckpoints = computed<Checkpoint[]>(() =>
   checkpointStore.eventCheckpoints(eventId.value)
 )
 
-const eventParticipants = computed<Participant[]>(() =>
-  flattenParticipantsFromRegistrations(registrationStore.eventRegistrations)
+const { attendees: eventParticipants } = useOrganizerAttendeeRows(
+  toRef(registrationStore, 'eventRegistrations'),
+  ticketTypes
 )
 
 const isLive = computed(() => event.value ? isEventLive(event.value) : false)
@@ -139,7 +210,7 @@ const _stats = computed(() => [
   }
 ])
 
-async function loadData() {
+async function loadEventShell() {
   const id = eventId.value
   if (!id) {
     loading.value = false
@@ -148,13 +219,8 @@ async function loadData() {
 
   loading.value = true
   try {
-    await Promise.all([
-      eventsStore.fetchEvent(id),
-      sessionsStore.fetchEventSessions(id),
-      ticketTypesStore.fetchEventTicketTypes(id),
-      checkpointStore.fetchEventCheckpoints(id),
-      registrationStore.fetchEventRegistrations(id)
-    ])
+    await eventsStore.fetchEvent(id)
+    await ensureTabData(activeTab.value)
   }
   finally {
     loading.value = false
@@ -244,7 +310,7 @@ async function submitStatusUpdate() {
     }
 
     notifications.success('Event status updated')
-    await loadData()
+    await loadEventShell()
   } catch {
     notifications.error('Failed to update event status')
   } finally {
@@ -378,7 +444,7 @@ async function onSessionCreated(payload: SessionCreateInput) {
       event_id: payload.event_id || ev
     })
     notifications.success('Session created')
-    await loadData()
+    await loadEventShell()
     showSessionCreateModal.value = false
     scheduledSlot.value = null
   }
@@ -396,7 +462,7 @@ async function onSessionUpdated(payload: SessionUpdateInput) {
   try {
     await sessionsStore.updateSession(editingSession.value.id, payload)
     notifications.success('Session updated')
-    await loadData()
+    await loadEventShell()
     showSessionEditModal.value = false
     editingSession.value = null
   }
@@ -416,7 +482,7 @@ async function onAssignSpeakerSaved(payload: AssignSpeakerPayload) {
     notifications.success('Speaker updated')
     showAssignSpeakerModal.value = false
     assignSession.value = null
-    await loadData()
+    await loadEventShell()
   }
   catch {
     notifications.error('Failed to update speaker')
@@ -473,7 +539,7 @@ async function handleSaveEvent(payload: EventUpdateInput) {
   try {
     await eventsStore.updateEvent(event.value.id, payload)
     notifications.success('Event updated successfully')
-    await loadData()
+    await loadEventShell()
     showEventModal.value = false
   }
   catch {
@@ -492,11 +558,37 @@ watch(
       sessionsStore.clearSessionsList()
       checkpointStore.invalidateEvent(prevId)
       ticketTypesStore.clearEventTicketTypes(prevId)
+      registrationStore.$patch({ eventRegistrations: [] })
     }
-    void loadData()
+    resetTabFetchState()
+    void loadEventShell()
   },
   { immediate: true }
 )
+
+watch(
+  () => route.query.tab,
+  (q) => {
+    const t = String(q ?? '')
+    if (VALID_TAB_IDS.includes(t as OrganizerEventTabId) && t !== activeTab.value)
+      activeTab.value = t as OrganizerEventTabId
+  }
+)
+
+watch(activeTab, (tab) => {
+  const qTab = String(route.query.tab ?? '')
+  if (qTab !== tab) {
+    const nextQuery = { ...route.query } as Record<string, string | string[] | undefined>
+    if (tab === 'overview')
+      delete nextQuery.tab
+    else
+      nextQuery.tab = tab
+    void router.replace({ path: route.path, query: nextQuery })
+  }
+
+  if (event.value)
+    void ensureTabData(tab)
+})
 
 onUnmounted(() => {
   eventsStore.clearCurrentEvent()
@@ -521,29 +613,62 @@ onUnmounted(() => {
       description="The event you're looking for doesn't exist or has been deleted"
     >
       <template #actions>
-        <UButton to="/organizer/events">
+        <AppButton
+          to="/organizer/events"
+          color="neutral"
+          icon="arrow_left"
+        >
           Back to Events
-        </UButton>
+        </AppButton>
       </template>
     </EmptyState>
 
     <!-- Event Management Hub -->
     <template v-else>
       <div class="space-y-4">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary-500">
-              Event Management Hub
-            </p>
-            <h1 class="mt-1 text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-              {{ event.title }}
-            </h1>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ event.short_description }}
-            </p>
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="flex min-w-0 flex-1 gap-4">
+            <div
+              class="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-primary-500 via-primary-400 to-indigo-500 shadow-md dark:border-slate-700"
+            >
+              <img
+                v-if="eventCoverThumb(event)"
+                :src="eventCoverThumb(event) ?? ''"
+                :alt="event.title"
+                class="h-full w-full object-cover"
+              >
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary-500">
+                Event Management Hub
+              </p>
+              <h1 class="mt-1 text-2xl font-bold tracking-tight text-gray-900 md:text-3xl dark:text-white">
+                {{ event.title }}
+              </h1>
+              <p class="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">
+                {{ event.short_description || event.description }}
+              </p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <span
+                  class="inline-flex items-center rounded-full bg-primary-500/10 px-2.5 py-0.5 text-[11px] font-semibold capitalize text-primary-700 dark:bg-primary-950/50 dark:text-primary-300"
+                >
+                  {{ event.status }}
+                </span>
+                <span
+                  class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                >
+                  {{ event.visibility }}
+                </span>
+                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  <AppLucideIcon name="users" class="h-3.5 w-3.5" />
+                  {{ (event.registered_count ?? 0).toLocaleString() }}
+                  registered
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 md:justify-end">
+          <div class="flex flex-wrap items-center gap-2 lg:justify-end">
             <div
               class="flex items-center gap-2"
             >
@@ -648,12 +773,12 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-4 border-b border-gray-200 text-sm dark:border-gray-800">
+        <div class="-mx-1 flex gap-1 overflow-x-auto border-b border-gray-200 pb-px text-sm scrollbar-thin dark:border-gray-800">
           <button
             v-for="tab in organizerEventTabs"
             :key="tab.id"
             type="button"
-            class="relative -mb-px border-b-2 px-3 pb-3 text-sm font-medium transition-colors"
+            class="relative shrink-0 whitespace-nowrap border-b-2 px-3 pb-3 text-sm font-medium transition-colors"
             :class="activeTab === tab.id
               ? 'border-primary-500 text-primary-600 dark:text-primary-400'
               : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
@@ -663,8 +788,7 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <div class="grid gap-4 lg:grid-cols-[2.2fr,1fr]">
-          <div>
+        <div class="min-w-0 space-y-4">
             <EventOverviewTab
               v-if="activeTab === 'overview'"
               :event="event"
@@ -679,7 +803,7 @@ onUnmounted(() => {
               @assign-speaker="openAssignSpeaker"
               @session-register="openSessionRegistration"
               @session-checkin="openSessionCheckIn"
-              @sessions-changed="loadData"
+              @sessions-changed="loadEventShell"
             />
             <EventTicketTypesTab
               v-else-if="activeTab === 'ticket_types'"
@@ -696,18 +820,29 @@ onUnmounted(() => {
               v-else-if="activeTab === 'checkpoints'"
               :event-id="event.id"
               :checkpoints="eventCheckpoints"
+              :loading="checkpointStore.loadingEventCheckpoints"
               @create="router.push(`/organizer/checkpoints?event_id=${event.id}`)"
             />
             <EventAttendeesTab
               v-else-if="activeTab === 'attendees'"
               :participants="eventParticipants"
+              :event-id="event.id"
               :event-title="event.title"
               :event-capacity="event.capacity"
               :event-registered="event.registered_count"
+              :loading-registrations="registrationStore.loadingEventRegistrations"
+              :registrations-error="registrationStore.error?.message"
+              @refresh="registrationStore.fetchEventRegistrations(event.id)"
+            />
+            <EventAnalyticsTab
+              v-else-if="activeTab === 'analytics'"
+              :event="event"
+              :participants="eventParticipants"
+              :ticket-types="ticketTypes"
+              :loading-registrations="registrationStore.loadingEventRegistrations"
             />
           </div>
 
-        </div>
       </div>
     </template>
 

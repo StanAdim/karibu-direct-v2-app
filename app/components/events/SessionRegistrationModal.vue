@@ -21,15 +21,20 @@ const isOpen = computed({
   set: (v: boolean) => emit('update:modelValue', v)
 })
 
-const selectedRegistrationId = ref<string | undefined>(undefined)
+const selectedRegistrationId = ref<string>('')
 
 const registrationItems = computed(() =>
-  props.registrations.map(r => ({
-    value: r.id,
-    label:
-      r.participants?.map(p => `${p.first_name} ${p.last_name} · ${p.email}`).join('; ')
-      || `Registration ${r.id}`
-  }))
+  props.registrations.map((r) => {
+    const nested = r.participants?.length
+      ? r.participants.map(p => `${p.first_name} ${p.last_name} · ${p.email}`).join('; ')
+      : ''
+    const flat = [r.user_name, r.user_email].filter(Boolean).join(' · ')
+    const label = nested || flat || `Ticket ${r.ticket_number || r.id}`
+    return {
+      value: r.id,
+      label
+    }
+  })
 )
 
 const isFull = computed(() => {
@@ -42,7 +47,7 @@ watch(
   () => [props.modelValue, props.registrations] as const,
   ([open]) => {
     if (open) {
-      selectedRegistrationId.value = props.registrations[0]?.id
+      selectedRegistrationId.value = props.registrations[0]?.id ?? ''
     }
   },
   { immediate: true }
@@ -112,15 +117,25 @@ function handleSubmit() {
         <label class="ml-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           Event registration
         </label>
-        <USelect
+        <select
           v-model="selectedRegistrationId"
-          :items="registrationItems"
-          value-key="value"
-          label-key="label"
-          placeholder="Select a registration"
-          class="w-full"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm outline-none ring-primary-500/30 focus:border-primary-500 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:disabled:bg-slate-800"
           :disabled="!registrationItems.length || isFull"
-        />
+        >
+          <option
+            value=""
+            disabled
+          >
+            Select a registration
+          </option>
+          <option
+            v-for="item in registrationItems"
+            :key="item.value"
+            :value="item.value"
+          >
+            {{ item.label }}
+          </option>
+        </select>
         <p
           v-if="!registrationItems.length"
           class="text-xs text-slate-500 dark:text-slate-400"
