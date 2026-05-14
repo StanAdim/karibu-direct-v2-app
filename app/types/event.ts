@@ -16,6 +16,11 @@ export interface Event {
   capacity: number
   registered_count: number
   organizer_id: string
+  /** Some organizer detail payloads embed a display name directly */
+  organizer_name?: string
+  /** Optional counts returned by organizer/event detail APIs */
+  sessions_count?: number
+  checkpoints_count?: number
   organizer?: User
   categories: string[]
   tags: string[]

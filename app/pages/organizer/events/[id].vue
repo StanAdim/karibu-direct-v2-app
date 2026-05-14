@@ -130,18 +130,16 @@ async function ensureTabData(tab: OrganizerEventTabId) {
     promises.push(ticketTypesStore.fetchEventTicketTypes(id))
   }
 
-  if (tab === 'sessions') {
-    if (!tabFetchFlags.sessions) {
-      tabFetchFlags.sessions = true
-      promises.push(sessionsStore.fetchEventSessions(id))
-    }
+  const needSessions = tab === 'sessions' || tab === 'overview'
+  if (needSessions && !tabFetchFlags.sessions) {
+    tabFetchFlags.sessions = true
+    promises.push(sessionsStore.fetchEventSessions(id))
   }
 
-  if (tab === 'checkpoints') {
-    if (!tabFetchFlags.checkpoints) {
-      tabFetchFlags.checkpoints = true
-      promises.push(checkpointStore.fetchEventCheckpoints(id))
-    }
+  const needCheckpoints = tab === 'checkpoints' || tab === 'overview'
+  if (needCheckpoints && !tabFetchFlags.checkpoints) {
+    tabFetchFlags.checkpoints = true
+    promises.push(checkpointStore.fetchEventCheckpoints(id))
   }
 
   const needRegs = tab === 'sessions' || tab === 'attendees' || tab === 'analytics'
@@ -793,6 +791,10 @@ onUnmounted(() => {
               v-if="activeTab === 'overview'"
               :event="event"
               :capacity-percentage="capacityPercentage"
+              :sessions-count="sessions.length"
+              :checkpoints-count="eventCheckpoints.length"
+              :ticket-types="ticketTypes"
+              @edit-event="showEventModal = true"
             />
             <EventSessionsTab
               v-else-if="activeTab === 'sessions'"
