@@ -27,6 +27,20 @@ interface PublicEventDetailPayload {
   venue: EventVenue
 }
 
+interface PublicTicketTypeRow {
+  id: string
+  name: string
+  price: number
+  currency: string
+  quantity: number
+  sold_count: number
+  reserved_count?: number
+  max_per_order: number
+  sales_start: string
+  sales_end: string
+  status: string
+}
+
 const route = useRoute()
 const router = useRouter()
 const config = useRuntimeConfig()
@@ -36,6 +50,8 @@ const slugParam = computed(() => String(route.params.slug ?? '').trim())
 const pending = ref(true)
 const event = ref<PublicEventDetailPayload | null>(null)
 const fetchError = ref(false)
+const ticketTypes = ref<PublicTicketTypeRow[]>([])
+const ticketsPending = ref(false)
 
 async function load(): Promise<void> {
   if (!slugParam.value) {
@@ -53,6 +69,23 @@ async function load(): Promise<void> {
     const data = raw?.data ?? null
     event.value = data
     fetchError.value = !data
+    ticketTypes.value = []
+    if (data?.id) {
+      ticketsPending.value = true
+      try {
+        const tRaw = await $fetch<{ data?: PublicTicketTypeRow[] }>(
+          `/events/${encodeURIComponent(data.id)}/ticket-types/public`,
+          { baseURL: String(config.public.apiBase ?? '') },
+        )
+        ticketTypes.value = tRaw?.data ?? []
+      }
+      catch {
+        ticketTypes.value = []
+      }
+      finally {
+        ticketsPending.value = false
+      }
+    }
   }
   catch {
     fetchError.value = true
@@ -66,6 +99,22 @@ async function load(): Promise<void> {
 watch(slugParam, () => void load())
 
 onMounted(load)
+
+function remainingForTicket(t: PublicTicketTypeRow): number {
+  const sold = t.sold_count || 0
+  const res = t.reserved_count || 0
+  return Math.max(0, t.quantity - sold - res)
+}
+
+function formatMoney(amount: number, currency: string): string {
+  if (!amount) return 'Free'
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'TZS' }).format(amount)
+  }
+  catch {
+    return `${amount} ${currency}`
+  }
+}
 
 function venueLine(ev: PublicEventDetailPayload): string {
   const v = ev.venue
@@ -145,12 +194,58 @@ const heroImage = computed(() => {
         </div>
       </div>
 
+      <div
+        v-if="ticketTypes.length || ticketsPending"
+        class="mt-8 public-card-surface p-6 md:p-10"
+      >
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">
+          Tickets
+        </h2>
+        <div v-if="ticketsPending" class="text-sm text-slate-500">
+          Loading availability…
+        </div>
+        <ul v-else class="space-y-3">
+          <li
+            v-for="t in ticketTypes"
+            :key="t.id"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80 px-4 py-3"
+          >
+            <div>
+              <p class="font-semibold text-slate-900 dark:text-white">
+                {{ t.name }}
+              </p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                <span v-if="remainingForTicket(t) <= 0">Sold out</span>
+                <span v-else>{{ remainingForTicket(t) }} left</span>
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="font-bold text-slate-900 dark:text-white">
+                {{ formatMoney(Number(t.price), t.currency) }}
+              </p>
+            </div>
+          </li>
+        </ul>
+        <div class="mt-6">
+          <NuxtLink
+            :to="`/attendee/events/${event.id}`"
+            class="public-focus-ring inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-primary-500 px-6 text-sm font-bold text-white shadow-lg shadow-primary-500/25 transition hover:bg-primary-600 sm:w-auto"
+          >
+            {{ ticketTypes.some(tt => Number(tt.price) > 0) ? 'Book tickets' : 'Register free' }}
+          </NuxtLink>
+          <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            Sign in to your attendee account to complete registration. Your selection is made on the next step.
+          </p>
+        </div>
+      </div>
+
       <div class="mt-8 public-card-surface p-6 md:p-10">
         <p v-if="event.short_description" class="text-lg leading-relaxed text-slate-700 dark:text-slate-200">
           {{ event.short_description }}
         </p>
         <div
           class="mt-6 whitespace-pre-line border-t border-slate-100 pt-6 text-sm leading-relaxed text-slate-600 dark:border-slate-800 dark:text-slate-300"
+          :class="{ 'mt-0 border-t-0 pt-0': !event.short_description }"
         >
           {{ event.description }}
         </div>

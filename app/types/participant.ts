@@ -143,6 +143,10 @@ function mapApiRegistrationToParticipantStatus(reg: Registration): ParticipantSt
 }
 
 function mapApiRegistrationToPaymentStatus(reg: Registration, ticketPrice: number): PaymentStatus {
+  const fromApi = reg.payment_status
+  if (fromApi === 'pending' || fromApi === 'completed' || fromApi === 'failed' || fromApi === 'refunded' || fromApi === 'free') {
+    return fromApi
+  }
   const s = String(reg.status ?? '').toLowerCase()
   if (s === 'pending')
     return 'pending'

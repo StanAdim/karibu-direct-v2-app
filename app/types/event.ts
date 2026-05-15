@@ -62,6 +62,7 @@ export interface TicketType {
   currency: string
   quantity: number
   sold_count: number
+  reserved_count?: number
   max_per_order: number
   sales_start: string
   sales_end: string

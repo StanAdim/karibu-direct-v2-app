@@ -2,6 +2,7 @@
 import type { Event, PaginatedResponse, Session } from '~/types'
 import { getEventCoverImageUrl } from '~/utils/eventImage'
 import { getEventCapacityPercentage, getFullName } from '~/types'
+import { unwrapResource } from '~/utils/unwrapApiResource'
 
 definePageMeta({
   layout: 'attendee',
@@ -16,7 +17,7 @@ const eventsStore = useEventsStore()
 const sessionsStore = useSessionsStore()
 const registrationStore = useRegistrationStore()
 const notifications = useNotifications()
-useAuth()
+const { user } = useAuth()
 
 const eventId = computed(() => String(route.params.id ?? ''))
 
@@ -47,7 +48,12 @@ const event = computed<Event | null>(() => {
 
 const bookableTicketTypes = computed(() => {
   const types = event.value?.ticket_types ?? []
-  return types.filter(t => t.status === 'available' && t.quantity > t.sold_count)
+  return types.filter((t) => {
+    if (t.status !== 'available') return false
+    const sold = t.sold_count || 0
+    const reserved = t.reserved_count || 0
+    return t.quantity > sold + reserved
+  })
 })
 
 const selectedTicketType = computed(() => {
@@ -82,7 +88,9 @@ const startingPriceLabel = computed(() => {
 const maxQuantity = computed(() => {
   const t = selectedTicketType.value
   if (!t) return 1
-  const remaining = Math.max(0, t.quantity - t.sold_count)
+  const sold = t.sold_count || 0
+  const reserved = t.reserved_count || 0
+  const remaining = Math.max(0, t.quantity - sold - reserved)
   const cap = Math.min(t.max_per_order || remaining, remaining)
   return Math.max(1, cap || 1)
 })
@@ -257,19 +265,45 @@ async function handleBook() {
     notifications.error('Select a ticket type')
     return
   }
+  const tt = selectedTicketType.value
+  const u = user.value
+  const baseSlot = {
+    attendee_name: [u?.first_name, u?.last_name].filter(Boolean).join(' ').trim() || 'Guest',
+    attendee_email: u?.email || '',
+    attendee_phone: u?.phone || undefined,
+  }
+  const slots = Array.from({ length: quantity.value }, () => ({ ...baseSlot }))
+
   bookingLoading.value = true
   try {
-    await registrationStore.registerForEvent({
-      event_id: event.value.id,
-      ticket_type_id: selectedTicketType.value.id,
-      quantity: quantity.value
+    if (Number(tt.price) <= 0) {
+      await api.post(`/events/${event.value.id}/register-free`, {
+        ticket_type_id: tt.id,
+        attendees: slots,
+      })
+      notifications.success('You are registered! Check My Tickets.')
+      await registrationStore.fetchUserRegistrations()
+      await router.push('/attendee/tickets')
+      return
+    }
+
+    const raw = await api.post(`/events/${event.value.id}/checkout`, {
+      items: [{ ticket_type_id: tt.id, quantity: quantity.value }],
+      attendees: slots,
     })
-    notifications.success('You are registered! Check My Tickets.')
-    await router.push('/attendee/tickets')
+    const body = unwrapResource<{ order: { id: string } }>(raw)
+    const oid = body?.order?.id
+    if (!oid) {
+      notifications.error('Checkout did not return an order id')
+      return
+    }
+    notifications.success('Continue to payment to secure your seats.')
+    await router.push(`/checkout/${oid}`)
   }
-  catch {
-    if (registrationStore.error?.code === 409) return
-    notifications.error(registrationStore.error?.message || 'Booking failed')
+  catch (e: unknown) {
+    const err = e as { data?: { message?: string }; message?: string; statusCode?: number }
+    if (err?.statusCode === 409) return
+    notifications.error(err?.data?.message || err?.message || 'Booking failed')
   }
   finally {
     bookingLoading.value = false
@@ -629,7 +663,7 @@ const organizerLine = computed(() => {
                   :disabled="!bookableTicketTypes.length || bookingLoading"
                   @click="handleBook"
                 >
-                  {{ bookingLoading ? 'Booking…' : 'Get Tickets' }}
+                  {{ bookingLoading ? 'Booking…' : (selectedTicketType && Number(selectedTicketType.price) <= 0 ? 'Register free' : 'Continue to checkout') }}
                 </button>
                 <p class="text-[10px] text-center text-slate-400 leading-relaxed">
                   No hidden fees. Cancellation policies are set by the organizer.
