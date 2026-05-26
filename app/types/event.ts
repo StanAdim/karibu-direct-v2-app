@@ -149,6 +149,8 @@ export interface EventFilters {
   start_date?: string
   end_date?: string
   organizer_id?: string
+  /** Only events where now is between start_date and end_date (server-side). */
+  live_only?: boolean
 }
 
 export interface EventStats {

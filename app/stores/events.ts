@@ -177,6 +177,7 @@ export const useEventsStore = defineStore('events', () => {
       if (eventFilters?.start_date) params.append('start_date', eventFilters.start_date)
       if (eventFilters?.end_date) params.append('end_date', eventFilters.end_date)
       if (eventFilters?.organizer_id) params.append('organizer_id', eventFilters.organizer_id)
+      if (eventFilters?.live_only === true) params.append('live_only', 'true')
       if (
         eventFilters?.sort_by
         && eventFilters.sort_by !== 'relevancy'
